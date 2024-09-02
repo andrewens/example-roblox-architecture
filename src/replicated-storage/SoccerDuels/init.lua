@@ -3,7 +3,9 @@ local AssetDependencies = require(script.AssetDependencies)
 local SoccerDuelsClient = require(script.SoccerDuelsClient)
 
 -- public
-local function initializeSoccerDuels() end
+local function initializeSoccerDuels()
+    SoccerDuelsClient.initialize()
+end
 
 return {
     -- client
