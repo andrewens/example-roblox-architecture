@@ -26,5 +26,23 @@ return function()
 			local AssetDependencies = SoccerDuels.getExpectedAssets()
 			assert(typeof(AssetDependencies) == "table")
 		end)
+		it("All expected assets are actually in the game", function()
+			local success = true
+
+			for _, AssetJson in SoccerDuels.getExpectedAssets() do
+				local AssetInstance = SoccerDuels.getAsset(AssetJson.Path)
+				if AssetInstance == nil then
+					success = false
+					warn(`[MISSING ASSET] Asset "{AssetJson.Path}" does not exist`)
+				end
+
+				if AssetJson.ClassName and not AssetInstance:IsA(AssetJson.ClassName) then
+					success = false
+					warn(`[MISSING ASSET] Asset "{AssetJson.Path}" is not a {AssetJson.ClassName}! It's a "{AssetInstance.ClassName}"`)
+				end
+			end
+
+			assert(success)
+		end)
 	end)
 end
