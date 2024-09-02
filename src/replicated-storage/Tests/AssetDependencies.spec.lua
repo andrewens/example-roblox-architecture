@@ -3,22 +3,28 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local SoccerDuels = require(ReplicatedStorage.SoccerDuels)
 
 return function()
-    describe("SoccerDuels.getAsset", function()
-        it("Searches the game for a Roblox Instance and returns it", function()
-            local TestFolder = Instance.new("Folder")
-            TestFolder.Name = "This is a folder"
-            TestFolder.Parent = workspace
+	describe("SoccerDuels.getAsset", function()
+		it("Searches the game for a Roblox Instance and returns it", function()
+			local TestFolder = Instance.new("Folder")
+			TestFolder.Name = "This is a folder"
+			TestFolder.Parent = workspace
 
-            local TestAsset = Instance.new("Part")
-            TestAsset.Name = "This is a Part"
-            TestAsset.Parent = TestFolder
+			local TestAsset = Instance.new("Part")
+			TestAsset.Name = "This is a Part"
+			TestAsset.Parent = TestFolder
 
-            local assetPath = `Workspace/{TestFolder.Name}/{TestAsset.Name}`
-            local ShouldBeTestAsset = SoccerDuels.getAsset(assetPath)
+			local assetPath = `Workspace/{TestFolder.Name}/{TestAsset.Name}`
+			local ShouldBeTestAsset = SoccerDuels.getAsset(assetPath)
 
-            assert(ShouldBeTestAsset == TestAsset)
+			assert(ShouldBeTestAsset == TestAsset)
 
-            TestFolder:Destroy()
-        end)
-    end)
+			TestFolder:Destroy()
+		end)
+	end)
+	describe("SoccerDuels.getExpectedAssets", function()
+		it("Returns a list of all expected assets to be in the game", function()
+			local AssetDependencies = SoccerDuels.getExpectedAssets()
+			assert(typeof(AssetDependencies) == "table")
+		end)
+	end)
 end
