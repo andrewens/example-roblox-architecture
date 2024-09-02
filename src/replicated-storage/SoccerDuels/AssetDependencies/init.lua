@@ -1,8 +1,19 @@
 -- dependency
 local ExpectedAssets = require(script.ExpectedAssets)
 
+-- protected (use inside of SoccerDuels moduel only)
+local getAssetByPath
+local function getExpectedAsset(assetName)
+    local AssetJson = ExpectedAssets[assetName]
+    if AssetJson == nil then
+        error(`There's no ExpectedAsset named "{assetName}"`)
+    end
+
+    return getAssetByPath(AssetJson.Path)
+end
+
 -- public
-local function getAsset(assetPath)
+function getAssetByPath(assetPath)
 	local ChildNames = string.split(assetPath, "/")
 	local Child = game
 
@@ -20,6 +31,10 @@ local function getExpectedAssets()
 end
 
 return {
-    getAsset = getAsset,
+    -- protected
+    getExpectedAsset = getExpectedAsset,
+
+    -- public
+    getAsset = getAssetByPath,
     getExpectedAssets = getExpectedAssets,
 }
