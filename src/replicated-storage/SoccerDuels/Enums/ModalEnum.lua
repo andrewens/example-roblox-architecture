@@ -1,0 +1,4 @@
+return {
+    "Settings",
+    "Career",
+}

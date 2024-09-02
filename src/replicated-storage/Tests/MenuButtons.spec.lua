@@ -23,6 +23,18 @@ return function()
 					assert(nil == Client:GetVisibleModalName())
 				end
 			)
+			it("Throws an error if you pass an invalid modal name", function()
+				local MockPlayer = MockInstance.new("Player")
+				local Client = SoccerDuels.newClient(MockPlayer)
+
+				local s = pcall(Client.ToggleModalVisibility, Client, "ThisIsn'tAModalName")
+
+				assert(not s)
+
+				s = pcall(Client.ToggleModalVisibility, Client, nil)
+
+				assert(not s)
+			end)
 		end)
 	end)
 end
