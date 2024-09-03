@@ -1,10 +1,9 @@
 return {
-    WindowsGui = {
-        Path = "ReplicatedStorage/UserInterface/Windows",
-        ClassName = "ScreenGui"
-    },
-    SettingsMenuButton = {
-        Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/MenuButtons/Settings",
-        ClassName = "GuiButton",
-    },
+	WindowsGui = {
+		Path = "ReplicatedStorage/UserInterface/Windows",
+		ClassName = "ScreenGui",
+	},
+	LobbyButtons = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Lobby/Buttons",
+	},
 }

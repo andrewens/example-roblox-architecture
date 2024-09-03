@@ -34,6 +34,7 @@ return function()
 				if AssetInstance == nil then
 					success = false
 					warn(`[MISSING ASSET] Asset "{AssetJson.Path}" does not exist`)
+					continue
 				end
 
 				if AssetJson.ClassName and not AssetInstance:IsA(AssetJson.ClassName) then

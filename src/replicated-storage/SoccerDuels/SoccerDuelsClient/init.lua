@@ -1,11 +1,10 @@
 -- dependency
-local SoccerDuelsModule = script.Parent
+local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
-local AssetDependencies = require(SoccerDuelsModule.AssetDependencies)
 local Enums = require(SoccerDuelsModule.Enums)
 local Utility = require(SoccerDuelsModule.Utility)
 
-local WindowsScreenGui = AssetDependencies.getExpectedAsset("WindowsGui")
+local WindowsGui = require(script.WindowsGui)
 
 -- var
 local ClientMetatable
@@ -25,7 +24,7 @@ local function clientOnVisibleModalChangedConnect(self, callback)
 	return {
 		Disconnect = function()
 			self._VisibleModalChangedCallbacks[callback] = nil
-		end
+		end,
 	}
 end
 local function toggleClientModalVisibility(self, modalName)
@@ -50,17 +49,17 @@ local function newClient(Player)
 		error(`{Player} is not a Player Instance!`)
 	end
 
+	-- public properties
 	local self = {}
+	self.Player = Player
 
 	-- private properties (don't use outside of this module)
-	self._Player = Player
 	self._VisibleModalEnum = nil -- int | nil
 	self._VisibleModalChangedCallbacks = {} -- function callback(string visibleModalName) --> true
 
-	setmetatable(self, ClientMetatable)
-
 	-- init
-	WindowsScreenGui:Clone().Parent = Player.PlayerGui
+	setmetatable(self, ClientMetatable)
+	self._WindowsGui = WindowsGui.new(self)
 
 	return self
 end
@@ -72,6 +71,8 @@ local function initializeClients()
 		Destroy = destroyClient,
 	}
 	ClientMetatable = { __index = ClientMethods }
+
+	WindowsGui.initialize()
 end
 
 return {

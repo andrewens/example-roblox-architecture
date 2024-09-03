@@ -5,4 +5,5 @@ local SoccerDuels = require(ReplicatedStorage.SoccerDuels)
 
 local LocalPlayer = Players.LocalPlayer
 
+SoccerDuels.initialize()
 SoccerDuels.newClient(LocalPlayer)
