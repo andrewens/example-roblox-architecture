@@ -1,6 +1,7 @@
 -- dependency
 local AssetDependencies = require(script.AssetDependencies)
 local Enums = require(script.Enums)
+local Maid = require(script.Maid)
 local SoccerDuelsClient = require(script.SoccerDuelsClient)
 local Utility = require(script.Utility)
 
@@ -8,6 +9,7 @@ local Utility = require(script.Utility)
 local function initializeSoccerDuels()
     Utility.moveStarterGuiToReplicatedStorage()
     Enums.initialize()
+    Maid.initialize()
     SoccerDuelsClient.initialize()
 end
 

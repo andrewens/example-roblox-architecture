@@ -6,4 +6,7 @@ return {
 	LobbyButtons = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Lobby/Buttons",
 	},
+	ModalFrames = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames",
+	},
 }
