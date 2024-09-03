@@ -23,7 +23,7 @@ return function()
 			local MockPlayer = MockInstance.new("Player")
 			local Client = SoccerDuels.newClient(MockPlayer)
 
-			assert(MockPlayer.PlayerGui.Windows)
+			assert(MockPlayer.PlayerGui.Windows) --> TODO this should use ExpectedAssets...?
 		end)
 	end)
 end

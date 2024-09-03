@@ -2,6 +2,7 @@
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 local Enums = require(SoccerDuelsModule.Enums)
+local RemoteEvents = require(SoccerDuelsModule.RemoteEvents)
 local Utility = require(SoccerDuelsModule.Utility)
 
 local WindowsGui = require(script.WindowsGui)
@@ -10,6 +11,16 @@ local WindowsGui = require(script.WindowsGui)
 local ClientMetatable
 
 -- public / Client class methods
+local function getClientPlayerSaveData(self)
+	return self._PlayerSaveData
+end
+local function loadClientPlayerDataAsync(self)
+	local s, PlayerSaveData = RemoteEvents.GetPlayerSaveData:InvokeServer(self.Player)
+	self._PlayerSaveData = PlayerSaveData
+
+	return s
+end
+
 local function getClientVisibleModalName(self)
 	return Enums.enumToName("ModalEnum", self._VisibleModalEnum)
 end
@@ -56,6 +67,7 @@ local function newClient(Player)
 	-- private properties (don't use outside of this module)
 	self._VisibleModalEnum = nil -- int | nil
 	self._VisibleModalChangedCallbacks = {} -- function callback(string visibleModalName) --> true
+	self._PlayerSaveData = nil -- nil | JSON
 
 	-- init
 	setmetatable(self, ClientMetatable)
@@ -65,9 +77,13 @@ local function newClient(Player)
 end
 local function initializeClients()
 	local ClientMethods = {
+		GetPlayerSaveData = getClientPlayerSaveData,
+		LoadPlayerDataAsync = loadClientPlayerDataAsync,
+
 		OnVisibleModalChangedConnect = clientOnVisibleModalChangedConnect,
 		GetVisibleModalName = getClientVisibleModalName,
 		ToggleModalVisibility = toggleClientModalVisibility,
+
 		Destroy = destroyClient,
 	}
 	ClientMetatable = { __index = ClientMethods }
