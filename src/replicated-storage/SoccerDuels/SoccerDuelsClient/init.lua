@@ -1,8 +1,11 @@
 -- dependency
 local SoccerDuelsModule = script.Parent
 
+local AssetDependencies = require(SoccerDuelsModule.AssetDependencies)
 local Enums = require(SoccerDuelsModule.Enums)
 local Utility = require(SoccerDuelsModule.Utility)
+
+local WindowsScreenGui = AssetDependencies.getExpectedAsset("WindowsGui")
 
 -- var
 local ClientMetatable
@@ -17,8 +20,13 @@ local function clientOnVisibleModalChangedConnect(self, callback)
 	end
 
 	callback(getClientVisibleModalName(self))
+	self._VisibleModalChangedCallbacks[callback] = true
 
-	return self._VisibleModalChangedEvent.Event:Connect(callback)
+	return {
+		Disconnect = function()
+			self._VisibleModalChangedCallbacks[callback] = nil
+		end
+	}
 end
 local function toggleClientModalVisibility(self, modalName)
 	local modalEnum = Enums.getEnum("ModalEnum", modalName)
@@ -27,10 +35,13 @@ local function toggleClientModalVisibility(self, modalName)
 	end
 
 	self._VisibleModalEnum = if self._VisibleModalEnum == modalEnum then nil else modalEnum
-	self._VisibleModalChangedEvent:Fire(getClientVisibleModalName(self))
+
+	for callback, _ in self._VisibleModalChangedCallbacks do
+		callback(getClientVisibleModalName(self))
+	end
 end
 local function destroyClient(self)
-	self._VisibleModalChangedEvent:Destroy()
+	self._VisibleModalChangedCallbacks = {}
 end
 
 -- public
@@ -44,9 +55,12 @@ local function newClient(Player)
 	-- private properties (don't use outside of this module)
 	self._Player = Player
 	self._VisibleModalEnum = nil -- int | nil
-	self._VisibleModalChangedEvent = Instance.new("BindableEvent")
+	self._VisibleModalChangedCallbacks = {} -- function callback(string visibleModalName) --> true
 
 	setmetatable(self, ClientMetatable)
+
+	-- init
+	WindowsScreenGui:Clone().Parent = Player.PlayerGui
 
 	return self
 end

@@ -53,6 +53,8 @@ return function()
 
 				Client:ToggleModalVisibility("Settings")
 
+				print("CHANGE COUNT", changeCount, lastModalName)
+
 				assert(2 == changeCount)
 				assert("Settings" == lastModalName)
 

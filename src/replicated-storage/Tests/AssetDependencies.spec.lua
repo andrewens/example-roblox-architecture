@@ -38,7 +38,7 @@ return function()
 
 				if AssetJson.ClassName and not AssetInstance:IsA(AssetJson.ClassName) then
 					success = false
-					warn(`[MISSING ASSET] Asset "{AssetJson.Path}" is not a {AssetJson.ClassName}! It's a "{AssetInstance.ClassName}"`)
+					warn(`[INVALID ASSET] Asset "{AssetJson.Path}" is not a {AssetJson.ClassName}! It's a "{AssetInstance.ClassName}"`)
 				end
 			end
 
