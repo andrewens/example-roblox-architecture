@@ -36,5 +36,38 @@ return function()
 				assert(not s)
 			end)
 		end)
+        describe("SoccerDuelsClient:OnVisibleModalChangedConnect()", function()
+            it("Connects a callback to fire every time the visible modal changes", function()
+                local MockPlayer = MockInstance.new("Player")
+                local Client = SoccerDuels.newClient(MockPlayer)
+
+                local changeCount = 0
+                local lastModalName
+                local conn = Client:OnVisibleModalChangedConnect(function(visibleModalName)
+                    changeCount += 1
+                    lastModalName = visibleModalName
+                end)
+
+                assert(1 == changeCount)
+                assert(nil == lastModalName)
+
+				Client:ToggleModalVisibility("Settings")
+
+				assert(2 == changeCount)
+				assert("Settings" == lastModalName)
+
+				Client:ToggleModalVisibility("Settings")
+
+				assert(3 == changeCount)
+				assert(nil == lastModalName)
+
+                conn:Disconnect()
+
+				Client:ToggleModalVisibility("Settings")
+
+				assert(3 == changeCount)
+				assert(nil == lastModalName)
+            end)
+        end)
 	end)
 end
