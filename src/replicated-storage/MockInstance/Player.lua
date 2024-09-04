@@ -1,4 +1,14 @@
+-- dependency
+local RunService = game:GetService("RunService")
+
 -- public / MockPlayer methods
+local function kickPlayer(self, errorMessage)
+	if not RunService:IsServer() then
+		error(`{self.Name}:Kick() called on the Client`)
+	end
+
+	warn(`Kick {self.Name} with message: "{errorMessage}"`)
+end
 local function playerIsA(self, className)
 	return className == "Player"
 end
@@ -15,6 +25,7 @@ return function()
 
 		-- methods
 		IsA = playerIsA,
+		Kick = kickPlayer,
 
 		-- children
 		PlayerGui = PlayerGuiFolder,
