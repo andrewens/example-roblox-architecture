@@ -20,9 +20,9 @@ do
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames",
 	}
 
-	for _, enumName in Enums.iterateEnumsOfType("ModalEnum") do
-		ExpectedAssets[`{enumName}Modal`] = {
-			Path = `{ExpectedAssets.ModalFrames.Path}/{enumName}`,
+	for _, modalName in Enums.iterateEnumsOfType("ModalEnum") do
+		ExpectedAssets[`{modalName}Modal`] = {
+			Path = ExpectedAssets.ModalFrames.Path .. "/" .. modalName,
 		}
 	end
 end
@@ -34,19 +34,24 @@ do
 	}
 	ExpectedAssets.BooleanSettingTemplate = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Settings/Boxes/Low Graphics",
-		ClassName = "ImageLabel"
+		ClassName = "ImageLabel",
 	}
 	ExpectedAssets.BooleanSettingTemplateButton = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Settings/Boxes/Low Graphics/Off",
-		ClassName = "ImageButton"
+		ClassName = "ImageButton",
 	}
 	ExpectedAssets.BooleanSettingTemplateValue = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Settings/Boxes/Low Graphics/Off/Name",
-		ClassName = "TextLabel"
+		ClassName = "TextLabel",
 	}
 	ExpectedAssets.BooleanSettingTemplateName = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Settings/Boxes/Low Graphics/Option",
-		ClassName = "TextLabel"
+		ClassName = "TextLabel",
+	}
+
+	ExpectedAssets.SettingsModalCloseButton = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Settings/Title/Close",
+		ClassName = "GuiButton",
 	}
 end
 

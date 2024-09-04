@@ -21,6 +21,8 @@ local function initializeSettingsModal(self)
 		"SettingButtonsContainer",
 		SettingButtonsContainer
 	)
+	local SettingsModalCloseButton =
+		AssetDependencies.getExpectedAsset("SettingsModalCloseButton", "ModalFrames", self._ModalFrames)
 
 	for _, SettingButton in SettingButtonsContainer:GetChildren() do
 		if not SettingButton:IsA(BooleanSettingTemplate.ClassName) then
@@ -43,22 +45,22 @@ local function initializeSettingsModal(self)
 		SettingButton.LayoutOrder = i
 		SettingButton.Parent = SettingButtonsContainer
 
-		local SettingNameTextLabel = AssetDependencies.getExpectedAsset(
-			"BooleanSettingTemplateName",
-			"BooleanSettingTemplate",
-			SettingButton
-		)
+		local SettingNameTextLabel =
+			AssetDependencies.getExpectedAsset("BooleanSettingTemplateName", "BooleanSettingTemplate", SettingButton)
 		SettingNameTextLabel.Text = Setting.Name
 
-		local SettingButtonImageButton = AssetDependencies.getExpectedAsset(
-			"BooleanSettingTemplateButton",
-			"BooleanSettingTemplate",
-			SettingButton
+		local SettingButtonImageButton =
+			AssetDependencies.getExpectedAsset("BooleanSettingTemplateButton", "BooleanSettingTemplate", SettingButton)
+		SettingButtonImageButton.Activated:Connect(
+			function() -- TODO should this be put in showSettingsModal() to save memory?
+				self._Client:ToggleBooleanSetting(settingName)
+			end
 		)
-		SettingButtonImageButton.Activated:Connect(function() -- TODO should this be put in showSettingsModal() to save memory?
-			self._Client:ToggleBooleanSetting(settingName)
-		end)
 	end
+
+	SettingsModalCloseButton.Activated:Connect(function()
+		self._Client:SetVisibleModalName(nil)
+	end)
 end
 local function showSettingsModal(self)
 	local SettingButtonsContainer =

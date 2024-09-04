@@ -43,7 +43,7 @@ local function clientChangeSetting(self, settingName, newValue)
 		callback(settingName, newValue)
 	end
 end
-local function clientToggleBooleanSetting(self, settingName)
+local function clientToggleBooleanSetting(self, settingName) -- TODO this method is untested :^)
 	if not (typeof(settingName) == "string") then
 		error(`{settingName} is not a string!`)
 	end
@@ -111,6 +111,22 @@ local function clientOnVisibleModalChangedConnect(self, callback)
 		end,
 	}
 end
+local function setClientVisibleModal(self, modalName) -- TODO this method is untested :^)
+	if modalName then
+		local modalEnum = Enums.getEnum("ModalEnum", modalName)
+		if modalEnum == nil then
+			error(`There's no Modal named "{modalName}"`)
+		end
+
+		self._VisibleModalEnum = modalEnum
+	else
+		self._VisibleModalEnum = nil
+	end
+
+	for callback, _ in self._VisibleModalChangedCallbacks do
+		callback(getClientVisibleModalName(self))
+	end
+end
 local function toggleClientModalVisibility(self, modalName)
 	local modalEnum = Enums.getEnum("ModalEnum", modalName)
 	if modalEnum == nil then
@@ -162,6 +178,7 @@ local function initializeClients()
 
 		OnVisibleModalChangedConnect = clientOnVisibleModalChangedConnect,
 		GetVisibleModalName = getClientVisibleModalName,
+		SetVisibleModalName = setClientVisibleModal,
 		ToggleModalVisibility = toggleClientModalVisibility,
 
 		Destroy = destroyClient,
