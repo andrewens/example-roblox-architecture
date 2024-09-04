@@ -1,10 +1,18 @@
 local Config = {}
 
+-- testing
 Config.TestingMode = (game.PlaceId == 18832664984)
 
 -- database
 Config.DatabaseQueryRetries = 3
 Config.DatabaseRetryWaitSeconds = 2
+Config.CurrentPlayerDataVersion = 0
+Config.DefaultPlayerSaveData = {
+	DataFormatVersion = Config.CurrentPlayerDataVersion,
+	Level = 0,
+	WinStreak = 0,
+	Settings = {},
+}
 
 -- client settings
 Config.DefaultClientSettings = {
