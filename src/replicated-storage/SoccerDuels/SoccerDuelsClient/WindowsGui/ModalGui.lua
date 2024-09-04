@@ -1,7 +1,7 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
-local AssetDependencies = require(SoccerDuelsModule.AssetDependencies)
+local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Config = require(SoccerDuelsModule.Config)
 local Maid = require(SoccerDuelsModule.Maid)
 
@@ -14,15 +14,11 @@ local ModalGuiMetatable
 
 -- private / ModalGui class methods
 local function initializeSettingsModal(self)
-	local SettingButtonsContainer =
-		AssetDependencies.getExpectedAsset("SettingButtonsContainer", "ModalFrames", self._ModalFrames)
-	local BooleanSettingTemplate = AssetDependencies.cloneExpectedAsset(
-		"BooleanSettingTemplate",
-		"SettingButtonsContainer",
-		SettingButtonsContainer
-	)
+	local SettingButtonsContainer = Assets.getExpectedAsset("SettingButtonsContainer", "ModalFrames", self._ModalFrames)
+	local BooleanSettingTemplate =
+		Assets.cloneExpectedAsset("BooleanSettingTemplate", "SettingButtonsContainer", SettingButtonsContainer)
 	local SettingsModalCloseButton =
-		AssetDependencies.getExpectedAsset("SettingsModalCloseButton", "ModalFrames", self._ModalFrames)
+		Assets.getExpectedAsset("SettingsModalCloseButton", "ModalFrames", self._ModalFrames)
 
 	for _, SettingButton in SettingButtonsContainer:GetChildren() do
 		if not SettingButton:IsA(BooleanSettingTemplate.ClassName) then
@@ -46,11 +42,11 @@ local function initializeSettingsModal(self)
 		SettingButton.Parent = SettingButtonsContainer
 
 		local SettingNameTextLabel =
-			AssetDependencies.getExpectedAsset("BooleanSettingTemplateName", "BooleanSettingTemplate", SettingButton)
+			Assets.getExpectedAsset("BooleanSettingTemplateName", "BooleanSettingTemplate", SettingButton)
 		SettingNameTextLabel.Text = Setting.Name
 
 		local SettingButtonImageButton =
-			AssetDependencies.getExpectedAsset("BooleanSettingTemplateButton", "BooleanSettingTemplate", SettingButton)
+			Assets.getExpectedAsset("BooleanSettingTemplateButton", "BooleanSettingTemplate", SettingButton)
 		SettingButtonImageButton.Activated:Connect(
 			function() -- TODO should this be put in showSettingsModal() to save memory?
 				self._Client:ToggleBooleanSetting(settingName)
@@ -63,18 +59,17 @@ local function initializeSettingsModal(self)
 	end)
 end
 local function showSettingsModal(self)
-	local SettingButtonsContainer =
-		AssetDependencies.getExpectedAsset("SettingButtonsContainer", "ModalFrames", self._ModalFrames)
+	local SettingButtonsContainer = Assets.getExpectedAsset("SettingButtonsContainer", "ModalFrames", self._ModalFrames)
 	self._Maid:GiveTask(self._Client:OnSettingChangedConnect(function(settingName, settingValue)
 		-- assuming it's a boolean
 		local SettingButton = SettingButtonsContainer:FindFirstChild(settingName)
 
 		local SettingValueTextLabel =
-			AssetDependencies.getExpectedAsset("BooleanSettingTemplateValue", "BooleanSettingTemplate", SettingButton)
+			Assets.getExpectedAsset("BooleanSettingTemplateValue", "BooleanSettingTemplate", SettingButton)
 		SettingValueTextLabel.Text = if settingValue then "ON" else "OFF"
 
 		local SettingButtonImageButton =
-			AssetDependencies.getExpectedAsset("BooleanSettingTemplateButton", "BooleanSettingTemplate", SettingButton)
+			Assets.getExpectedAsset("BooleanSettingTemplateButton", "BooleanSettingTemplate", SettingButton)
 		SettingButtonImageButton.Image =
 			`rbxassetid://{if settingValue then BOOLEAN_SETTING_ON_IMAGE_ID else BOOLEAN_SETTING_OFF_IMAGE_ID}`
 	end))
@@ -115,7 +110,7 @@ local function newModalGui(Client, WindowsGui)
 
 	local self = {}
 	self._Client = Client
-	self._ModalFrames = AssetDependencies.getExpectedAsset("ModalFrames", "WindowsGui", WindowsGui)
+	self._ModalFrames = Assets.getExpectedAsset("ModalFrames", "WindowsGui", WindowsGui)
 	self._Maid = Maid.new()
 
 	setmetatable(self, ModalGuiMetatable)

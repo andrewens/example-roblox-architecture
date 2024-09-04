@@ -1,7 +1,7 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
-local AssetDependencies = require(SoccerDuelsModule.AssetDependencies)
+local Assets = require(SoccerDuelsModule.AssetDependencies)
 local ModalGui = require(script.ModalGui)
 
 -- public
@@ -12,8 +12,8 @@ local function newWindowsGui(Client)
 	local Modal
 
 	-- init
-	WindowsGui = AssetDependencies.cloneExpectedAsset("WindowsGui")
-	LobbyButtons = AssetDependencies.getExpectedAsset("LobbyButtons", "WindowsGui", WindowsGui)
+	WindowsGui = Assets.cloneExpectedAsset("WindowsGui")
+	LobbyButtons = Assets.getExpectedAsset("LobbyButtons", "WindowsGui", WindowsGui)
 	Modal = ModalGui.new(Client, WindowsGui)
 
 	for _, LobbyButton in LobbyButtons:GetChildren() do
