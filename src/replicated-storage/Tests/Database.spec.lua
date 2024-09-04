@@ -17,6 +17,9 @@ return function()
 
                 assert(typeof(success) == "boolean")
                 assert(typeof(PlayerSaveData) == "table")
+
+                assert(PlayerSaveData.Level == 0)
+                assert(PlayerSaveData.WinStreak == 0)
 			end)
 		end)
 	end)

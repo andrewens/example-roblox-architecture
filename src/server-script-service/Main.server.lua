@@ -7,5 +7,8 @@ local SoccerDuels = require(ReplicatedStorage.SoccerDuels)
 local TestEZ = require(ReplicatedStorage.TestEZ)
 
 SoccerDuels.initialize()
-MockInstance.initialize()
-TestEZ.TestBootstrap:run({ TestsFolder })
+
+if SoccerDuels.getConstant("TestingMode") then
+    MockInstance.initialize()
+    TestEZ.TestBootstrap:run({ TestsFolder })
+end

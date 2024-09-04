@@ -1,3 +1,4 @@
+local Players = game:GetService("Players")
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
@@ -16,6 +17,7 @@ local function getClientPlayerSaveData(self)
 end
 local function loadClientPlayerDataAsync(self)
 	local s, PlayerSaveData = RemoteEvents.GetPlayerSaveData:InvokeServer(self.Player)
+
 	self._PlayerSaveData = PlayerSaveData
 
 	return s
