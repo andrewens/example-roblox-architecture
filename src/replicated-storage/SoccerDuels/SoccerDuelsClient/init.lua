@@ -16,6 +16,18 @@ local CLIENT_SETTINGS_DISPLAY_ORDER = Config.getConstant("ClientSettingsDisplayO
 local ClientMetatable
 
 -- public / Client class methods
+local function onClientSettingChangedConnect(self, callback)
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	local ClientSettings = self._PlayerSaveData and self._PlayerSaveData.Settings
+	ClientSettings = ClientSettings or DEFAULT_CLIENT_SETTINGS
+
+	for i, settingName in CLIENT_SETTINGS_DISPLAY_ORDER do
+		callback(settingName, ClientSettings[settingName])
+	end
+end
 local function getClientSettings(self)
 	local SettingsJson = {}
 
@@ -96,6 +108,7 @@ local function newClient(Player)
 end
 local function initializeClients()
 	local ClientMethods = {
+		OnSettingChangedConnect = onClientSettingChangedConnect,
 		GetSettings = getClientSettings,
 
 		GetPlayerSaveData = getClientPlayerSaveData,
