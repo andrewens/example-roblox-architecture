@@ -19,6 +19,7 @@ local function newPlayerSaveData()
     return {
         Level = 0,
         WinStreak = 0,
+        Settings = {},
     }
 end
 

@@ -35,6 +35,39 @@ return function()
 					assert(CorrectSettingObject.Value == settingValue)
 				end)
 			end)
+			it("Invokes callback when a setting is changed, until it's been disconnected", function()
+				local MockPlayer = MockInstance.new("Player")
+				local Client = SoccerDuels.newClient(MockPlayer)
+				Client:LoadPlayerDataAsync()
+
+				local changeCount = 0
+				local lastSettingName, lastSettingValue
+				local conn = Client:OnSettingChangedConnect(function(...)
+					changeCount += 1
+					lastSettingName, lastSettingValue = ...
+				end)
+
+				changeCount = 0
+
+				Client:ChangeSetting("Low Graphics", false)
+
+				assert(changeCount == 1)
+				assert(lastSettingName == "Low Graphics")
+				assert(lastSettingValue == false)
+
+				Client:ChangeSetting("Low Graphics", true)
+
+				assert(changeCount == 2)
+				assert(lastSettingName == "Low Graphics")
+				assert(lastSettingValue == true)
+
+				conn:Disconnect()
+				Client:ChangeSetting("Low Graphics", false)
+
+				assert(changeCount == 2)
+				assert(lastSettingName == "Low Graphics")
+				assert(lastSettingValue == true)
+			end)
 		end)
 	end)
 end

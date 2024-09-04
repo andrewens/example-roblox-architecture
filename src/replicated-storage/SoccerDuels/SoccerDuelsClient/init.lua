@@ -15,26 +15,60 @@ local CLIENT_SETTINGS_DISPLAY_ORDER = Config.getConstant("ClientSettingsDisplayO
 -- var
 local ClientMetatable
 
+-- private / Client class methods
+local function getClientSettingValue(self, settingName)
+	if self._PlayerSaveData == nil or self._PlayerSaveData.Settings[settingName] == nil then
+		return DEFAULT_CLIENT_SETTINGS[settingName]
+	end
+
+	return self._PlayerSaveData.Settings[settingName]
+end
+
 -- public / Client class methods
+local function clientChangeSetting(self, settingName, newValue)
+	if not (typeof(settingName) == "string") then
+		error(`{settingName} is not a string!`)
+	end
+	if newValue == nil then
+		error(`Setting "{settingName}" can't be set to nil!`)
+	end
+	if DEFAULT_CLIENT_SETTINGS[settingName] == nil then
+		error(`"{settingName}" is not a ClientSetting!`)
+	end
+	if self._PlayerSaveData == nil then
+		error(`Player {self.Player} hasn't loaded their data yet!`)
+	end
+
+	self._PlayerSaveData.Settings[settingName] = newValue
+
+	for callback, _ in self._SettingChangedCallbacks do
+		callback(settingName, newValue)
+	end
+end
 local function onClientSettingChangedConnect(self, callback)
 	if not (typeof(callback) == "function") then
 		error(`{callback} is not a function!`)
 	end
 
-	local ClientSettings = self._PlayerSaveData and self._PlayerSaveData.Settings
-	ClientSettings = ClientSettings or DEFAULT_CLIENT_SETTINGS
-
 	for i, settingName in CLIENT_SETTINGS_DISPLAY_ORDER do
-		callback(settingName, ClientSettings[settingName])
+		callback(settingName, getClientSettingValue(self, settingName))
 	end
+
+	self._SettingChangedCallbacks[callback] = true
+
+	return {
+		Disconnect = function()
+			self._SettingChangedCallbacks[callback] = nil
+		end
+	}
 end
-local function getClientSettings(self)
+local function getClientSettingsJson(self)
 	local SettingsJson = {}
 
 	for i, settingName in CLIENT_SETTINGS_DISPLAY_ORDER do
 		SettingsJson[i] = {
 			Name = settingName,
-			Value = DEFAULT_CLIENT_SETTINGS[settingName],
+			Value = getClientSettingValue(self, settingName),
 		}
 	end
 
@@ -99,6 +133,7 @@ local function newClient(Player)
 	self._VisibleModalEnum = nil -- int | nil
 	self._VisibleModalChangedCallbacks = {} -- function callback(string visibleModalName) --> true
 	self._PlayerSaveData = nil -- nil | JSON
+	self._SettingChangedCallbacks = {} -- function callback(string settingName, any settingValue) --> true
 
 	-- init
 	setmetatable(self, ClientMetatable)
@@ -108,8 +143,9 @@ local function newClient(Player)
 end
 local function initializeClients()
 	local ClientMethods = {
+		ChangeSetting = clientChangeSetting,
 		OnSettingChangedConnect = onClientSettingChangedConnect,
-		GetSettings = getClientSettings,
+		GetSettings = getClientSettingsJson,
 
 		GetPlayerSaveData = getClientPlayerSaveData,
 		LoadPlayerDataAsync = loadClientPlayerDataAsync,

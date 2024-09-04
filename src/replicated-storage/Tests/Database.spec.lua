@@ -21,6 +21,7 @@ return function()
                 -- default save data for new players
                 assert(PlayerSaveData.Level == 0)
                 assert(PlayerSaveData.WinStreak == 0)
+                assert(typeof(PlayerSaveData.Settings) == "table")
 			end)
 		end)
 	end)
