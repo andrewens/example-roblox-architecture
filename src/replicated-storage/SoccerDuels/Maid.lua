@@ -53,7 +53,9 @@ local function initializeMaids()
 	MaidMetatable = { __index = MaidClassMethods }
 end
 
+initializeMaids()
+
 return {
 	new = newMaid,
-	initialize = initializeMaids,
+	--initialize = initializeMaids,
 }

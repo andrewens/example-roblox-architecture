@@ -19,6 +19,7 @@ local RunService = game:GetService("RunService")
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 local Config = require(SoccerDuelsModule.Config)
+local Event = require(SoccerDuelsModule.Event)
 
 -- const
 local TESTING_MODE = Config.getConstant("TestingMode")
@@ -48,13 +49,11 @@ local function remoteFunctionWrapperInvokeServer(self, Player, ...)
 		return self._Instance:InvokeServer(self, Player, ...)
 	end
 
-	if not TESTING_MODE then
-		return
-	end
-
-	local onServerInvokeCallback = rawget(self, "_OnServerInvoke")
-	if onServerInvokeCallback then
-		return onServerInvokeCallback(Player, ...)
+	if TESTING_MODE then
+		local onServerInvokeCallback = rawget(self, "_OnServerInvoke")
+		if onServerInvokeCallback then
+			return onServerInvokeCallback(Player, ...)
+		end
 	end
 end
 local function remoteFunctionWrapperInvokeClient(self, ...)
@@ -68,8 +67,23 @@ local function remoteEventWrapperFireServer(self, ...)
 	end
 end
 local function remoteEventWrapperFireClient(self, Player, ...)
-	if RunService:IsServer() then
+	if RunService:IsClient() then
+		error(`{self.Name}:FireClient() can't be invoked on the client`)
+	end
+
+	if typeof(Player) == "Instance" then
+		if not (Player:IsA("Player")) then
+			error(`{Player} is not a Player!`)
+		end
+		if Players:FindFirstChild(Player.Name) == nil then
+			return
+		end
+
 		self._Instance:FireClient(Player, ...)
+	end
+
+	if TESTING_MODE then
+		self.OnClientEvent:Fire(...)
 	end
 end
 local function remoteEventWrapperFireAllClients(self, ...)
@@ -95,14 +109,13 @@ local function newRemoteEventWrapper(RemoteEvent)
 		self.FireAllClients = remoteEventWrapperFireAllClients
 		self.FireServer = remoteEventWrapperFireServer
 
-		self.OnClientEvent = { Connect = function(_, callback) end }
-		self.OnServerEvent = { Connect = function(_, callback) end }
+		if TESTING_MODE then
+			self.OnClientEvent = Event.new()
+			self.OnServerEvent = Event.new()
+		end
 	else -- RemoteFunction
 		self.InvokeServer = remoteFunctionWrapperInvokeServer
 		self.InvokeClient = remoteFunctionWrapperInvokeClient
-
-		--self.OnClientInvoke = function() end
-		--self.OnServerInvoke = function() end
 	end
 
 	setmetatable(self, InstanceWrapperMetatable)

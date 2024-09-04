@@ -15,7 +15,28 @@ local CLIENT_SETTINGS_DISPLAY_ORDER = Config.getConstant("ClientSettingsDisplayO
 -- var
 local ClientMetatable
 
+-- protected / Client network methods
+local function onNotifyClient(self, toastMessage)
+	for callback, _ in self._ToastCallbacks do
+		callback(toastMessage)
+	end
+end
+
 -- public / Client class methods
+local function onClientToastNotificationConnect(self, callback)
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	self._ToastCallbacks[callback] = true
+
+	return {
+		Disconnect = function()
+			self._ToastCallbacks[callback] = nil
+		end,
+	}
+end
+
 local function getClientSettingValue(self, settingName)
 	if self._PlayerSaveData == nil or self._PlayerSaveData.Settings[settingName] == nil then
 		return DEFAULT_CLIENT_SETTINGS[settingName]
@@ -139,7 +160,7 @@ local function toggleClientModalVisibility(self, modalName)
 		callback(getClientVisibleModalName(self))
 	end
 end
-local function destroyClient(self)
+local function destroyClient(self) -- TODO this isn't really tested
 	self._VisibleModalChangedCallbacks = {}
 end
 
@@ -158,15 +179,22 @@ local function newClient(Player)
 	self._VisibleModalChangedCallbacks = {} -- function callback(string visibleModalName) --> true
 	self._PlayerSaveData = nil -- nil | JSON
 	self._SettingChangedCallbacks = {} -- function callback(string settingName, any settingValue) --> true
+	self._ToastCallbacks = {} -- function callback(string notificationMessage) --> true
 
 	-- init
 	setmetatable(self, ClientMetatable)
 	self._WindowsGui = WindowsGui.new(self)
 
+	RemoteEvents.NotifyPlayer.OnClientEvent:Connect(function(...)
+		onNotifyClient(self, ...)
+	end)
+
 	return self
 end
 local function initializeClients()
 	local ClientMethods = {
+		OnToastNotificationConnect = onClientToastNotificationConnect,
+
 		OnSettingChangedConnect = onClientSettingChangedConnect,
 		ToggleBooleanSetting = clientToggleBooleanSetting,
 		ChangeSetting = clientChangeSetting,

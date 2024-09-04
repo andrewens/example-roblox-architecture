@@ -4,6 +4,10 @@
     {
       "Name": "GetPlayerSaveData",
       "ClassName": "RemoteFunction"
+    },
+    {
+      "Name": "NotifyPlayer",
+      "ClassName": "RemoteEvent"
     }
   ]
 }

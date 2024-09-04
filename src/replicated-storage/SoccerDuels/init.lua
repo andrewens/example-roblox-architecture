@@ -5,12 +5,10 @@ local RunService = game:GetService("RunService")
 if RunService:IsClient() then
 	local AssetDependencies = require(script.AssetDependencies)
 	local Config = require(script.Config)
-	local Maid = require(script.Maid)
 	local SoccerDuelsClient = require(script.SoccerDuelsClient)
 
 	-- public
 	local function initializeSoccerDuelsClient()
-		Maid.initialize()
 		SoccerDuelsClient.initialize()
 	end
 
@@ -25,7 +23,7 @@ if RunService:IsClient() then
 		getAsset = AssetDependencies.getAsset,
 		getExpectedAssets = AssetDependencies.getExpectedAssets,
 
-		-- SoccerDuels
+		-- SoccerDuels client
 		initialize = initializeSoccerDuelsClient,
 	}
 end
@@ -33,7 +31,6 @@ end
 --[[ SERVER ]]
 local AssetDependencies = require(script.AssetDependencies)
 local Config = require(script.Config)
-local Maid = require(script.Maid)
 local SoccerDuelsClient = require(script.SoccerDuelsClient)
 local SoccerDuelsServer = require(script.SoccerDuelsServer)
 local Utility = require(script.Utility)
@@ -41,7 +38,6 @@ local Utility = require(script.Utility)
 -- public
 local function initializeSoccerDuels()
 	Utility.organizeDependencies()
-	Maid.initialize()
 	SoccerDuelsServer.initialize()
 	SoccerDuelsClient.initialize()
 end
@@ -57,6 +53,7 @@ return {
 	getAsset = AssetDependencies.getAsset,
 	getExpectedAssets = AssetDependencies.getExpectedAssets,
 
-	-- SoccerDuels
+	-- SoccerDuels server
+	notifyPlayer = SoccerDuelsServer.notifyPlayer,
 	initialize = initializeSoccerDuels,
 }

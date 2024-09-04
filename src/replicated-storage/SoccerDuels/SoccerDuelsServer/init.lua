@@ -2,6 +2,7 @@
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 local RemoteEvents = require(SoccerDuelsModule.RemoteEvents)
+local Utility = require(SoccerDuelsModule.Utility)
 local Database = require(script.Database)
 
 -- protected / network methods
@@ -17,6 +18,16 @@ local function getPlayerSaveData(Player)
 end
 
 -- public
+local function notifyPlayer(Player, notificationMessage)
+    if not (Utility.isA(Player, "Player")) then
+        error(`{Player} is not a Player!`)
+    end
+    if not (typeof(notificationMessage) == "string") then
+        error(`{notificationMessage} is not a string!`)
+    end
+
+    RemoteEvents.NotifyPlayer:FireClient(Player, notificationMessage)
+end
 local function initializeServer()
     Database.initialize()
 
@@ -24,5 +35,6 @@ local function initializeServer()
 end
 
 return {
+    notifyPlayer = notifyPlayer,
     initialize = initializeServer,
 }
