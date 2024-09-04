@@ -16,6 +16,13 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
+local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
+
+local Config = require(SoccerDuelsModule.Config)
+
+-- const
+local TESTING_MODE = Config.getConstant("TestingMode")
+
 -- var
 local InstanceWrapperMetatable
 
@@ -24,7 +31,7 @@ local function indexInstanceWrapper(self, key)
 	return self._Instance[key]
 end
 local function newIndexInstanceWrapper(self, key, value)
-	if key == "OnServerInvoke" then
+	if TESTING_MODE and key == "OnServerInvoke" then
 		rawset(self, "_OnServerInvoke", value)
 	end
 
@@ -39,6 +46,10 @@ local function remoteFunctionWrapperInvokeServer(self, Player, ...)
 		end
 
 		return self._Instance:InvokeServer(self, Player, ...)
+	end
+
+	if not TESTING_MODE then
+		return
 	end
 
 	local onServerInvokeCallback = rawget(self, "_OnServerInvoke")
