@@ -13,10 +13,13 @@ return function()
 
 				assert(typeof(ClientSettings) == "table")
 
+				local DefaultClientSettings = SoccerDuels.getConstant("DefaultClientSettings")
+				local ClientSettingsDisplayOrder = SoccerDuels.getConstant("ClientSettingsDisplayOrder")
+
 				for i, Setting in ClientSettings do
 					assert(typeof(Setting) == "table")
-					assert(typeof(Setting.Name) == "string")
-					assert(Setting.Value ~= nil)
+					assert(Setting.Name == ClientSettingsDisplayOrder[i])
+					assert(Setting.Value == DefaultClientSettings[Setting.Name])
 				end
 			end)
 		end)
