@@ -1,17 +1,34 @@
-local Players = game:GetService("Players")
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
+local Config = require(SoccerDuelsModule.Config)
 local Enums = require(SoccerDuelsModule.Enums)
 local RemoteEvents = require(SoccerDuelsModule.RemoteEvents)
 local Utility = require(SoccerDuelsModule.Utility)
 
 local WindowsGui = require(script.WindowsGui)
 
+-- const
+local DEFAULT_CLIENT_SETTINGS = Config.getConstant("DefaultClientSettings")
+local CLIENT_SETTINGS_DISPLAY_ORDER = Config.getConstant("ClientSettingsDisplayOrder")
+
 -- var
 local ClientMetatable
 
 -- public / Client class methods
+local function getClientSettings(self)
+	local SettingsJson = {}
+
+	for i, settingName in CLIENT_SETTINGS_DISPLAY_ORDER do
+		SettingsJson[i] = {
+			Name = settingName,
+			Value = DEFAULT_CLIENT_SETTINGS[settingName],
+		}
+	end
+
+	return SettingsJson
+end
+
 local function getClientPlayerSaveData(self)
 	return self._PlayerSaveData
 end
@@ -79,6 +96,8 @@ local function newClient(Player)
 end
 local function initializeClients()
 	local ClientMethods = {
+		GetSettings = getClientSettings,
+
 		GetPlayerSaveData = getClientPlayerSaveData,
 		LoadPlayerDataAsync = loadClientPlayerDataAsync,
 
