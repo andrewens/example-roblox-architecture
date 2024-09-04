@@ -15,7 +15,7 @@ local CLIENT_SETTINGS_DISPLAY_ORDER = Config.getConstant("ClientSettingsDisplayO
 -- var
 local ClientMetatable
 
--- private / Client class methods
+-- public / Client class methods
 local function getClientSettingValue(self, settingName)
 	if self._PlayerSaveData == nil or self._PlayerSaveData.Settings[settingName] == nil then
 		return DEFAULT_CLIENT_SETTINGS[settingName]
@@ -23,8 +23,6 @@ local function getClientSettingValue(self, settingName)
 
 	return self._PlayerSaveData.Settings[settingName]
 end
-
--- public / Client class methods
 local function clientChangeSetting(self, settingName, newValue)
 	if not (typeof(settingName) == "string") then
 		error(`{settingName} is not a string!`)
@@ -153,9 +151,10 @@ local function newClient(Player)
 end
 local function initializeClients()
 	local ClientMethods = {
+		OnSettingChangedConnect = onClientSettingChangedConnect,
 		ToggleBooleanSetting = clientToggleBooleanSetting,
 		ChangeSetting = clientChangeSetting,
-		OnSettingChangedConnect = onClientSettingChangedConnect,
+		GetSettingValue = getClientSettingValue,
 		GetSettings = getClientSettingsJson,
 
 		GetPlayerSaveData = getClientPlayerSaveData,

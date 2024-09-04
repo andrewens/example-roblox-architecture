@@ -55,8 +55,8 @@ local function initializeSettingsModal(self)
 			"BooleanSettingTemplate",
 			SettingButton
 		)
-		SettingButtonImageButton.Activated:Connect(function()
-			self._Client:ToggleBooleanSetting(settingName) -- TODO should this be put in showSettingsModal() to save memory?
+		SettingButtonImageButton.Activated:Connect(function() -- TODO should this be put in showSettingsModal() to save memory?
+			self._Client:ToggleBooleanSetting(settingName)
 		end)
 	end
 end
