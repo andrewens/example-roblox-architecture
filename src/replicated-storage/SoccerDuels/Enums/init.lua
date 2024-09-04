@@ -2,6 +2,14 @@
 local Enums = {} -- string enumTypeName --> string enumName --> int enumInteger
 
 -- public
+local function iterateEnumsOfType(enumTypeName)
+    local EnumsOfType = Enums[enumTypeName]
+    if EnumsOfType == nil then
+        error(`There's no EnumType named "{enumTypeName}"`)
+    end
+
+    return ipairs(EnumsOfType)
+end
 local function enumToName(enumTypeName, enumInteger)
     local EnumsOfType = Enums[enumTypeName]
     if EnumsOfType == nil then
@@ -30,8 +38,11 @@ local function initializeEnums()
     end
 end
 
+initializeEnums()
+
 return {
+    iterateEnumsOfType = iterateEnumsOfType,
     enumToName = enumToName,
     getEnum = getEnum,
-    initialize = initializeEnums,
+    -- initialize = initializeEnums,
 }

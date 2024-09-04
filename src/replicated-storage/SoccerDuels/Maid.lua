@@ -6,13 +6,15 @@ local function isValidTask(value)
 	return typeof(value) == "Instance"
 		or typeof(value) == "RBXScriptSignal"
         or typeof(value) == "function"
-		or (typeof(value) == "table" and typeof(value.Destroy) == "function")
+		or (typeof(value) == "table" and (typeof(value.Destroy) == "function" or typeof(value.Disconnect) == "function"))
 end
 local function cleanTask(task)
     if typeof(task) == "function" then
         task()
     elseif typeof(task) == "RBXScriptSignal" then
         task:Disconnect()
+	elseif typeof(task) == "table" then
+		(task.Destroy or task.Disconnect)(task)
     else
         task:Destroy()
     end

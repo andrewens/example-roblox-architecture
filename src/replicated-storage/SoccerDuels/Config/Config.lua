@@ -1,17 +1,23 @@
-return {
-	TestingMode = (game.PlaceId == 18832664984),
+local Config = {}
 
-	-- database
-	DatabaseQueryRetries = 3,
-	DatabaseRetryWaitSeconds = 2,
+Config.TestingMode = (game.PlaceId == 18832664984)
 
-	-- client settings
-	DefaultClientSettings = {
-		["Sound Effects"] = true,
-		["Low Graphics"] = false,
-	},
-	ClientSettingsDisplayOrder = {
-		"Sound Effects",
-		"Low Graphics",
-	},
+-- database
+Config.DatabaseQueryRetries = 3
+Config.DatabaseRetryWaitSeconds = 2
+
+-- client settings
+Config.DefaultClientSettings = {
+	["Sound Effects"] = true,
+	["Low Graphics"] = false,
 }
+Config.ClientSettingsDisplayOrder = {
+	"Sound Effects",
+	"Low Graphics",
+}
+
+-- settings UI
+Config.BooleanSettingOnImageId = 129188406631183
+Config.BooleanSettingOffImageId = 135540289663466
+
+return Config

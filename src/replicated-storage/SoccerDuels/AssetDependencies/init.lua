@@ -40,8 +40,20 @@ local function getExpectedAsset(assetName, rootAssetName, RootInstance)
 		end
 
 		local assetPath = string.gsub(AssetJson.Path, RootAssetJson.Path .. "/", "")
+		local AssetInstance = getAssetByPath(assetPath, RootInstance)
 
-		return getAssetByPath(assetPath, RootInstance)
+		if AssetInstance == nil then
+			local Children = RootInstance:GetChildren()
+			for i, Child in Children do
+				Children[i] = tostring(Child)
+			end
+
+			error(
+				`Couldn't find "{assetName}" from RootAsset {rootAssetName} "{RootInstance}"; children: {table.concat(Children, ", ")}`
+			)
+		end
+
+		return AssetInstance
 	end
 
 	return getAssetByPath(AssetJson.Path)

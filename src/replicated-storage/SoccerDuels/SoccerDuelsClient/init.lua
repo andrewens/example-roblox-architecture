@@ -45,6 +45,16 @@ local function clientChangeSetting(self, settingName, newValue)
 		callback(settingName, newValue)
 	end
 end
+local function clientToggleBooleanSetting(self, settingName)
+	if not (typeof(settingName) == "string") then
+		error(`{settingName} is not a string!`)
+	end
+	if not (typeof(DEFAULT_CLIENT_SETTINGS[settingName]) == "boolean") then
+		error(`"{settingName}" is not a boolean ClientSetting!`)
+	end
+
+	clientChangeSetting(self, settingName, not getClientSettingValue(self, settingName))
+end
 local function onClientSettingChangedConnect(self, callback)
 	if not (typeof(callback) == "function") then
 		error(`{callback} is not a function!`)
@@ -59,7 +69,7 @@ local function onClientSettingChangedConnect(self, callback)
 	return {
 		Disconnect = function()
 			self._SettingChangedCallbacks[callback] = nil
-		end
+		end,
 	}
 end
 local function getClientSettingsJson(self)
@@ -143,6 +153,7 @@ local function newClient(Player)
 end
 local function initializeClients()
 	local ClientMethods = {
+		ToggleBooleanSetting = clientToggleBooleanSetting,
 		ChangeSetting = clientChangeSetting,
 		OnSettingChangedConnect = onClientSettingChangedConnect,
 		GetSettings = getClientSettingsJson,
