@@ -5,16 +5,16 @@ local Assets = require(SoccerDuelsModule.AssetDependencies)
 local ModalGui = require(script.ModalGui)
 
 -- public
-local function newWindowsGui(Client)
+local function newMainGui(Client)
 	-- var
-	local WindowsGui
+	local MainGui
 	local LobbyButtons
 	local Modal
 
 	-- init
-	WindowsGui = Assets.cloneExpectedAsset("WindowsGui")
-	LobbyButtons = Assets.getExpectedAsset("LobbyButtons", "WindowsGui", WindowsGui)
-	Modal = ModalGui.new(Client, WindowsGui)
+	MainGui = Assets.cloneExpectedAsset("MainGui")
+	LobbyButtons = Assets.getExpectedAsset("LobbyButtons", "MainGui", MainGui)
+	Modal = ModalGui.new(Client, MainGui)
 
 	for _, LobbyButton in LobbyButtons:GetChildren() do
 		if not (LobbyButton:IsA("GuiButton")) then
@@ -35,15 +35,15 @@ local function newWindowsGui(Client)
 		Modal:ShowModal(visibleModalName)
 	end)
 
-	WindowsGui.Parent = Client.Player.PlayerGui
+	MainGui.Parent = Client.Player.PlayerGui
 
-	return WindowsGui
+	return MainGui
 end
-local function initializeWindowsGui()
+local function initializeMainGui()
 	ModalGui.initialize()
 end
 
 return {
-	new = newWindowsGui,
-	initialize = initializeWindowsGui,
+	new = newMainGui,
+	initialize = initializeMainGui,
 }

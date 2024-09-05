@@ -6,7 +6,7 @@ local Enums = require(SoccerDuelsModule.Enums)
 local RemoteEvents = require(SoccerDuelsModule.RemoteEvents)
 local Utility = require(SoccerDuelsModule.Utility)
 
-local WindowsGui = require(script.WindowsGui)
+local MainGui = require(script.MainGui)
 
 -- const
 local DEFAULT_CLIENT_SETTINGS = Config.getConstant("DefaultClientSettings")
@@ -14,6 +14,14 @@ local CLIENT_SETTINGS_DISPLAY_ORDER = Config.getConstant("ClientSettingsDisplayO
 
 -- var
 local ClientMetatable
+
+-- private
+local function initializeGuiWhenPlayerDataLoads(self, PlayerSaveData)
+	if self._MainGui then
+		return
+	end
+	self._MainGui = MainGui.new(self)
+end
 
 -- protected / Client network methods
 local function onNotifyClient(self, toastMessage)
@@ -203,11 +211,14 @@ local function newClient(Player)
 	self._PlayerDataLoadedCallbacks = {} -- function callback(table PlayerSaveData) --> true
 	self._SettingChangedCallbacks = {} -- function callback(string settingName, any settingValue) --> true
 	self._ToastCallbacks = {} -- function callback(string notificationMessage) --> true
+	self._MainGui = nil -- ScreenGui
 
 	-- init
 	setmetatable(self, ClientMetatable)
-	self._WindowsGui = WindowsGui.new(self)
 
+	self:OnPlayerSaveDataLoadedConnect(function(PlayerSaveData)
+		initializeGuiWhenPlayerDataLoads(self, PlayerSaveData)
+	end)
 	RemoteEvents.NotifyPlayer.OnClientEvent:Connect(function(...)
 		onNotifyClient(self, ...)
 	end)
@@ -237,7 +248,7 @@ local function initializeClients()
 	}
 	ClientMetatable = { __index = ClientMethods }
 
-	WindowsGui.initialize()
+	MainGui.initialize()
 end
 
 return {

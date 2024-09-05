@@ -100,6 +100,22 @@ return function()
 
 				conn:Disconnect()
 			end)
+			it(
+				"Clones UserInterface ScreenGuis into the Player's PlayerGui once PlayerSaveData has been loaded",
+				function()
+					local MockPlayer = MockInstance.new("Player")
+					local PlayerGuiFolder = MockPlayer.PlayerGui
+					local Client = SoccerDuels.newClient(MockPlayer)
+
+					assert(#PlayerGuiFolder:GetChildren() == 0)
+
+					Client:LoadPlayerDataAsync()
+
+					local MainGui = SoccerDuels.getExpectedAsset("MainGui", "PlayerGui", PlayerGuiFolder)
+
+					assert(MainGui)
+				end
+			)
 		end)
 	end)
 end

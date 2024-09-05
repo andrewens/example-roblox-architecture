@@ -6,7 +6,11 @@ local Enums = require(SoccerDuelsModule.Enums)
 -- init
 local ExpectedAssets = {}
 
-ExpectedAssets.WindowsGui = {
+ExpectedAssets.PlayerGui = {
+	Path = "ReplicatedStorage/UserInterface",
+	ClassName = "Folder",
+}
+ExpectedAssets.MainGui = {
 	Path = "ReplicatedStorage/UserInterface/Windows",
 	ClassName = "ScreenGui",
 }

@@ -103,14 +103,14 @@ local function showModalGui(self, visibleModalName)
 end
 
 -- public
-local function newModalGui(Client, WindowsGui)
-	if WindowsGui == nil then
-		error(`WindowsGui is nil!`)
+local function newModalGui(Client, MainGui)
+	if MainGui == nil then
+		error(`MainGui is nil!`)
 	end
 
 	local self = {}
 	self._Client = Client
-	self._ModalFrames = Assets.getExpectedAsset("ModalFrames", "WindowsGui", WindowsGui)
+	self._ModalFrames = Assets.getExpectedAsset("ModalFrames", "MainGui", MainGui)
 	self._Maid = Maid.new()
 
 	setmetatable(self, ModalGuiMetatable)
