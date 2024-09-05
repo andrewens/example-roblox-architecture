@@ -21,33 +21,84 @@ local function tableDeepEqual(Table1, Table2)
 		return true
 	end
 
-    if Table1 ~= Table2 then
-        return false, `{Table1} != {Table2}`
-    end
+	if Table1 ~= Table2 then
+		return false, `{Table1} != {Table2}`
+	end
 
-    return true
+	return true
 end
 
 -- test
 return function()
 	describe("SoccerDuels database", function()
 		describe("Client:LoadPlayerDataAsync()", function()
-			it("Loads the user's saved data onto the client, returning a boolean representing if it was successful", function()
-                local MockPlayer = MockInstance.new("Player")
-                local Client = SoccerDuels.newClient(MockPlayer)
+			it(
+				"Loads the user's saved data onto the client, returning a boolean representing if it was successful",
+				function()
+					local MockPlayer = MockInstance.new("Player")
+					local Client = SoccerDuels.newClient(MockPlayer)
 
-                assert(nil == Client:GetPlayerSaveData())
+					assert(nil == Client:GetPlayerSaveData())
 
-                local success = Client:LoadPlayerDataAsync() -- because this is in testing mode, it's not actually async here
-                local PlayerSaveData = Client:GetPlayerSaveData()
+					local success = Client:LoadPlayerDataAsync() -- because this is in testing mode, it's not actually async here
+					local PlayerSaveData = Client:GetPlayerSaveData()
 
-                assert(typeof(success) == "boolean")
-                assert(typeof(PlayerSaveData) == "table")
+					assert(typeof(success) == "boolean")
+					assert(typeof(PlayerSaveData) == "table")
 
-                -- should load default data for our player
-                local DefaultPlayerSaveData = SoccerDuels.getConstant("DefaultPlayerSaveData")
+					-- should load default data for our player
+					local DefaultPlayerSaveData = SoccerDuels.getConstant("DefaultPlayerSaveData")
 
-                assert(tableDeepEqual(DefaultPlayerSaveData, PlayerSaveData))
+					assert(tableDeepEqual(DefaultPlayerSaveData, PlayerSaveData))
+				end
+			)
+			it("Triggers an event when the player data has successfully loaded", function()
+				local MockPlayer = MockInstance.new("Player")
+				local Client = SoccerDuels.newClient(MockPlayer)
+
+				-- no callback upon connect if player data isn't loaded yet
+				local changeCount = 0
+				local PlayerSaveData
+				local callback = function(SaveData)
+					changeCount += 1
+					PlayerSaveData = SaveData
+				end
+				local conn = Client:OnPlayerSaveDataLoadedConnect(callback)
+
+				assert(changeCount == 0)
+				assert(PlayerSaveData == nil)
+
+				Client:LoadPlayerDataAsync() -- not actually async in testing mode
+
+				assert(changeCount == 1)
+				assert(tableDeepEqual(PlayerSaveData, Client:GetPlayerSaveData()))
+
+				Client:LoadPlayerDataAsync()
+
+				assert(changeCount == 2)
+				assert(tableDeepEqual(PlayerSaveData, Client:GetPlayerSaveData()))
+
+				conn:Disconnect()
+				Client:LoadPlayerDataAsync()
+
+				PlayerSaveData = nil
+
+				assert(changeCount == 2)
+				assert(PlayerSaveData == nil)
+
+				-- invoke callback upon connect if player data is loaded
+				local MockPlayer1 = MockInstance.new("Player")
+				local Client1 = SoccerDuels.newClient(MockPlayer1)
+				Client1:LoadPlayerDataAsync()
+
+				changeCount = 0
+				PlayerSaveData = nil
+				conn = Client1:OnPlayerSaveDataLoadedConnect(callback)
+
+				assert(changeCount == 1)
+				assert(tableDeepEqual(PlayerSaveData, Client1:GetPlayerSaveData()))
+
+				conn:Disconnect()
 			end)
 		end)
 	end)

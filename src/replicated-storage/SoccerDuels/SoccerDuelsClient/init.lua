@@ -104,13 +104,35 @@ local function getClientSettingsJson(self)
 	return SettingsJson
 end
 
+local function onClientPlayerDataLoadedConnect(self, callback)
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	if self._PlayerSaveData then
+		callback(self._PlayerSaveData)
+	end
+
+	self._PlayerDataLoadedCallbacks[callback] = true
+
+	return {
+		Disconnect = function()
+			self._PlayerDataLoadedCallbacks[callback] = nil
+		end,
+	}
+end
 local function getClientPlayerSaveData(self)
 	return self._PlayerSaveData
 end
 local function loadClientPlayerDataAsync(self)
 	local s, PlayerSaveData = RemoteEvents.GetPlayerSaveData:InvokeServer(self.Player)
 
-	self._PlayerSaveData = PlayerSaveData
+	if s then
+		self._PlayerSaveData = PlayerSaveData
+		for callback, _ in self._PlayerDataLoadedCallbacks do
+			callback(PlayerSaveData)
+		end
+	end
 
 	return s
 end
@@ -178,6 +200,7 @@ local function newClient(Player)
 	self._VisibleModalEnum = nil -- int | nil
 	self._VisibleModalChangedCallbacks = {} -- function callback(string visibleModalName) --> true
 	self._PlayerSaveData = nil -- nil | JSON
+	self._PlayerDataLoadedCallbacks = {} -- function callback(table PlayerSaveData) --> true
 	self._SettingChangedCallbacks = {} -- function callback(string settingName, any settingValue) --> true
 	self._ToastCallbacks = {} -- function callback(string notificationMessage) --> true
 
@@ -201,6 +224,7 @@ local function initializeClients()
 		GetSettingValue = getClientSettingValue,
 		GetSettings = getClientSettingsJson,
 
+		OnPlayerSaveDataLoadedConnect = onClientPlayerDataLoadedConnect,
 		GetPlayerSaveData = getClientPlayerSaveData,
 		LoadPlayerDataAsync = loadClientPlayerDataAsync,
 
