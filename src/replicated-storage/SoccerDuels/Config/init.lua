@@ -21,15 +21,20 @@ local function initializeConfig()
 		return
 	end
 
-	ExternalConfig = require(ExternalConfigModule)
+	local s, output = pcall(require, ExternalConfigModule)
+	if not s then
+		warn(`External Config module compiled with syntax error:\n"{output}"\n{debug.traceback()}`)
+		return
+	end
 
+	ExternalConfig = output
 	for k, v in ExternalConfig do
 		if Config[k] == nil then
 			continue
 		end
 
 		Config[k] = v
-        print(k, "=", v)
+		print(k, "=", v)
 	end
 end
 
@@ -37,5 +42,5 @@ initializeConfig()
 
 return {
 	getConstant = getConstant,
-    --initialize = initializeConfig,
+	--initialize = initializeConfig,
 }
