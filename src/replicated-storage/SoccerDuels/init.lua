@@ -3,6 +3,7 @@ local RunService = game:GetService("RunService")
 
 --[[ CLIENT ]]
 if RunService:IsClient() then
+	local Config = require(script.Config) -- needs to be required first!
 	local SoccerDuelsClient = require(script.SoccerDuelsClient)
 
 	-- public
@@ -14,14 +15,17 @@ if RunService:IsClient() then
 		-- client
 		newClient = SoccerDuelsClient.new,
 
+		-- config
+		getConstant = Config.getConstant,
+
 		-- SoccerDuels client
 		initialize = initializeSoccerDuelsClient,
 	}
 end
 
 --[[ SERVER ]]
+local Config = require(script.Config) -- needs to be required first!
 local AssetDependencies = require(script.AssetDependencies)
-local Config = require(script.Config)
 local SoccerDuelsClient = require(script.SoccerDuelsClient)
 local SoccerDuelsServer = require(script.SoccerDuelsServer)
 local Utility = require(script.Utility)
