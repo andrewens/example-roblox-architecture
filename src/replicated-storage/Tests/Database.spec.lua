@@ -116,6 +116,23 @@ return function()
 					assert(MainGui)
 				end
 			)
+			it(
+				"If there is a LoadingScreen in the PlayerGui, it gets destroyed after PlayerSaveData loads", function()
+					local MockPlayer = MockInstance.new("Player")
+					local PlayerGuiFolder = MockPlayer.PlayerGui
+					local Client = SoccerDuels.newClient(MockPlayer)
+
+					local FakeLoadingScreen = Instance.new("ScreenGui")
+					FakeLoadingScreen.Name = "LoadingScreen"
+					FakeLoadingScreen.Parent = PlayerGuiFolder
+
+					assert(FakeLoadingScreen.Parent == PlayerGuiFolder)
+
+					Client:LoadPlayerDataAsync()
+
+					assert(FakeLoadingScreen.Parent == nil)
+				end
+			)
 		end)
 	end)
 end

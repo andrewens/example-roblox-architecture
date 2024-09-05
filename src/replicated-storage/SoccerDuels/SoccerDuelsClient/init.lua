@@ -134,15 +134,22 @@ local function getClientPlayerSaveData(self)
 end
 local function loadClientPlayerDataAsync(self)
 	local s, PlayerSaveData = RemoteEvents.GetPlayerSaveData:InvokeServer(self.Player)
-
-	if s then
-		self._PlayerSaveData = PlayerSaveData
-		for callback, _ in self._PlayerDataLoadedCallbacks do
-			callback(PlayerSaveData)
-		end
+	if not s then
+		local errorMessage = PlayerSaveData
+		return false, errorMessage
 	end
 
-	return s
+	self._PlayerSaveData = PlayerSaveData
+	for callback, _ in self._PlayerDataLoadedCallbacks do
+		callback(PlayerSaveData)
+	end
+
+	local LoadingScreen = self.Player.PlayerGui:FindFirstChild("LoadingScreen")
+	if LoadingScreen then
+		LoadingScreen:Destroy()
+	end
+
+	return true
 end
 
 local function getClientVisibleModalName(self)

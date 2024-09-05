@@ -2,6 +2,7 @@ local Config = {}
 
 -- testing
 Config.TestingMode = (game.PlaceId == 18832664984)
+Config.ExtraTimeToLoadGameSeconds = 5
 
 -- database
 Config.DatabaseQueryRetries = 3
