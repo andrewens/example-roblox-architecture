@@ -2,7 +2,7 @@ local Config = {}
 
 -- testing
 Config.TestingMode = (game.PlaceId == 18832664984)
-Config.ExtraTimeToLoadGameSeconds = 5
+Config.ExtraTimeToLoadGameSeconds = 0
 
 -- database
 Config.DatabaseQueryRetries = 3
@@ -26,7 +26,7 @@ Config.ClientSettingsDisplayOrder = {
 }
 
 -- settings UI
-Config.BooleanSettingOnImageId = 129188406631183
-Config.BooleanSettingOffImageId = 135540289663466
+Config.BooleanSettingOnColor3 = Color3.fromRGB(0, 255, 0)
+Config.BooleanSettingOffColor3 = Color3.fromRGB(255, 0, 0)
 
 return Config

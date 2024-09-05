@@ -6,19 +6,23 @@ local Config = require(SoccerDuelsModule.Config)
 local Maid = require(SoccerDuelsModule.Maid)
 
 -- const
-local BOOLEAN_SETTING_ON_IMAGE_ID = Config.getConstant("BooleanSettingOnImageId")
-local BOOLEAN_SETTING_OFF_IMAGE_ID = Config.getConstant("BooleanSettingOffImageId")
+local BOOLEAN_SETTING_ON_COLOR3 = Config.getConstant("BooleanSettingOnColor3")
+local BOOLEAN_SETTING_OFF_COLOR3 = Config.getConstant("BooleanSettingOffColor3")
 
 -- var
 local ModalGuiMetatable
 
 -- private / ModalGui class methods
 local function initializeSettingsModal(self)
-	local SettingButtonsContainer = Assets.getExpectedAsset("SettingButtonsContainer", "ModalFrames", self._ModalFrames)
+	local SettingsModalFrame = Assets.getExpectedAsset("SettingsModal", "ModalFrames", self._ModalFrames)
+	local SettingButtonsContainer =
+		Assets.getExpectedAsset("SettingButtonsContainer", "SettingsModal", SettingsModalFrame)
+	local SettingsModalCloseButton =
+		Assets.getExpectedAsset("SettingsModalCloseButton", "SettingsModal", SettingsModalFrame)
 	local BooleanSettingTemplate =
 		Assets.cloneExpectedAsset("BooleanSettingTemplate", "SettingButtonsContainer", SettingButtonsContainer)
-	local SettingsModalCloseButton =
-		Assets.getExpectedAsset("SettingsModalCloseButton", "ModalFrames", self._ModalFrames)
+
+	SettingsModalFrame.Visible = false
 
 	for _, SettingButton in SettingButtonsContainer:GetChildren() do
 		if not SettingButton:IsA(BooleanSettingTemplate.ClassName) then
@@ -70,8 +74,9 @@ local function showSettingsModal(self)
 
 		local SettingButtonImageButton =
 			Assets.getExpectedAsset("BooleanSettingTemplateButton", "BooleanSettingTemplate", SettingButton)
-		SettingButtonImageButton.Image =
-			`rbxassetid://{if settingValue then BOOLEAN_SETTING_ON_IMAGE_ID else BOOLEAN_SETTING_OFF_IMAGE_ID}`
+		SettingButtonImageButton.ImageColor3 = if settingValue
+			then BOOLEAN_SETTING_ON_COLOR3
+			else BOOLEAN_SETTING_OFF_COLOR3
 	end))
 end
 
