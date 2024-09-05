@@ -22,6 +22,26 @@ end
 local function isA(value, className)
 	return (typeof(value) == "Instance" or typeof(value) == "table") and value:IsA(className)
 end
+
+local function onPlayerDiedConnect(Player, callback)
+	local charAdded = function(Char)
+		Char.Humanoid.Died:Connect(function()
+			callback()
+		end)
+
+		if Char.Humanoid.Health <= 0 then
+			callback()
+		end
+	end
+
+	local conn = Player.CharacterAdded:Connect(charAdded)
+
+	if Player.Character then
+		charAdded(Player.Character)
+	end
+
+	return conn
+end
 local function organizeDependenciesServerOnly()
 	for _, RbxInstance in StarterGui:GetChildren() do
 		RbxInstance.Parent = ReplicatedStorage.UserInterface
@@ -34,5 +54,7 @@ end
 return {
 	tableDeepCopy = tableDeepCopy,
 	isA = isA,
+
+	onPlayerDiedConnect = onPlayerDiedConnect,
 	organizeDependencies = organizeDependenciesServerOnly,
 }

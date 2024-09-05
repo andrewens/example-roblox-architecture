@@ -34,7 +34,6 @@ local function initializeConfig()
 		end
 
 		Config[k] = v
-		print(k, "=", v)
 	end
 end
 

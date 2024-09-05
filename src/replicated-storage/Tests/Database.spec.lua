@@ -109,30 +109,56 @@ return function()
 
 					assert(#PlayerGuiFolder:GetChildren() == 0)
 
-					Client:LoadPlayerDataAsync()
+					Client:LoadPlayerDataAsync() -- not actually async when we're in testing mode
 
 					local MainGui = SoccerDuels.getExpectedAsset("MainGui", "PlayerGui", PlayerGuiFolder)
 
 					assert(MainGui)
 				end
 			)
-			it(
-				"If there is a LoadingScreen in the PlayerGui, it gets destroyed after PlayerSaveData loads", function()
-					local MockPlayer = MockInstance.new("Player")
-					local PlayerGuiFolder = MockPlayer.PlayerGui
-					local Client = SoccerDuels.newClient(MockPlayer)
+			it("If there is a LoadingScreen in the PlayerGui, it gets destroyed after PlayerSaveData loads", function()
+				local MockPlayer = MockInstance.new("Player")
+				local PlayerGuiFolder = MockPlayer.PlayerGui
+				local Client = SoccerDuels.newClient(MockPlayer)
 
-					local FakeLoadingScreen = Instance.new("ScreenGui")
-					FakeLoadingScreen.Name = "LoadingScreen"
-					FakeLoadingScreen.Parent = PlayerGuiFolder
+				local FakeLoadingScreen = Instance.new("ScreenGui")
+				FakeLoadingScreen.Name = "LoadingScreen"
+				FakeLoadingScreen.Parent = PlayerGuiFolder
 
-					assert(FakeLoadingScreen.Parent == PlayerGuiFolder)
+				assert(FakeLoadingScreen.Parent == PlayerGuiFolder)
 
-					Client:LoadPlayerDataAsync()
+				Client:LoadPlayerDataAsync() -- not actually async when we're in testing mode
 
-					assert(FakeLoadingScreen.Parent == nil)
-				end
-			)
+				assert(FakeLoadingScreen.Parent == nil)
+			end)
+			it("Player's character loads after PlayerSaveData loads, and they can respawn", function()
+				local MockPlayer = MockInstance.new("Player")
+				local Client = SoccerDuels.newClient(MockPlayer)
+
+				local charAddedCount = 0
+				local LastCharacter
+				MockPlayer.CharacterAdded:Connect(function(Char)
+					charAddedCount += 1
+					LastCharacter = Char
+				end)
+
+				assert(charAddedCount == 0)
+				assert(LastCharacter == nil)
+				assert(MockPlayer.Character == nil)
+
+				Client:LoadPlayerDataAsync() -- not actually async when we're in testing mode
+
+				assert(charAddedCount == 1)
+				assert(LastCharacter == MockPlayer.Character)
+
+				local PrevCharacter = MockPlayer.Character
+				local Humanoid = MockPlayer.Character.Humanoid
+				Humanoid:TakeDamage(Humanoid.MaxHealth)
+
+				assert(charAddedCount == 2) -- test for respawning
+				assert(LastCharacter == MockPlayer.Character)
+				assert(PrevCharacter ~= LastCharacter)
+			end)
 		end)
 	end)
 end
