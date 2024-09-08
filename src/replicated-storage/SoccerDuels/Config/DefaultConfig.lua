@@ -23,7 +23,11 @@ local DefaultConfig = {}
 
 -- testing
 DefaultConfig.TestingMode = (game.PlaceId == 18832664984)
-DefaultConfig.ExtraTimeToLoadGameSeconds = 0
+DefaultConfig.TestingVariables = {
+	ExtraLoadTime = 0,
+	TimeTravel = false,
+	AutoNetworkError = false,
+}
 
 -- database
 DefaultConfig.DatabaseQueryRetries = 3

@@ -1,14 +1,14 @@
-local Players = game:GetService("Players")
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 local Config = require(SoccerDuelsModule.Config)
 local RemoteEvents = require(SoccerDuelsModule.RemoteEvents)
 local Utility = require(SoccerDuelsModule.Utility)
+
 local Database = require(script.Database)
+local TestingVariables = require(script.TestingVariables)
 
 -- const
-local EXTRA_GAME_LOAD_TIME = Config.getConstant("ExtraTimeToLoadGameSeconds")
 local DEFAULT_CLIENT_SETTINGS = Config.getConstant("DefaultClientSettings")
 
 -- var
@@ -33,8 +33,9 @@ local function playerChangedSetting(Player, settingName, newValue)
 	-- TODO save to database
 end
 local function getPlayerSaveData(Player)
-	if EXTRA_GAME_LOAD_TIME > 0 then
-		task.wait(EXTRA_GAME_LOAD_TIME)
+	local testingExtraLoadTime = TestingVariables.getVariable("ExtraLoadTime")
+	if testingExtraLoadTime and testingExtraLoadTime > 0 then
+		TestingVariables.wait(testingExtraLoadTime)
 	end
 
 	local s, output = Database.loadPlayerSaveDataAsync(Player)
@@ -50,7 +51,7 @@ local function getPlayerSaveData(Player)
 		Player:LoadCharacter()
 	end)
 
-    Player:LoadCharacter()
+	Player:LoadCharacter()
 
 	return true, Utility.tableDeepCopy(PlayerSaveData) -- if we don't deep copy this, client tests on the server will use same table as server code, which incorrectly passes replication tests
 end
@@ -81,6 +82,11 @@ local function initializeServer()
 end
 
 return {
+	wait = TestingVariables.wait,
+	getTestingVariable = TestingVariables.getVariable,
+	setTestingVariable = TestingVariables.setVariable,
+	resetTestingVariables = TestingVariables.resetVariables,
+
 	getPlayerSaveData = getCachedPlayerSaveData,
 	notifyPlayer = notifyPlayer,
 	initialize = initializeServer,

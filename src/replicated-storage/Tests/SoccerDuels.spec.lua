@@ -20,4 +20,31 @@ return function()
 			assert(not s)
 		end)
 	end)
+	describe("SoccerDuels testing API", function()
+		describe("SoccerDuels.wait()", function()
+			it("Exposes a wait method that doesn't wait if we're in TimeTravel testing mode", function()
+				local begin
+				local deltaTime
+				local maxError = 0.0001
+
+				begin = os.clock()
+				SoccerDuels.wait()
+				deltaTime = os.clock() - begin
+
+				assert(deltaTime > 0.008)
+
+				SoccerDuels.setTestingVariable("TimeTravel", true)
+
+				begin = os.clock()
+				SoccerDuels.wait()
+				deltaTime = os.clock() - begin
+
+				if not (math.abs(deltaTime) < maxError) then
+					error(`{deltaTime} != 0`)
+				end
+
+				SoccerDuels.resetTestingVariables()
+			end)
+		end)
+	end)
 end

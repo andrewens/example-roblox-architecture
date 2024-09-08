@@ -53,4 +53,10 @@ return {
 	getPlayerSaveData = SoccerDuelsServer.getPlayerSaveData,
 	notifyPlayer = SoccerDuelsServer.notifyPlayer,
 	initialize = initializeSoccerDuels,
+
+	-- testing API
+	wait = SoccerDuelsServer.wait,
+	setTestingVariable = SoccerDuelsServer.setTestingVariable,
+	getTestingVariable = SoccerDuelsServer.getTestingVariable,
+	resetTestingVariables = SoccerDuelsServer.resetTestingVariables,
 }

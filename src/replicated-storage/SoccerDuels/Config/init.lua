@@ -8,10 +8,15 @@ local Config = require(script.DefaultConfig)
 local ExternalConfig
 
 -- public
-local function getConstant(constantName)
-	local value = Config[constantName]
-	if value == nil then
-		error(`There's no Constant named "{constantName}"`)
+local function getConstant(...)
+	local Path = { ... }
+	local value = Config
+
+	for _, key in Path do
+		value = value[key]
+		if value == nil then
+			error(`There's no Constant with path: Config/{table.concat(Path, "/")}`)
+		end
 	end
 
 	return value
