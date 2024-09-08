@@ -139,10 +139,30 @@ return function()
 				assert(PrevCharacter ~= LastCharacter)
 			end)
 		end)
-		describe("SoccerDuels.savePlayerDataAsync()", function()
-			it("It ", function()
-			
+		describe("SoccerDuels.newPlayerDocument()", function()
+			it("Creates a JSON-compatible table for a player's save data, matching Config.DefaultPlayerSaveData", function()
+				local SaveData = SoccerDuels.newPlayerDocument()
+				local DefaultPlayerSaveData = SoccerDuels.getConstant("DefaultPlayerSaveData")
+
+				assert(typeof(SaveData) == "table")
+				assert(Utility.tableDeepEqual(SaveData, DefaultPlayerSaveData))
 			end)
+
+			-- TODO later we'll probably make some sort of data migration support here
 		end)
+		--[[
+		describe("SoccerDuels.savePlayerDataAsync()", function()
+			it("It saves all Player's data to the database", function()
+				SoccerDuels.setTestingVariable("TimeTravel", true)
+
+				local MockPlayer = MockInstance.new("Player")
+
+				SoccerDuels.newPlayerSaveData(MockPlayer.UserId)
+
+				SoccerDuels.savePlayerDataAsync(MockPlayer, {})
+
+				SoccerDuels.resetTestingVariables()
+			end)
+		end)--]]
 	end)
 end

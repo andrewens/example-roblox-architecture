@@ -26,6 +26,7 @@ end
 --[[ SERVER ]]
 local Config = require(script.Config) -- needs to be required first!
 local AssetDependencies = require(script.AssetDependencies)
+local PlayerDocument = require(script.PlayerDocument)
 local SoccerDuelsClient = require(script.SoccerDuelsClient)
 local SoccerDuelsServer = require(script.SoccerDuelsServer)
 local Utility = require(script.Utility)
@@ -40,6 +41,9 @@ end
 return {
 	-- client
 	newClient = SoccerDuelsClient.new,
+
+	-- database
+	newPlayerDocument = PlayerDocument.new,
 
 	-- config
 	getConstant = Config.getConstant,
