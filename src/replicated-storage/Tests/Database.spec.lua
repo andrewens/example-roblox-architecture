@@ -140,12 +140,34 @@ return function()
 			end)
 		end)
 		describe("SoccerDuels.newPlayerDocument()", function()
-			it("Creates a JSON-compatible table for a player's save data, matching Config.DefaultPlayerSaveData", function()
-				local SaveData = SoccerDuels.newPlayerDocument()
-				local DefaultPlayerSaveData = SoccerDuels.getConstant("DefaultPlayerSaveData")
+			it(
+				"Creates a JSON-compatible table for a player's save data, matching Config.DefaultPlayerSaveData",
+				function()
+					local DefaultPlayerSaveData = SoccerDuels.getConstant("DefaultPlayerSaveData")
+					local SaveData = SoccerDuels.newPlayerDocument()
 
-				assert(typeof(SaveData) == "table")
-				assert(Utility.tableDeepEqual(SaveData, DefaultPlayerSaveData))
+					assert(typeof(SaveData) == "table")
+					assert(Utility.tableDeepEqual(SaveData, DefaultPlayerSaveData))
+				end
+			)
+			it("Accepts a table of loaded player save data and updates the values as necessary", function()
+				local currentDataFormatVersion = SoccerDuels.getConstant("DefaultPlayerSaveData", "DataFormatVersion")
+				local notDefaultLowGraphicsSetting =
+					not SoccerDuels.getConstant("DefaultClientSettings", "Low Graphics")
+				local LoadedSaveData = {
+					DataFormatVersion = -1,
+					Level = 1337,
+					WinStreak = 2,
+					Settings = {
+						["Low Graphics"] = notDefaultLowGraphicsSetting,
+					},
+				}
+				local PlayerDocument = SoccerDuels.newPlayerDocument(LoadedSaveData)
+
+				assert(PlayerDocument.Level == 1337)
+				assert(PlayerDocument.WinStreak == 2)
+				assert(PlayerDocument.Settings["Low Graphics"] == notDefaultLowGraphicsSetting)
+				assert(PlayerDocument.DataFormatVersion == currentDataFormatVersion)
 			end)
 
 			-- TODO later we'll probably make some sort of data migration support here
