@@ -61,9 +61,19 @@ local function remoteFunctionWrapperInvokeClient(self, ...)
 end
 
 -- public / RemoteEvent class methods
-local function remoteEventWrapperFireServer(self, ...)
+local function remoteEventWrapperFireServer(self, Player, ...)
 	if RunService:IsClient() then
-		self._Instance:FireServer(...)
+		if Player == Players.LocalPlayer then
+			self._Instance:FireServer(...)
+		else
+			self._Instance:FireServer(Player, ...)
+		end
+
+		return
+	end
+
+	if TESTING_MODE then
+		self.OnServerEvent:Fire(Player, ...)
 	end
 end
 local function remoteEventWrapperFireClient(self, Player, ...)

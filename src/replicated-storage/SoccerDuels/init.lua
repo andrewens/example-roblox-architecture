@@ -50,6 +50,7 @@ return {
 	getExpectedAssets = AssetDependencies.getExpectedAssets,
 
 	-- SoccerDuels server
+	getPlayerSaveData = SoccerDuelsServer.getPlayerSaveData,
 	notifyPlayer = SoccerDuelsServer.notifyPlayer,
 	initialize = initializeSoccerDuels,
 }

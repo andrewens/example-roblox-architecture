@@ -1,8 +1,13 @@
+-- dependency
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local TestsFolder = script:FindFirstAncestor("Tests")
 
 local MockInstance = require(ReplicatedStorage.MockInstance)
 local SoccerDuels = require(ReplicatedStorage.SoccerDuels)
+local Utility = require(TestsFolder.Utility)
 
+-- test
 return function()
 	describe("ClientSettings", function()
 		describe("Client:GetSettings()", function()
@@ -37,6 +42,8 @@ return function()
 					assert(CorrectSettingObject.Name == settingName)
 					assert(CorrectSettingObject.Value == settingValue)
 				end)
+
+				assert(i == #ClientSettings)
 			end)
 			it("Invokes callback when a setting is changed, until it's been disconnected", function()
 				local MockPlayer = MockInstance.new("Player")
@@ -70,6 +77,25 @@ return function()
 				assert(changeCount == 2)
 				assert(lastSettingName == "Low Graphics")
 				assert(lastSettingValue == true)
+			end)
+		end)
+		describe("Client:ChangeSetting()", function()
+			it("Updates the server's cache of Player SaveData", function()
+				local MockPlayer = MockInstance.new("Player")
+				local Client = SoccerDuels.newClient(MockPlayer)
+
+				Client:LoadPlayerDataAsync()
+
+				local clientLowGraphicsSetting = Client:GetSetting("Low Graphics")
+
+				Client:ToggleBooleanSetting("Low Graphics")
+
+				assert((not clientLowGraphicsSetting) == Client:GetSetting("Low Graphics"))
+
+				local ServerCachedPlayerData = SoccerDuels.getPlayerSaveData(MockPlayer)
+				local ClientCachedPlayerData = Client:GetPlayerSaveData()
+
+				assert(Utility.tableDeepEqual(ServerCachedPlayerData, ClientCachedPlayerData))
 			end)
 		end)
 	end)

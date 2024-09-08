@@ -8,6 +8,10 @@
     {
       "Name": "NotifyPlayer",
       "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "PlayerChangeSetting",
+      "ClassName": "RemoteEvent"
     }
   ]
 }
