@@ -1,4 +1,5 @@
 -- dependency
+local Players = game:GetService("Players")
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 local Config = require(SoccerDuelsModule.Config)
@@ -53,10 +54,34 @@ local function getPlayerSaveData(Player)
 
 	Player:LoadCharacter()
 
-	return true, Utility.tableDeepCopy(PlayerSaveData) -- if we don't deep copy this, client tests on the server will use same table as server code, which incorrectly passes replication tests
+	return true, PlayerSaveData
 end
 
 -- public
+local function getLoadedPlayers()
+	local LoadedPlayers = {}
+
+	for Player, _ in CachedPlayerSaveData do
+		table.insert(LoadedPlayers, Player)
+	end
+
+	return LoadedPlayers
+end
+local function disconnectPlayer(Player)
+	if not (Utility.isA(Player, "Player")) then
+		error(`{Player} is not a Player!`)
+	end
+	if Players:FindFirstChild(Player.Name) then
+		Player:Kick("You have been disconnected by the server")
+	end
+
+	CachedPlayerSaveData[Player] = nil
+end
+local function disconnectAllPlayers()
+	for Player, _ in CachedPlayerSaveData do
+		disconnectPlayer(Player)
+	end
+end
 local function getCachedPlayerSaveData(Player)
 	if CachedPlayerSaveData[Player] == nil then
 		return
@@ -79,6 +104,8 @@ local function initializeServer()
 
 	RemoteEvents.GetPlayerSaveData.OnServerInvoke = getPlayerSaveData
 	RemoteEvents.PlayerChangeSetting.OnServerEvent:Connect(playerChangedSetting)
+
+	Players.PlayerRemoving:Connect(disconnectPlayer)
 end
 
 return {
@@ -86,7 +113,7 @@ return {
 	getAvailableDataStoreRequests = Database.getAvailableDataStoreRequests,
 	getPlayerSaveDataAsync = Database.getPlayerSaveDataAsync,
 	savePlayerDataAsync = Database.savePlayerDataAsync,
-	
+
 	-- testing API
 	wait = TestingVariables.wait,
 	getTestingVariable = TestingVariables.getVariable,
@@ -95,6 +122,9 @@ return {
 	resetAvailableDataStoreRequestsTestingMode = TestingVariables.resetAvailableDataStoreRequestsTestingMode,
 
 	-- SoccerDuels server
+	getLoadedPlayers = getLoadedPlayers,
+	disconnectPlayer = disconnectPlayer,
+	disconnectAllPlayers = disconnectAllPlayers,
 	getCachedPlayerSaveData = getCachedPlayerSaveData,
 	notifyPlayer = notifyPlayer,
 	initialize = initializeServer,

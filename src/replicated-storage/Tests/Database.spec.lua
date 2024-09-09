@@ -172,6 +172,7 @@ return function()
 		end)
 		describe("SoccerDuels.savePlayerDataAsync()", function()
 			it("Saves a a Player's PlayerDocument (save data) to the game's database", function()
+				SoccerDuels.resetTestingVariables()
 				SoccerDuels.setTestingVariable("TimeTravel", true)
 				SoccerDuels.setTestingVariable("SimulateDataStoreBudget", true)
 				SoccerDuels.setTestingVariable("DataStoreRequestBudget/Load", 3)
@@ -293,6 +294,15 @@ return function()
 				-- TODO lowkey this test needs to be broken up...
 				-- TODO put playerdocument on the client?
 				-- TODO make the toast notification work with all this
+			end)
+		end)
+		describe("SoccerDuels.autoSaveAllPlayerData()", function()
+			it("Polls for players whose data hasn't been synced with the database and saves their data in separate threads", function()
+				SoccerDuels.resetTestingVariables()
+
+				local MockPlayer1 = MockInstance.new("Player")
+				local MockPlayer2
+				local Client
 			end)
 		end)
 	end)

@@ -1,8 +1,12 @@
+-- dependency
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TestsFolder = script:FindFirstAncestor("Tests")
 
 local MockInstance = require(ReplicatedStorage.MockInstance)
 local SoccerDuels = require(ReplicatedStorage.SoccerDuels)
+local Utility = require(TestsFolder.Utility)
 
+-- test
 return function()
 	describe("SoccerDuels.newClient()", function()
 		it("Creates a new Client object, provided a Player Instance or mock Player", function()
@@ -49,6 +53,46 @@ return function()
 
 				SoccerDuels.resetTestingVariables()
 			end)
+		end)
+	end)
+	describe("SoccerDuels.getLoadedPlayers()", function()
+		it("Returns a list of players whose clients have loaded", function()
+			SoccerDuels.disconnectAllPlayers()
+
+			local MockPlayer1 = MockInstance.new("Player")
+			local MockPlayer2 = MockInstance.new("Player")
+			MockPlayer1.Name = "Billy"
+			MockPlayer2.Name = "Bob"
+
+			local Client1 = SoccerDuels.newClient(MockPlayer1)
+
+			assert(typeof(SoccerDuels.getLoadedPlayers()) == "table")
+			if not (#SoccerDuels.getLoadedPlayers() == 0) then
+				error(`{#SoccerDuels.getLoadedPlayers()} != 0`)
+			end
+
+			Client1:LoadPlayerDataAsync()
+
+			if not (#SoccerDuels.getLoadedPlayers() == 1) then
+				error(`{#SoccerDuels.getLoadedPlayers()} != 1`)
+			end
+			assert(SoccerDuels.getLoadedPlayers()[1] == MockPlayer1)
+
+			local Client2 = SoccerDuels.newClient(MockPlayer2)
+			Client2:LoadPlayerDataAsync()
+
+			assert(#SoccerDuels.getLoadedPlayers() == 2)
+			assert(Utility.tableContainsValue(SoccerDuels.getLoadedPlayers(), MockPlayer1))
+			assert(Utility.tableContainsValue(SoccerDuels.getLoadedPlayers(), MockPlayer2))
+
+			SoccerDuels.disconnectPlayer(MockPlayer2)
+
+			assert(#SoccerDuels.getLoadedPlayers() == 1)
+			assert(SoccerDuels.getLoadedPlayers()[1] == MockPlayer1)
+
+			SoccerDuels.disconnectPlayer(MockPlayer1)
+
+			assert(#SoccerDuels.getLoadedPlayers() == 0)
 		end)
 	end)
 end

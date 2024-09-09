@@ -57,8 +57,12 @@ return {
 	newClient = SoccerDuelsClient.new,
 
 	-- SoccerDuels server
+	getLoadedPlayers = SoccerDuelsServer.getLoadedPlayers,
+	disconnectPlayer = SoccerDuelsServer.disconnectPlayer,
+	disconnectAllPlayers = SoccerDuelsServer.disconnectAllPlayers,
 	getCachedPlayerSaveData = SoccerDuelsServer.getCachedPlayerSaveData,
 	notifyPlayer = SoccerDuelsServer.notifyPlayer,
+
 	initialize = initializeSoccerDuels,
 
 	-- testing API

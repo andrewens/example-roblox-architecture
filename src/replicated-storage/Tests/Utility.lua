@@ -1,4 +1,13 @@
 -- public
+local function tableContainsValue(Table, value)
+	for k, v in Table do
+		if v == value then
+			return true
+		end
+	end
+
+	return false
+end
 local function tableDeepEqual(Table1, Table2)
 	if typeof(Table1) == "table" and typeof(Table2) == "table" then
 		for k, v in Table1 do
@@ -25,5 +34,6 @@ local function tableDeepEqual(Table1, Table2)
 end
 
 return {
+	tableContainsValue = tableContainsValue,
 	tableDeepEqual = tableDeepEqual,
 }
