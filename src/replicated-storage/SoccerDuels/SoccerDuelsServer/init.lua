@@ -38,7 +38,7 @@ local function getPlayerSaveData(Player)
 		TestingVariables.wait(testingExtraLoadTime)
 	end
 
-	local s, output = Database.loadPlayerSaveDataAsync(Player)
+	local s, output = pcall(Database.getPlayerSaveDataAsync, Player)
 	if not s then
 		Player:Kick(`Failed to load your saved data: {output}`)
 		return false, output
@@ -82,12 +82,20 @@ local function initializeServer()
 end
 
 return {
+	-- database
+	getAvailableDataStoreRequests = Database.getAvailableDataStoreRequests,
+	getPlayerSaveDataAsync = Database.getPlayerSaveDataAsync,
+	savePlayerDataAsync = Database.savePlayerDataAsync,
+	
+	-- testing API
 	wait = TestingVariables.wait,
 	getTestingVariable = TestingVariables.getVariable,
 	setTestingVariable = TestingVariables.setVariable,
 	resetTestingVariables = TestingVariables.resetVariables,
+	resetAvailableDataStoreRequestsTestingMode = TestingVariables.resetAvailableDataStoreRequestsTestingMode,
 
-	getPlayerSaveData = getCachedPlayerSaveData,
+	-- SoccerDuels server
+	getCachedPlayerSaveData = getCachedPlayerSaveData,
 	notifyPlayer = notifyPlayer,
 	initialize = initializeServer,
 }

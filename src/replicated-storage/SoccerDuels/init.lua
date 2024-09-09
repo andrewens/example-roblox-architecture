@@ -39,11 +39,11 @@ local function initializeSoccerDuels()
 end
 
 return {
-	-- client
-	newClient = SoccerDuelsClient.new,
-
 	-- database
 	newPlayerDocument = PlayerDocument.new,
+	getAvailableDataStoreRequests = SoccerDuelsServer.getAvailableDataStoreRequests,
+	getPlayerSaveDataAsync = SoccerDuelsServer.getPlayerSaveDataAsync,
+	savePlayerDataAsync = SoccerDuelsServer.savePlayerDataAsync,
 
 	-- config
 	getConstant = Config.getConstant,
@@ -53,8 +53,11 @@ return {
 	getExpectedAsset = AssetDependencies.getExpectedAsset,
 	getExpectedAssets = AssetDependencies.getExpectedAssets,
 
+	-- SoccerDuels client
+	newClient = SoccerDuelsClient.new,
+
 	-- SoccerDuels server
-	getPlayerSaveData = SoccerDuelsServer.getPlayerSaveData,
+	getCachedPlayerSaveData = SoccerDuelsServer.getCachedPlayerSaveData,
 	notifyPlayer = SoccerDuelsServer.notifyPlayer,
 	initialize = initializeSoccerDuels,
 

@@ -169,22 +169,131 @@ return function()
 				assert(PlayerDocument.Settings["Low Graphics"] == notDefaultLowGraphicsSetting)
 				assert(PlayerDocument.DataFormatVersion == currentDataFormatVersion)
 			end)
-
-			-- TODO later we'll probably make some sort of data migration support here
 		end)
-		--[[
 		describe("SoccerDuels.savePlayerDataAsync()", function()
-			it("It saves all Player's data to the database", function()
+			it("Saves a a Player's PlayerDocument (save data) to the game's database", function()
 				SoccerDuels.setTestingVariable("TimeTravel", true)
+				SoccerDuels.setTestingVariable("SimulateDataStoreBudget", true)
+				SoccerDuels.setTestingVariable("DataStoreRequestBudget/Load", 3)
+				SoccerDuels.setTestingVariable("DataStoreRequestBudget/Save", 2)
 
+				local DefaultPlayerSaveData = SoccerDuels.getConstant("DefaultPlayerSaveData")
+				local notDefaultLowGraphicsSetting =
+					not SoccerDuels.getConstant("DefaultClientSettings", "Low Graphics")
+
+				-- getAvailableDataStoreRequests tells us how many Save/Load requests we can make until it refreshes in the next minute
 				local MockPlayer = MockInstance.new("Player")
+				local s = pcall(SoccerDuels.getAvailableDataStoreRequests, "This isn't a valid request type")
 
-				SoccerDuels.newPlayerSaveData(MockPlayer.UserId)
+				assert(not s)
+				if not (3 == SoccerDuels.getAvailableDataStoreRequests("Load")) then
+					error(`{3} != {SoccerDuels.getAvailableDataStoreRequests("Load")}`)
+				end
+				assert(2 == SoccerDuels.getAvailableDataStoreRequests("Save"))
 
-				SoccerDuels.savePlayerDataAsync(MockPlayer, {})
+				-- getPlayerSaveDataAsync should throw if given bad args or the network fails
+				s = pcall(SoccerDuels.getPlayerSaveDataAsync, "This isn't a Player")
+
+				assert(not s)
+				assert(3 == SoccerDuels.getAvailableDataStoreRequests("Load"))
+
+				SoccerDuels.setTestingVariable("NetworkAutoFail", true)
+				s = pcall(SoccerDuels.getPlayerSaveDataAsync, MockPlayer)
+
+				assert(not s)
+				assert(3 == SoccerDuels.getAvailableDataStoreRequests("Load"))
+
+				-- getPlayerSaveDataAsync should return a fresh PlayerSaveDataDocument for new players
+				SoccerDuels.setTestingVariable("NetworkAutoFail", false)
+				local PlayerSaveDataDocument = SoccerDuels.getPlayerSaveDataAsync(MockPlayer)
+
+				assert(Utility.tableDeepEqual(PlayerSaveDataDocument, DefaultPlayerSaveData))
+				assert(2 == SoccerDuels.getAvailableDataStoreRequests("Load"))
+
+				PlayerSaveDataDocument.Level = 2
+				PlayerSaveDataDocument.WinStreak = 3
+				PlayerSaveDataDocument.Settings["Low Graphics"] = notDefaultLowGraphicsSetting
+
+				-- savePlayerDataAsync should throw with bad args or if the network fails
+				s = pcall(SoccerDuels.savePlayerDataAsync, "This isn't a Player!")
+
+				assert(not s)
+				assert(2 == SoccerDuels.getAvailableDataStoreRequests("Save"))
+
+				s = pcall(SoccerDuels.savePlayerDataAsync, MockPlayer, "This isn't a PlayerDocument!")
+
+				assert(not s)
+				assert(2 == SoccerDuels.getAvailableDataStoreRequests("Save"))
+
+				s = pcall(
+					SoccerDuels.savePlayerDataAsync,
+					MockPlayer,
+					{ Level = 2, WinStreak = "This isn't a real PlayerDocument", DataFormatVersion = 0, Settings = {} }
+				)
+
+				assert(not s)
+				assert(2 == SoccerDuels.getAvailableDataStoreRequests("Save"))
+
+				-- savePlayerDataAsync should actually update the data in the database
+				SoccerDuels.savePlayerDataAsync(MockPlayer, PlayerSaveDataDocument)
+				local DifferentPlayerDocument = SoccerDuels.getPlayerSaveDataAsync(MockPlayer)
+
+				assert(DifferentPlayerDocument ~= PlayerSaveDataDocument)
+				assert(Utility.tableDeepEqual(DifferentPlayerDocument, PlayerSaveDataDocument))
+				assert(1 == SoccerDuels.getAvailableDataStoreRequests("Save"))
+				assert(1 == SoccerDuels.getAvailableDataStoreRequests("Load"))
+
+				-- getPlayerDataAsync should yield if we hit the "Load" request limit
+				local begin
+				local deltaTime
+				local maxError = 0.0001
+				local delayTime
+
+				begin = os.clock()
+				SoccerDuels.getPlayerSaveDataAsync(MockPlayer)
+				deltaTime = os.clock() - begin
+
+				assert(math.abs(deltaTime) < maxError)
+				assert(0 == SoccerDuels.getAvailableDataStoreRequests("Load")) -- (dependent on Config.TestingModeDataStoreRequestLimits)
+
+				delayTime = 0.03
+				maxError = 0.003
+
+				task.delay(delayTime, SoccerDuels.setTestingVariable, "DataStoreRequestBudget/Load", 2)
+
+				begin = os.clock()
+				SoccerDuels.getPlayerSaveDataAsync(MockPlayer)
+				deltaTime = os.clock() - begin
+
+				assert(deltaTime > delayTime - maxError)
+				assert(1 == SoccerDuels.getAvailableDataStoreRequests("Load"))
+
+				-- savePlayerDataAsync should yield if we hit the "Save" request limit
+				begin = os.clock()
+				SoccerDuels.savePlayerDataAsync(MockPlayer, PlayerSaveDataDocument)
+				deltaTime = os.clock() - begin
+
+				assert(math.abs(deltaTime) < maxError)
+				assert(0 == SoccerDuels.getAvailableDataStoreRequests("Save")) -- (dependent on Config.TestingModeDataStoreRequestLimits)
+
+				delayTime = 0.03
+				maxError = 0.003
+
+				task.delay(delayTime, SoccerDuels.setTestingVariable, "DataStoreRequestBudget/Save", 2)
+
+				begin = os.clock()
+				SoccerDuels.savePlayerDataAsync(MockPlayer, PlayerSaveDataDocument)
+				deltaTime = os.clock() - begin
+
+				assert(deltaTime > delayTime - maxError)
+				assert(1 == SoccerDuels.getAvailableDataStoreRequests("Save"))
 
 				SoccerDuels.resetTestingVariables()
+
+				-- TODO lowkey this test needs to be broken up...
+				-- TODO put playerdocument on the client?
+				-- TODO make the toast notification work with all this
 			end)
-		end)--]]
+		end)
 	end)
 end

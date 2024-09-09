@@ -23,24 +23,67 @@ local function testingModeWait(seconds)
 
 	return task.wait(seconds)
 end
+local function decrementTestingModeVariable(variableName)
+	if not TESTING_MODE then
+		error(`SoccerDuels API can't decrement test mode variables when not in TestingMode`)
+	end
+
+	local Path = string.split(variableName, "/")
+	local Table = TestingVariables
+	local key = Path[#Path]
+
+	for i = 1, #Path - 1 do
+		Table = Table[Path[i]]
+		if Table == nil then
+			error(`There's no TestingVariable with path "{variableName}"`)
+		end
+	end
+
+	if Table[key] == nil then
+		error(`There's no TestingVariable with path "{variableName}"`)
+	end
+	if typeof(Table[key]) ~= "number" then
+		error(`TestingVariable "{variableName}" is not a number and can't be decremented!}`)
+	end
+
+	Table[key] -= 1
+end
 local function setTestingModeVariable(variableName, newValue)
 	if not TESTING_MODE then
 		error(`SoccerDuels API can't set test mode variables when not in TestingMode`)
 	end
 
-	if TestingVariables[variableName] == nil then
-		error(`There's no TestingVariable named "{variableName}"`)
-	end
-	if typeof(TestingVariables[variableName]) ~= typeof(newValue) then
-		error(
-			`TestingVariable "{variableName}" is a {typeof(TestingVariables[variableName])}, not a {typeof(newValue)}`
-		)
+	local Path = string.split(variableName, "/")
+	local Table = TestingVariables
+	local key = Path[#Path]
+
+	for i = 1, #Path - 1 do
+		Table = Table[Path[i]]
+		if Table == nil then
+			error(`There's no TestingVariable with path "{variableName}"`)
+		end
 	end
 
-	TestingVariables[variableName] = newValue
+	if Table[key] == nil then
+		error(`There's no TestingVariable with path "{variableName}"`)
+	end
+	if typeof(Table[key]) ~= typeof(newValue) then
+		error(`TestingVariable "{variableName}" is a {typeof(Table[key])}, not a {typeof(newValue)}`)
+	end
+
+	Table[key] = newValue
 end
 local function getTestingModeVariable(variableName)
-	return TestingVariables[variableName]
+	local value = TestingVariables
+
+	for _, key in string.split(variableName, "/") do
+		value = value[key]
+		if value == nil then
+			return nil
+		end
+	end
+
+	return value
 end
 local function resetTestingModeVariables()
 	if not TESTING_MODE then
@@ -52,6 +95,7 @@ end
 
 return {
 	wait = testingModeWait,
+	decrementVariable = decrementTestingModeVariable,
 	setVariable = setTestingModeVariable,
 	getVariable = getTestingModeVariable,
 	resetVariables = resetTestingModeVariables,

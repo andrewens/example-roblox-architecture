@@ -26,7 +26,12 @@ DefaultConfig.TestingMode = (game.PlaceId == 18832664984)
 DefaultConfig.TestingVariables = {
 	ExtraLoadTime = 0,
 	TimeTravel = false,
-	AutoNetworkError = false,
+	NetworkAutoFail = false,
+	SimulateDataStoreBudget = false,
+	DataStoreRequestBudget = {
+		Save = 0,
+		Load = 0,
+	}
 }
 
 -- database

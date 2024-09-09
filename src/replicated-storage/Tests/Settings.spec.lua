@@ -46,6 +46,8 @@ return function()
 				assert(i == #ClientSettings)
 			end)
 			it("Invokes callback when a setting is changed, until it's been disconnected", function()
+				SoccerDuels.resetTestingVariables()
+
 				local MockPlayer = MockInstance.new("Player")
 				local Client = SoccerDuels.newClient(MockPlayer)
 				Client:LoadPlayerDataAsync()
@@ -81,6 +83,8 @@ return function()
 		end)
 		describe("Client:ChangeSetting()", function()
 			it("Updates the server's cache of Player SaveData", function()
+				SoccerDuels.resetTestingVariables()
+
 				local MockPlayer = MockInstance.new("Player")
 				local Client = SoccerDuels.newClient(MockPlayer)
 
@@ -92,7 +96,7 @@ return function()
 
 				assert((not clientLowGraphicsSetting) == Client:GetSetting("Low Graphics"))
 
-				local ServerCachedPlayerData = SoccerDuels.getPlayerSaveData(MockPlayer)
+				local ServerCachedPlayerData = SoccerDuels.getCachedPlayerSaveData(MockPlayer)
 				local ClientCachedPlayerData = Client:GetPlayerSaveData()
 
 				assert(Utility.tableDeepEqual(ServerCachedPlayerData, ClientCachedPlayerData))
