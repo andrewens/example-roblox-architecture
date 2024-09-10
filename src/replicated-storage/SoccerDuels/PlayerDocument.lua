@@ -16,10 +16,74 @@ local DEFAULT_CLIENT_SETTINGS = Config.getConstant("DefaultClientSettings")
 
 -- var
 local PlayerDocumentMetatable
+local PlayerDocumentMethods
+
+-- private
+local function nestedTableInterface(self, tableName)
+	local TableInterface = {}
+	setmetatable(TableInterface, {
+		__index = function(_, key2)
+			return self._Data[tableName][key2]
+		end,
+		__newindex = function(_, key2, value)
+			self._Data[tableName][key2] = value
+			self._LastEditTimestamp = Utility.getUnixTimestampMilliseconds()
+		end,
+	})
+	return TableInterface
+end
 
 -- public / PlayerDocument class methods
+local function playerDocumentUpdateLastSavedTimestamp(self)
+	self._LastSaveTimestamp = Utility.getUnixTimestampMilliseconds()
+end
+local function playerDocumentSaveTimestampIsGreaterThanLastEditTimestamp(self)
+	return self._LastSaveTimestamp >= self._LastEditTimestamp
+end
+local function changePlayerDocumentValue(self, key, value)
+	if self._Data[key] == nil then
+		error(`PlayerDocument has no field named "{key}"!`)
+	end
+	if typeof(self._Data[key]) ~= typeof(value) then
+		error(`PlayerDocument["{key}"] is a {typeof(self._Data[key])}, not a {typeof(value)}!`)
+	end
+
+	if typeof(self._Data[key]) == "table" then
+		for key2, value2 in value do -- note that this has same functionality as a NestedTableInterface but it is a duplicate implementation
+			self._Data[key][key2] = value2
+		end
+	end
+
+	self._Data[key] = value
+	self._LastEditTimestamp = Utility.getUnixTimestampMilliseconds()
+end
+local function changeMultiplePlayerDocumentValues(self, DataToUpdate)
+	if not (typeof(DataToUpdate) == "table") then
+		error(`{DataToUpdate} is not a table!`)
+	end
+
+	for key, value in DataToUpdate do
+		changePlayerDocumentValue(self, key, value)
+	end
+end
 local function playerDocumentToJson(self)
-	return HttpService:JSONEncode(self)
+	return HttpService:JSONEncode(self._Data)
+end
+
+-- public / PlayerDocument metamethods
+local function indexPlayerDocument(self, key)
+	if PlayerDocumentMethods[key] then
+		return PlayerDocumentMethods[key]
+	end
+
+	if typeof(self._Data[key]) == "table" then
+		return self._NestedTableInterfaces[key]
+	end
+
+	return self._Data[key]
+end
+local function iteratePlayerDocument(self)
+	return next, self._Data
 end
 
 -- public
@@ -57,11 +121,11 @@ local function newPlayerDocument(LoadedSaveData)
 		error(`{LoadedSaveData} is not a table!`)
 	end
 
-	local self = Utility.tableDeepCopy(DEFAULT_PLAYER_SAVE_DATA)
+	local Data = Utility.tableDeepCopy(DEFAULT_PLAYER_SAVE_DATA)
 
-	self.DataFormatVersion = CURRENT_DATA_FORMAT_VERSION
-	self.Level = LoadedSaveData.Level or self.Level
-	self.WinStreak = LoadedSaveData.WinStreak or self.WinStreak
+	Data.DataFormatVersion = CURRENT_DATA_FORMAT_VERSION
+	Data.Level = LoadedSaveData.Level or Data.Level
+	Data.WinStreak = LoadedSaveData.WinStreak or Data.WinStreak
 
 	if LoadedSaveData.Settings then
 		for settingName, defaultSettingValue in DEFAULT_CLIENT_SETTINGS do
@@ -70,19 +134,38 @@ local function newPlayerDocument(LoadedSaveData)
 				continue
 			end
 
-			self.Settings[settingName] = loadedSettingValue
+			Data.Settings[settingName] = loadedSettingValue
 		end
 	end
+
+	local self = {}
+	self._Data = Data
+	self._LastSaveTimestamp = 0
+	self._LastEditTimestamp = 0
+	self._NestedTableInterfaces = {
+		-- we have to create more metatables to support self._LastEditTimestamp when editing nested tables like Settings,
+		-- but all the data has to be in the _Data table to work with HttpService:JSONEncode()
+		Settings = nestedTableInterface(self, "Settings")
+	}
 
 	setmetatable(self, PlayerDocumentMetatable)
 
 	return self
 end
 local function initializePlayerDocument()
-	local PlayerDocumentMethods = {
+	PlayerDocumentMethods = {
+		UpdateLastSavedTimestamp = playerDocumentUpdateLastSavedTimestamp,
+		SaveTimestampIsGreaterThanLastEditTimestamp = playerDocumentSaveTimestampIsGreaterThanLastEditTimestamp,
+
+		ChangeValues = changeMultiplePlayerDocumentValues,
+		ChangeValue = changePlayerDocumentValue,
 		ToJson = playerDocumentToJson,
 	}
-	PlayerDocumentMetatable = { __index = PlayerDocumentMethods }
+	PlayerDocumentMetatable = {
+		__index = indexPlayerDocument,
+		__newindex = changePlayerDocumentValue,
+		__iter = iteratePlayerDocument,
+	}
 end
 
 initializePlayerDocument()

@@ -296,14 +296,89 @@ return function()
 				-- TODO make the toast notification work with all this
 			end)
 		end)
-		describe("SoccerDuels.autoSaveAllPlayerData()", function()
-			it("Polls for players whose data hasn't been synced with the database and saves their data in separate threads", function()
-				SoccerDuels.resetTestingVariables()
+		describe("SoccerDuels.saveAllPlayerData()", function()
+			it(
+				"Polls for players whose data hasn't been synced with the database and saves their data in separate threads",
+				function()
+					SoccerDuels.resetTestingVariables()
+					SoccerDuels.disconnectAllPlayers()
+					SoccerDuels.setTestingVariable("DisableAutoSave", true)
 
-				local MockPlayer1 = MockInstance.new("Player")
-				local MockPlayer2
-				local Client
-			end)
+					local notDefaultLowGraphicsSetting =
+						not SoccerDuels.getConstant("DefaultClientSettings", "Low Graphics")
+
+					local MockPlayer1 = MockInstance.new("Player")
+					local MockPlayer2 = MockInstance.new("Player")
+
+					MockPlayer1.UserId = 24823489234 -- these should be unique from any other MockPlayer in the tests
+					MockPlayer2.UserId = 12384543503
+
+					local Client1 = SoccerDuels.newClient(MockPlayer1)
+					local Client2 = SoccerDuels.newClient(MockPlayer2)
+
+					Client1:LoadPlayerDataAsync()
+					Client2:LoadPlayerDataAsync()
+
+					assert(SoccerDuels.playerDataIsSaved(MockPlayer1))
+					assert(SoccerDuels.playerDataIsSaved(MockPlayer2))
+
+					local newLevel = 1337
+					SoccerDuels.updateCachedPlayerSaveData(MockPlayer1, { -- option #1 for changing player data
+						Level = newLevel,
+						Settings = {
+							["Low Graphics"] = notDefaultLowGraphicsSetting,
+						},
+					})
+					local PlayerDocument2 = SoccerDuels.getCachedPlayerSaveData(MockPlayer2)
+					PlayerDocument2.Level = newLevel -- option #2 for changing player data
+					PlayerDocument2.Settings["Low Graphics"] = notDefaultLowGraphicsSetting
+
+					local NewPlayerDocument = SoccerDuels.newPlayerDocument({
+						Level = newLevel,
+						Settings = {
+							["Low Graphics"] = notDefaultLowGraphicsSetting,
+						}
+					})
+
+					assert(not SoccerDuels.playerDataIsSaved(MockPlayer1))
+					assert(not SoccerDuels.playerDataIsSaved(MockPlayer2))
+					assert(Utility.tableDeepEqual(
+						NewPlayerDocument,
+						SoccerDuels.getCachedPlayerSaveData(MockPlayer1) -- the cache has updated...
+					))
+					assert(not Utility.tableDeepEqual(
+						NewPlayerDocument,
+						SoccerDuels.getPlayerSaveDataAsync(MockPlayer1) -- ...but the database has not (yet)
+					))
+					assert(Utility.tableDeepEqual(
+						NewPlayerDocument,
+						SoccerDuels.getCachedPlayerSaveData(MockPlayer2) -- the cache has updated...
+					))
+					assert(not Utility.tableDeepEqual(
+						NewPlayerDocument,
+						SoccerDuels.getPlayerSaveDataAsync(MockPlayer2) -- ...but the database has not (yet)
+					))
+
+					SoccerDuels.saveAllPlayerData()
+
+					assert(SoccerDuels.playerDataIsSaved(MockPlayer1))
+					assert(SoccerDuels.playerDataIsSaved(MockPlayer2))
+					assert(
+						Utility.tableDeepEqual(
+							NewPlayerDocument,
+							SoccerDuels.getPlayerSaveDataAsync(MockPlayer1)
+						)
+					)
+					assert(
+						Utility.tableDeepEqual(
+							NewPlayerDocument,
+							SoccerDuels.getPlayerSaveDataAsync(MockPlayer2)
+						)
+					)
+
+					SoccerDuels.resetTestingVariables()
+				end
+			)
 		end)
 	end)
 end

@@ -39,12 +39,6 @@ local function initializeSoccerDuels()
 end
 
 return {
-	-- database
-	newPlayerDocument = PlayerDocument.new,
-	getAvailableDataStoreRequests = SoccerDuelsServer.getAvailableDataStoreRequests,
-	getPlayerSaveDataAsync = SoccerDuelsServer.getPlayerSaveDataAsync,
-	savePlayerDataAsync = SoccerDuelsServer.savePlayerDataAsync,
-
 	-- config
 	getConstant = Config.getConstant,
 
@@ -56,10 +50,19 @@ return {
 	-- SoccerDuels client
 	newClient = SoccerDuelsClient.new,
 
+	-- database
+	newPlayerDocument = PlayerDocument.new,
+	getAvailableDataStoreRequests = SoccerDuelsServer.getAvailableDataStoreRequests,
+	getPlayerSaveDataAsync = SoccerDuelsServer.getPlayerSaveDataAsync,
+	savePlayerDataAsync = SoccerDuelsServer.savePlayerDataAsync,
+
 	-- SoccerDuels server
 	getLoadedPlayers = SoccerDuelsServer.getLoadedPlayers,
 	disconnectPlayer = SoccerDuelsServer.disconnectPlayer,
 	disconnectAllPlayers = SoccerDuelsServer.disconnectAllPlayers,
+	saveAllPlayerData = SoccerDuelsServer.saveAllPlayerData,
+	playerDataIsSaved = SoccerDuelsServer.playerDataIsSaved,
+	updateCachedPlayerSaveData = SoccerDuelsServer.updateCachedPlayerSaveData,
 	getCachedPlayerSaveData = SoccerDuelsServer.getCachedPlayerSaveData,
 	notifyPlayer = SoccerDuelsServer.notifyPlayer,
 

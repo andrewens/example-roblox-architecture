@@ -13,7 +13,7 @@ local TestingVariables = require(script.TestingVariables)
 local DEFAULT_CLIENT_SETTINGS = Config.getConstant("DefaultClientSettings")
 
 -- var
-local CachedPlayerSaveData = {} -- Player --> table
+local CachedPlayerSaveData = {} -- Player --> PlayerDocument
 
 -- protected / network methods
 local function playerChangedSetting(Player, settingName, newValue)
@@ -82,12 +82,54 @@ local function disconnectAllPlayers()
 		disconnectPlayer(Player)
 	end
 end
+local function playerDataIsSaved(Player)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+
+	local CachedSaveData = CachedPlayerSaveData[Player]
+	if CachedSaveData == nil then
+		error(`{Player}'s save data is not cached!`)
+	end
+
+	return CachedSaveData:SaveTimestampIsGreaterThanLastEditTimestamp()
+end
+local function updateCachedPlayerSaveData(Player, DataToUpdate)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+	if not (typeof(DataToUpdate) == "table") then
+		error(`{DataToUpdate} is not a table!`)
+	end
+
+	local CachedSaveData = CachedPlayerSaveData[Player]
+	if CachedSaveData == nil then
+		error(`{Player}'s save data is not cached!`)
+	end
+
+	CachedSaveData:ChangeValues(DataToUpdate)
+end
 local function getCachedPlayerSaveData(Player)
 	if CachedPlayerSaveData[Player] == nil then
 		return
 	end
 
-	return Utility.tableDeepCopy(CachedPlayerSaveData[Player])
+	return CachedPlayerSaveData[Player]
+end
+local function saveAllPlayerData()
+	if Database.getAvailableDataStoreRequests("Save") <= 0 then
+		return false
+	end
+
+	for Player, CachedSaveData in CachedPlayerSaveData do
+		if playerDataIsSaved(Player) then
+			continue
+		end
+
+		task.spawn(Database.savePlayerDataAsync, Player, CachedSaveData)
+	end
+
+	return true
 end
 local function notifyPlayer(Player, notificationMessage)
 	if not (Utility.isA(Player, "Player")) then
@@ -125,6 +167,9 @@ return {
 	getLoadedPlayers = getLoadedPlayers,
 	disconnectPlayer = disconnectPlayer,
 	disconnectAllPlayers = disconnectAllPlayers,
+	saveAllPlayerData = saveAllPlayerData,
+	playerDataIsSaved = playerDataIsSaved,
+	updateCachedPlayerSaveData = updateCachedPlayerSaveData,
 	getCachedPlayerSaveData = getCachedPlayerSaveData,
 	notifyPlayer = notifyPlayer,
 	initialize = initializeServer,

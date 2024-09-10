@@ -67,6 +67,8 @@ local function savePlayerDataAsync(Player, PlayerSaveData)
 	if not s then
 		error(output)
 	end
+
+	PlayerSaveData:UpdateLastSavedTimestamp()
 end
 local function getPlayerSaveDataAsync(Player)
 	if not Utility.isA(Player, "Player") then

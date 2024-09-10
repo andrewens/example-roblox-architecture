@@ -31,7 +31,8 @@ DefaultConfig.TestingVariables = {
 	DataStoreRequestBudget = {
 		Save = 0,
 		Load = 0,
-	}
+	},
+	DisableAutoSave = false,
 }
 
 -- database
@@ -44,6 +45,7 @@ DefaultConfig.DefaultPlayerSaveData = {
 	WinStreak = 0,
 	Settings = {},
 }
+DefaultConfig.AutoSavePollRateSeconds = 5
 
 -- client settings
 DefaultConfig.DefaultClientSettings = {
@@ -56,7 +58,7 @@ DefaultConfig.ClientSettingsDisplayOrder = {
 }
 
 -- settings UI
-DefaultConfig.BooleanSettingOnColor3 = Color3.fromRGB(0, 255, 0)
+DefaultConfig.BooleanSettingOnColor3 = Color3.fromRGB(0, 255, 0) -- TODO change this to a color palette-type vibe (less specific)
 DefaultConfig.BooleanSettingOffColor3 = Color3.fromRGB(255, 0, 0)
 
 return DefaultConfig

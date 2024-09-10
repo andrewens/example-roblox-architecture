@@ -6,6 +6,9 @@ local StarterGui = game:GetService("StarterGui")
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 -- public
+local function getUnixTimestampMilliseconds()
+	return DateTime.now().UnixTimestampMillis
+end
 local function tableDeepCopy(Table)
 	if typeof(Table) == "table" then
 		local Copy = {}
@@ -25,7 +28,6 @@ end
 local function isA(value, className)
 	return (typeof(value) == "Instance" or typeof(value) == "table") and value:IsA(className)
 end
-
 local function onPlayerDiedConnect(Player, callback)
 	local charAdded = function(Char)
 		Char.Humanoid.Died:Connect(function()
@@ -55,6 +57,8 @@ local function organizeDependenciesServerOnly()
 end
 
 return {
+	getUnixTimestampMilliseconds = getUnixTimestampMilliseconds,
+
 	tableDeepCopy = tableDeepCopy,
 	isInteger = isInteger,
 	isA = isA,
