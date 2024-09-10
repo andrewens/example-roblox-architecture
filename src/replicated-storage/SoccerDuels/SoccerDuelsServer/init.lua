@@ -11,9 +11,24 @@ local TestingVariables = require(script.TestingVariables)
 
 -- const
 local DEFAULT_CLIENT_SETTINGS = Config.getConstant("DefaultClientSettings")
+local AUTO_SAVE_RATE_SECONDS = Config.getConstant("AutoSavePollRateSeconds")
+local AUTO_SAVE_MESSAGE = Config.getConstant("NotificationMessages", "AutoSave")
 
 -- var
 local CachedPlayerSaveData = {} -- Player --> PlayerDocument
+
+local saveAllPlayerData
+
+-- private
+local function autoSaveAllPlayerData()
+	while task.wait(AUTO_SAVE_RATE_SECONDS) do
+		if TestingVariables.getVariable("DisableAutoSave") then
+			continue
+		end
+
+		saveAllPlayerData()
+	end
+end
 
 -- protected / network methods
 local function playerChangedSetting(Player, settingName, newValue)
@@ -58,6 +73,16 @@ local function getPlayerSaveData(Player)
 end
 
 -- public
+local function notifyPlayer(Player, notificationMessage)
+	if not (Utility.isA(Player, "Player")) then
+		error(`{Player} is not a Player!`)
+	end
+	if not (typeof(notificationMessage) == "string") then
+		error(`{notificationMessage} is not a string!`)
+	end
+
+	RemoteEvents.NotifyPlayer:FireClient(Player, notificationMessage)
+end
 local function getLoadedPlayers()
 	local LoadedPlayers = {}
 
@@ -116,31 +141,24 @@ local function getCachedPlayerSaveData(Player)
 
 	return CachedPlayerSaveData[Player]
 end
-local function saveAllPlayerData()
-	if Database.getAvailableDataStoreRequests("Save") <= 0 then
-		return false
-	end
-
+function saveAllPlayerData()
 	for Player, CachedSaveData in CachedPlayerSaveData do
 		if playerDataIsSaved(Player) then
 			continue
 		end
+		if Database.getAvailableDataStoreRequests("Save") <= 0 then
+			return false
+		end
 
-		task.spawn(Database.savePlayerDataAsync, Player, CachedSaveData)
+		task.spawn(function()
+			Database.savePlayerDataAsync(Player, CachedSaveData) -- this could error but that's ok
+			notifyPlayer(Player, AUTO_SAVE_MESSAGE)
+		end)
 	end
 
 	return true
 end
-local function notifyPlayer(Player, notificationMessage)
-	if not (Utility.isA(Player, "Player")) then
-		error(`{Player} is not a Player!`)
-	end
-	if not (typeof(notificationMessage) == "string") then
-		error(`{notificationMessage} is not a string!`)
-	end
 
-	RemoteEvents.NotifyPlayer:FireClient(Player, notificationMessage)
-end
 local function initializeServer()
 	Database.initialize()
 
@@ -148,6 +166,8 @@ local function initializeServer()
 	RemoteEvents.PlayerChangeSetting.OnServerEvent:Connect(playerChangedSetting)
 
 	Players.PlayerRemoving:Connect(disconnectPlayer)
+
+	task.spawn(autoSaveAllPlayerData)
 end
 
 return {

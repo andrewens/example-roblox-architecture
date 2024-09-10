@@ -337,7 +337,7 @@ return function()
 						Level = newLevel,
 						Settings = {
 							["Low Graphics"] = notDefaultLowGraphicsSetting,
-						}
+						},
 					})
 
 					assert(not SoccerDuels.playerDataIsSaved(MockPlayer1))
@@ -363,18 +363,8 @@ return function()
 
 					assert(SoccerDuels.playerDataIsSaved(MockPlayer1))
 					assert(SoccerDuels.playerDataIsSaved(MockPlayer2))
-					assert(
-						Utility.tableDeepEqual(
-							NewPlayerDocument,
-							SoccerDuels.getPlayerSaveDataAsync(MockPlayer1)
-						)
-					)
-					assert(
-						Utility.tableDeepEqual(
-							NewPlayerDocument,
-							SoccerDuels.getPlayerSaveDataAsync(MockPlayer2)
-						)
-					)
+					assert(Utility.tableDeepEqual(NewPlayerDocument, SoccerDuels.getPlayerSaveDataAsync(MockPlayer1)))
+					assert(Utility.tableDeepEqual(NewPlayerDocument, SoccerDuels.getPlayerSaveDataAsync(MockPlayer2)))
 
 					SoccerDuels.resetTestingVariables()
 				end

@@ -47,6 +47,11 @@ DefaultConfig.DefaultPlayerSaveData = {
 }
 DefaultConfig.AutoSavePollRateSeconds = 5
 
+-- client notifications
+DefaultConfig.NotificationMessages = {
+	AutoSave = "Your data has been saved"
+}
+
 -- client settings
 DefaultConfig.DefaultClientSettings = {
 	["Sound Effects"] = true,
