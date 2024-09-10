@@ -70,4 +70,9 @@ do
 	}
 end
 
+-- testing mode
+ExpectedAssets.TestingModeLabel = {
+	Path = "ReplicatedStorage/UserInterface/Windows/Middle/Lobby/TestingMode"
+}
+
 return ExpectedAssets
