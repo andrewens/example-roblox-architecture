@@ -51,6 +51,7 @@ DefaultConfig.AutoSavePollRateSeconds = 5
 DefaultConfig.NotificationMessages = {
 	AutoSave = "Your data has been saved"
 }
+DefaultConfig.ToastNotificationDurationSeconds = 2
 
 -- client settings
 DefaultConfig.DefaultClientSettings = {

@@ -122,6 +122,15 @@ local function newModalGui(Client, MainGui)
 
 	initializeSettingsModal(self)
 
+	Client:OnVisibleModalChangedConnect(function(visibleModalName)
+		if visibleModalName == nil then
+			self:Hide()
+			return
+		end
+
+		self:ShowModal(visibleModalName)
+	end)
+
 	return self
 end
 local function initializeModalGui()

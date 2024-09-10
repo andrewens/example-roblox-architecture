@@ -6,6 +6,7 @@ local Enums = require(SoccerDuelsModule.Enums)
 -- init
 local ExpectedAssets = {}
 
+-- root
 ExpectedAssets.PlayerGui = {
 	Path = "ReplicatedStorage/UserInterface",
 	ClassName = "Folder",
@@ -52,10 +53,20 @@ do
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Settings/Boxes/Low Graphics/Option",
 		ClassName = "TextLabel",
 	}
-
 	ExpectedAssets.SettingsModalCloseButton = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Settings/Title/Close",
 		ClassName = "GuiButton",
+	}
+end
+
+-- toast notifications
+do
+	ExpectedAssets.ToastContainer = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Lobby/ToastNotification"
+	}
+	ExpectedAssets.ToastMessage = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Lobby/ToastNotification/Message",
+		ClassName = "TextLabel"
 	}
 end
 

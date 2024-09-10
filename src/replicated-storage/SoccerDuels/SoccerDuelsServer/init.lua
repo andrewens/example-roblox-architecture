@@ -69,7 +69,7 @@ local function getPlayerSaveData(Player)
 
 	Player:LoadCharacter()
 
-	return true, PlayerSaveData
+	return true, PlayerSaveData:ToJson()
 end
 
 -- public
