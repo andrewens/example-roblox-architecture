@@ -13,6 +13,9 @@ SoccerDuels.initialize()
 if SoccerDuels.getConstant("TestingMode") then
 	MockInstance.initialize()
 	TestEZ.TestBootstrap:run({ TestsFolder })
+
+	local TestUtility = require(TestsFolder.Utility)
+	TestUtility.serverFinishedTests() -- TODO this is a temporary fix
 else
 	MockInstanceModule:Destroy()
 	TestEZModule:Destroy()

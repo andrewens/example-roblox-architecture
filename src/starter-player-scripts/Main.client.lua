@@ -7,6 +7,11 @@ local SoccerDuels = require(ReplicatedStorage.SoccerDuels)
 local LocalPlayer = Players.LocalPlayer
 
 -- initialize
+if SoccerDuels.getConstant("TestingMode") then
+	local TestUtility = require(ReplicatedStorage.Tests.Utility)
+	TestUtility.clientWaitUntilServerFinishedTests() -- TODO this is a temporary fix
+end
+
 SoccerDuels.initialize()
 
 local begin = os.clock()

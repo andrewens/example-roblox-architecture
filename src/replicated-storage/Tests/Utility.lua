@@ -1,3 +1,34 @@
+-- public / temporary fix for server tests accidentally disconnecting a real client
+local serverFinishedTests, clientWaitUntilServerFinishedTests
+do
+	-- TODO currently the client will load before the tests finish running
+	-- and some of the tests call disconnectAllPlayers(), which causes the
+	-- freshly loaded client to immediately be disconnected and deloaded.
+	-- the root fix of this is to create server instances so all that state
+	-- is encapsulated in a single object. this is just a quick fix.
+
+	local TestsFolder = script:FindFirstAncestor("Tests")
+	local TestRemoteEvents = TestsFolder.RemoteEvents
+
+	function serverFinishedTests()
+		TestRemoteEvents.TestsFinished.OnServerEvent:Connect(function(Player)
+			TestRemoteEvents.TestsFinished:FireClient(Player)
+		end)
+		TestRemoteEvents.TestsFinished:FireAllClients()
+	end
+	function clientWaitUntilServerFinishedTests()
+		local testsRunning = true
+		TestRemoteEvents.TestsFinished.OnClientEvent:Connect(function()
+			testsRunning = false
+		end)
+		TestRemoteEvents.TestsFinished:FireServer()
+
+		while testsRunning do
+			task.wait()
+		end
+	end
+end
+
 -- public
 local function tableContainsValue(Table, value)
 	for k, v in Table do
@@ -55,4 +86,8 @@ return {
 	tableContainsValue = tableContainsValue,
 	tableIsSubsetOfTable = tableIsSubsetOfTable,
 	tableDeepEqual = tableDeepEqual,
+
+	-- temp fix
+	serverFinishedTests = serverFinishedTests,
+	clientWaitUntilServerFinishedTests = clientWaitUntilServerFinishedTests,
 }

@@ -45,8 +45,6 @@ local function playerChangedSetting(Player, settingName, newValue)
 	end
 
 	PlayerSaveData.Settings[settingName] = newValue
-
-	-- TODO save to database
 end
 local function getPlayerSaveData(Player)
 	local testingExtraLoadTime = TestingVariables.getVariable("ExtraLoadTime")
@@ -92,21 +90,6 @@ local function getLoadedPlayers()
 
 	return LoadedPlayers
 end
-local function disconnectPlayer(Player, kickPlayer)
-	if not (Utility.isA(Player, "Player")) then
-		error(`{Player} is not a Player!`)
-	end
-	if kickPlayer and Players:FindFirstChild(Player.Name) then
-		Player:Kick("You have been disconnected by the server")
-	end
-
-	CachedPlayerSaveData[Player] = nil
-end
-local function disconnectAllPlayers(kickPlayers)
-	for Player, _ in CachedPlayerSaveData do
-		disconnectPlayer(Player, kickPlayers)
-	end
-end
 local function playerDataIsSaved(Player)
 	if not Utility.isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
@@ -118,6 +101,26 @@ local function playerDataIsSaved(Player)
 	end
 
 	return CachedSaveData:SaveTimestampIsGreaterThanLastEditTimestamp()
+end
+local function disconnectPlayer(Player, kickPlayer)
+	if not (Utility.isA(Player, "Player")) then
+		error(`{Player} is not a Player!`)
+	end
+	if kickPlayer and Players:FindFirstChild(Player.Name) then
+		Player:Kick("You have been disconnected by the server")
+	end
+
+	local CachedSaveData = CachedPlayerSaveData[Player]
+	if CachedSaveData and not CachedSaveData:SaveTimestampIsGreaterThanLastEditTimestamp() then
+		task.spawn(Database.savePlayerDataAsync, Player, CachedSaveData)
+	end
+
+	CachedPlayerSaveData[Player] = nil
+end
+local function disconnectAllPlayers(kickPlayers)
+	for Player, _ in CachedPlayerSaveData do
+		disconnectPlayer(Player, kickPlayers)
+	end
 end
 local function updateCachedPlayerSaveData(Player, DataToUpdate)
 	if not Utility.isA(Player, "Player") then
@@ -168,6 +171,7 @@ local function initializeServer()
 	Players.PlayerRemoving:Connect(disconnectPlayer)
 
 	task.spawn(autoSaveAllPlayerData)
+	game:BindToClose(saveAllPlayerData)
 end
 
 return {

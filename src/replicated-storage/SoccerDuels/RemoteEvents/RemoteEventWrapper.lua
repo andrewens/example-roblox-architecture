@@ -17,9 +17,10 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
+local RemoteEventsModule = script:FindFirstAncestor("RemoteEvents")
 
 local Config = require(SoccerDuelsModule.Config)
-local Event = require(SoccerDuelsModule.Event)
+local Event = require(RemoteEventsModule.EventWrapper)
 
 -- const
 local TESTING_MODE = Config.getConstant("TestingMode")
@@ -74,6 +75,8 @@ local function remoteEventWrapperFireServer(self, Player, ...)
 
 	if TESTING_MODE then
 		self.OnServerEvent:Fire(Player, ...)
+	else
+		error(`{self.Name}:FireServer() can't be invoked on the server`)
 	end
 end
 local function remoteEventWrapperFireClient(self, Player, ...)
@@ -120,8 +123,8 @@ local function newRemoteEventWrapper(RemoteEvent)
 		self.FireServer = remoteEventWrapperFireServer
 
 		if TESTING_MODE then
-			self.OnClientEvent = Event.new()
-			self.OnServerEvent = Event.new()
+			self.OnClientEvent = Event.new(RemoteEvent)
+			self.OnServerEvent = Event.new(RemoteEvent)
 		end
 	else -- RemoteFunction
 		self.InvokeServer = remoteFunctionWrapperInvokeServer
