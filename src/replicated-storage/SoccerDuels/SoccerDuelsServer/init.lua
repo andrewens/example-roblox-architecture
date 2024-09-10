@@ -92,19 +92,19 @@ local function getLoadedPlayers()
 
 	return LoadedPlayers
 end
-local function disconnectPlayer(Player)
+local function disconnectPlayer(Player, kickPlayer)
 	if not (Utility.isA(Player, "Player")) then
 		error(`{Player} is not a Player!`)
 	end
-	if Players:FindFirstChild(Player.Name) then
+	if kickPlayer and Players:FindFirstChild(Player.Name) then
 		Player:Kick("You have been disconnected by the server")
 	end
 
 	CachedPlayerSaveData[Player] = nil
 end
-local function disconnectAllPlayers()
+local function disconnectAllPlayers(kickPlayers)
 	for Player, _ in CachedPlayerSaveData do
-		disconnectPlayer(Player)
+		disconnectPlayer(Player, kickPlayers)
 	end
 end
 local function playerDataIsSaved(Player)
