@@ -4,9 +4,9 @@ local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Config = require(SoccerDuelsModule.Config)
 
--- public
-local function initializeTestingModeGui(Client, MainGui)
-    local TestingModeLabel = Assets.getExpectedAsset("TestingModeLabel", "MainGui", MainGui)
+-- public / Client class methods
+local function initializeTestingModeGui(self)
+    local TestingModeLabel = Assets.getExpectedAsset("TestingModeLabel", "MainGui", self._MainGui)
     TestingModeLabel.Visible = Config.getConstant("TestingMode")
 end
 

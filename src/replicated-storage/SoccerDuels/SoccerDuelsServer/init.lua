@@ -3,23 +3,53 @@ local Players = game:GetService("Players")
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 local Config = require(SoccerDuelsModule.Config)
-local RemoteEvents = require(SoccerDuelsModule.RemoteEvents)
+local Network = require(SoccerDuelsModule.Network)
 local Utility = require(SoccerDuelsModule.Utility)
 
 local Database = require(script.Database)
 local TestingVariables = require(script.TestingVariables)
 
 -- const
+local TESTING_MODE = Config.getConstant("TestingMode")
 local DEFAULT_CLIENT_SETTINGS = Config.getConstant("DefaultClientSettings")
 local AUTO_SAVE_RATE_SECONDS = Config.getConstant("AutoSavePollRateSeconds")
 local AUTO_SAVE_MESSAGE = Config.getConstant("NotificationMessages", "AutoSave")
 
 -- var
 local CachedPlayerSaveData = {} -- Player --> PlayerDocument
+local CharactersInLobby = {} -- Player --> Character
 
 local saveAllPlayerData
 
 -- private
+local function lobbyCharacterDespawned(Player)
+	if CharactersInLobby[Player] == nil then
+		return
+	end
+
+	CharactersInLobby[Player] = nil
+	Network.fireAllClients("CharacterSpawnedInLobby", Player, nil)
+end
+local function lobbyCharacterSpawned(Player, Character)
+	CharactersInLobby[Player] = Character
+
+	Character.Humanoid.Died:Connect(function()
+		if CharactersInLobby[Player] ~= Character then
+			return
+		end
+		lobbyCharacterDespawned(Player)
+	end)
+
+	Network.fireAllClients("CharacterSpawnedInLobby", Player, Character)
+end
+local function spawnCharacterInLobby(Player)
+	Player:LoadCharacter()
+
+	-- TODO ideally there should be a mock Players service so that the connection is the same...
+	if TESTING_MODE and typeof(Player) == "table" then
+		lobbyCharacterSpawned(Player, Player.Character)
+	end
+end
 local function autoSaveAllPlayerData()
 	while task.wait(AUTO_SAVE_RATE_SECONDS) do
 		if TestingVariables.getVariable("DisableAutoSave") then
@@ -31,6 +61,16 @@ local function autoSaveAllPlayerData()
 end
 
 -- protected / network methods
+local function onClientRequestCharactersInLobby(RequestingPlayer)
+	for OtherPlayer, Character in CharactersInLobby do
+		local Humanoid = Character:FindFirstChild("Humanoid")
+		if Humanoid == nil or Humanoid.Health <= 0 then
+			continue
+		end
+
+		Network.fireClient("CharacterSpawnedInLobby", RequestingPlayer, OtherPlayer, Character)
+	end
+end
 local function playerChangedSetting(Player, settingName, newValue)
 	local PlayerSaveData = CachedPlayerSaveData[Player]
 	if PlayerSaveData == nil then
@@ -62,10 +102,10 @@ local function getPlayerSaveData(Player)
 	CachedPlayerSaveData[Player] = PlayerSaveData
 
 	Utility.onPlayerDiedConnect(Player, function()
-		Player:LoadCharacter()
+		spawnCharacterInLobby(Player)
 	end)
 
-	Player:LoadCharacter()
+	spawnCharacterInLobby(Player)
 
 	return true, PlayerSaveData:ToJson()
 end
@@ -79,7 +119,7 @@ local function notifyPlayer(Player, notificationMessage)
 		error(`{notificationMessage} is not a string!`)
 	end
 
-	RemoteEvents.NotifyPlayer:FireClient(Player, notificationMessage)
+	Network.fireClient("NotifyPlayer", Player, notificationMessage)
 end
 local function getLoadedPlayers()
 	local LoadedPlayers = {}
@@ -116,6 +156,8 @@ local function disconnectPlayer(Player, kickPlayer)
 	end
 
 	CachedPlayerSaveData[Player] = nil
+
+	lobbyCharacterDespawned(Player)
 end
 local function disconnectAllPlayers(kickPlayers)
 	for Player, _ in CachedPlayerSaveData do
@@ -161,17 +203,20 @@ function saveAllPlayerData()
 
 	return true
 end
-
 local function initializeServer()
 	Database.initialize()
 
-	RemoteEvents.GetPlayerSaveData.OnServerInvoke = getPlayerSaveData
-	RemoteEvents.PlayerChangeSetting.OnServerEvent:Connect(playerChangedSetting)
+	Network.onServerInvokeConnect("GetPlayerSaveData", getPlayerSaveData)
+	Network.onServerEventConnect("PlayerChangeSetting", playerChangedSetting)
 
 	Players.PlayerRemoving:Connect(disconnectPlayer)
 
 	task.spawn(autoSaveAllPlayerData)
 	game:BindToClose(saveAllPlayerData)
+
+	Network.onServerEventConnect("CharacterSpawnedInLobby", onClientRequestCharactersInLobby)
+
+	Utility.onCharacterLoadedConnect(lobbyCharacterSpawned)
 end
 
 return {

@@ -23,6 +23,107 @@ return function()
 
 			assert(not s)
 		end)
+		it("Client fires an event when other loaded clients' characters load", function()
+			SoccerDuels.disconnectAllPlayers()
+
+			local MockPlayer1 = MockInstance.new("Player")
+			local MockPlayer2 = MockInstance.new("Player")
+
+			MockPlayer1.Name = "Fred"
+			MockPlayer2.Name = "Frank"
+
+			local Client1 = SoccerDuels.newClient(MockPlayer1)
+			local Client2 = SoccerDuels.newClient(MockPlayer2)
+
+			local charAddedCount = 0
+			local LastPlayerSpawned, LastCharacter
+			local callback = function(Character, Player)
+				charAddedCount += 1
+				LastPlayerSpawned = Player
+				LastCharacter = Character
+			end
+
+			local conn = Client1:OnCharacterSpawnedInLobbyConnect(callback)
+
+			-- characters spawn when their data loads and when they die/reset
+			assert(charAddedCount == 0)
+
+			Client1:LoadPlayerDataAsync()
+
+			assert(MockPlayer1.Character)
+			if not (charAddedCount == 1) then
+				error(`{charAddedCount} != 1`)
+			end
+			assert(LastPlayerSpawned == MockPlayer1)
+			assert(LastCharacter == MockPlayer1.Character)
+
+			MockPlayer1.Character.Humanoid:TakeDamage(math.huge)
+
+			assert(charAddedCount == 2)
+			assert(LastPlayerSpawned == MockPlayer1)
+			assert(LastCharacter == MockPlayer1.Character)
+
+			Client2:LoadPlayerDataAsync()
+
+			assert(MockPlayer2.Character)
+			if not (charAddedCount == 3) then
+				error(`{charAddedCount} != 3`)
+			end
+			assert(LastPlayerSpawned == MockPlayer2)
+			assert(LastCharacter == MockPlayer2.Character)
+
+			MockPlayer2.Character.Humanoid:TakeDamage(math.huge)
+
+			assert(charAddedCount == 4)
+			assert(LastPlayerSpawned == MockPlayer2)
+			assert(LastCharacter == MockPlayer2.Character)
+
+			conn:Disconnect()
+			MockPlayer1.Character.Humanoid:TakeDamage(math.huge)
+
+			assert(charAddedCount == 4)
+			assert(LastPlayerSpawned == MockPlayer2)
+			assert(LastCharacter == MockPlayer2.Character)
+
+			-- there will be three characters loaded right now (after client #3 loads), and the callback should fire for all of them
+			charAddedCount = 0
+			LastPlayerSpawned, LastCharacter = nil, nil
+
+			local MockPlayer3 = MockInstance.new("Player")
+			local Client3 = SoccerDuels.newClient(MockPlayer3)
+
+			conn = Client3:OnCharacterSpawnedInLobbyConnect(callback)
+			Client3:LoadPlayerDataAsync()
+
+			assert(charAddedCount == 3)
+			assert(
+				LastPlayerSpawned == MockPlayer1 or LastPlayerSpawned == MockPlayer2 or LastPlayerSpawned == MockPlayer3
+			)
+			assert(
+				LastCharacter == MockPlayer1.Character
+					or LastCharacter == MockPlayer2.Character
+					or LastCharacter == MockPlayer3.Character
+			)
+
+			-- if a client disconnects, their character shouldn't be loaded anymore
+			conn:Disconnect()
+			SoccerDuels.disconnectPlayer(MockPlayer1)
+
+			charAddedCount = 0
+			LastPlayerSpawned, LastCharacter = nil, nil
+			conn = Client3:OnCharacterSpawnedInLobbyConnect(callback)
+
+			assert(charAddedCount == 2)
+			assert(LastPlayerSpawned == MockPlayer2 or LastPlayerSpawned == MockPlayer3)
+			assert(LastCharacter == MockPlayer2.Character or LastCharacter == MockPlayer3.Character)
+
+			-- end test
+			conn:Disconnect()
+			SoccerDuels.disconnectAllPlayers()
+
+			-- TODO later test that this does NOT fire when a player spawns a character into a match
+			SoccerDuels.resetTestingVariables()
+		end)
 	end)
 	describe("SoccerDuels testing API", function()
 		describe("SoccerDuels.wait()", function()

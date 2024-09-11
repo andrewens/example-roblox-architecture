@@ -1,4 +1,5 @@
 -- dependency
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 local StarterGui = game:GetService("StarterGui")
@@ -27,6 +28,25 @@ local function isInteger(value)
 end
 local function isA(value, className)
 	return (typeof(value) == "Instance" or typeof(value) == "table") and value:IsA(className)
+end
+local function onCharacterLoadedConnect(callback)
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	local conn = Players.PlayerAdded:Connect(function(Player)
+		Player.CharacterAdded:Connect(function(Char)
+			callback(Player, Char)
+		end)
+	end)
+
+	for _, Player in Players:GetPlayers() do
+		if Player.Character then
+			callback(Player, Player.Character)
+		end
+	end
+
+	return conn
 end
 local function onPlayerDiedConnect(Player, callback)
 	local charAdded = function(Char)
@@ -64,5 +84,6 @@ return {
 	isA = isA,
 
 	onPlayerDiedConnect = onPlayerDiedConnect,
+	onCharacterLoadedConnect = onCharacterLoadedConnect,
 	organizeDependencies = organizeDependenciesServerOnly,
 }

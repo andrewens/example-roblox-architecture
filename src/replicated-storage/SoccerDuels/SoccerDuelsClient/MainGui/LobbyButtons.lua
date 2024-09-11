@@ -4,8 +4,8 @@ local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 local Assets = require(SoccerDuelsModule.AssetDependencies)
 
 -- public
-local function newLobbyButtons(Client, MainGui)
-    local LobbyButtons = Assets.getExpectedAsset("LobbyButtons", "MainGui", MainGui)
+local function newLobbyButtons(self)
+    local LobbyButtons = Assets.getExpectedAsset("LobbyButtons", "MainGui", self._MainGui)
 
     for _, LobbyButton in LobbyButtons:GetChildren() do
 		if not (LobbyButton:IsA("GuiButton")) then
@@ -13,7 +13,7 @@ local function newLobbyButtons(Client, MainGui)
 		end
 
 		LobbyButton.Activated:Connect(function()
-			Client:ToggleModalVisibility(LobbyButton.Name)
+			self:ToggleModalVisibility(LobbyButton.Name)
 		end)
 	end
 end

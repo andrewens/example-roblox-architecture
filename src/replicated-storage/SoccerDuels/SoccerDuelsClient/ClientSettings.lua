@@ -2,7 +2,7 @@
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 local Config = require(SoccerDuelsModule.Config)
-local RemoteEvents = require(SoccerDuelsModule.RemoteEvents)
+local Network = require(SoccerDuelsModule.Network)
 
 -- const
 local DEFAULT_CLIENT_SETTINGS = Config.getConstant("DefaultClientSettings")
@@ -32,7 +32,7 @@ local function clientChangeSetting(self, settingName, newValue)
 
 	self._PlayerSaveData.Settings[settingName] = newValue
 
-    RemoteEvents.PlayerChangeSetting:FireServer(self.Player, settingName, newValue)
+	Network.fireServer("PlayerChangeSetting", self.Player, settingName, newValue)
 
 	for callback, _ in self._SettingChangedCallbacks do
 		callback(settingName, newValue)

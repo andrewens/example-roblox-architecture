@@ -12,6 +12,10 @@
     {
       "Name": "PlayerChangeSetting",
       "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "CharacterSpawnedInLobby",
+      "ClassName": "RemoteEvent"
     }
   ]
 }

@@ -33,6 +33,7 @@ DefaultConfig.TestingVariables = {
 		Load = 0,
 	},
 	DisableAutoSave = false,
+	DebugPrint = false,
 }
 
 -- database

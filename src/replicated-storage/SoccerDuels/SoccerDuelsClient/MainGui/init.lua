@@ -8,19 +8,20 @@ local ModalGui = require(script.ModalGui)
 local TestingModeGui = require(script.TestingModeGui)
 local ToastGui = require(script.ToastGui)
 
--- public
-local function newMainGui(Client)
-	local MainGui = Assets.cloneExpectedAsset("MainGui")
+-- public / Client class methods
+local function newMainGui(self)
+	self._MainGui = Assets.cloneExpectedAsset("MainGui")
 
-	TestingModeGui.new(Client, MainGui)
-	LobbyButtons.new(Client, MainGui)
-	ModalGui.new(Client, MainGui)
-	ToastGui.new(Client, MainGui)
+	TestingModeGui.new(self)
+	LobbyButtons.new(self)
+	ModalGui.new(self)
+	ToastGui.new(self)
 
-	MainGui.Parent = Client.Player.PlayerGui
-
-	return MainGui
+	self._MainGui.Parent = self.Player.PlayerGui
+	self._Maid:GiveTask(self._MainGui)
 end
+
+-- public
 local function initializeMainGui()
 	ModalGui.initialize()
 end

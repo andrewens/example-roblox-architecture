@@ -1,7 +1,7 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
-local RemoteEvents = require(SoccerDuelsModule.RemoteEvents)
+local Network = require(SoccerDuelsModule.Network)
 
 -- protected / Client network methods
 local function onNotifyClient(self, toastMessage)
@@ -10,7 +10,7 @@ local function onNotifyClient(self, toastMessage)
 	end
 end
 local function initializeClientToastNotifications(self)
-	RemoteEvents.NotifyPlayer.OnClientEvent:Connect(function(...)
+	Network.onClientEventConnect("NotifyPlayer", self.Player, function(...)
 		onNotifyClient(self, ...)
 	end)
 end

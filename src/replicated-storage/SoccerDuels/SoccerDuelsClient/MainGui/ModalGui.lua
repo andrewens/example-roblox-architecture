@@ -108,28 +108,28 @@ local function showModalGui(self, visibleModalName)
 end
 
 -- public
-local function newModalGui(Client, MainGui)
-	if MainGui == nil then
+local function newModalGui(Client)
+	if Client._MainGui == nil then
 		error(`MainGui is nil!`)
 	end
 
-	local self = {}
+	local self = {} -- TODO refactor this to make 'self' the Client and use that for the states
 	self._Client = Client
-	self._ModalFrames = Assets.getExpectedAsset("ModalFrames", "MainGui", MainGui)
+	self._ModalFrames = Assets.getExpectedAsset("ModalFrames", "MainGui", Client._MainGui)
 	self._Maid = Maid.new()
 
 	setmetatable(self, ModalGuiMetatable)
 
 	initializeSettingsModal(self)
 
-	Client:OnVisibleModalChangedConnect(function(visibleModalName)
+	Client._Maid:GiveTask(Client:OnVisibleModalChangedConnect(function(visibleModalName)
 		if visibleModalName == nil then
 			self:Hide()
 			return
 		end
 
 		self:ShowModal(visibleModalName)
-	end)
+	end))
 
 	return self
 end

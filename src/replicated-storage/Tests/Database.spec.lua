@@ -92,7 +92,7 @@ return function()
 
 					local MainGui = SoccerDuels.getExpectedAsset("MainGui", "PlayerGui", PlayerGuiFolder)
 
-					assert(MainGui)
+					assert(MainGui) -- this is technically redundant because getExpectedAsset() asserts the asset exists
 				end
 			)
 			it("If there is a LoadingScreen in the PlayerGui, it gets destroyed after PlayerSaveData loads", function()

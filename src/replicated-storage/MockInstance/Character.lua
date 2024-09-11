@@ -4,6 +4,9 @@ local MockInstanceModule = script:FindFirstAncestor("MockInstance")
 local MockHumanoid = require(MockInstanceModule.Humanoid)
 
 -- public / MockCharacter class methods
+local function findFirstChild(self, childName)
+    return self[childName]
+end
 local function destroyCharacter(self)
     self.Parent = nil
     self.Humanoid:Destroy()
@@ -19,6 +22,7 @@ return function()
 
         -- methods
         Destroy = destroyCharacter,
+        FindFirstChild = findFirstChild,
 
         -- children
         Humanoid = MockHumanoid(),

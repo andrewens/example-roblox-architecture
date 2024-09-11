@@ -1,7 +1,11 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
+local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
 
-local RemoteEvents = require(SoccerDuelsModule.RemoteEvents)
+local LobbyCharacters = require(SoccerDuelsClientModule.LobbyCharacters)
+local MainGui = require(SoccerDuelsClientModule.MainGui)
+
+local Network = require(SoccerDuelsModule.Network)
 local PlayerDocument = require(SoccerDuelsModule.PlayerDocument)
 
 -- public / Client class methods
@@ -26,7 +30,9 @@ local function getClientPlayerSaveData(self)
 	return self._PlayerSaveData
 end
 local function loadClientPlayerDataAsync(self)
-	local s, playerSaveDataJson = RemoteEvents.GetPlayerSaveData:InvokeServer(self.Player)
+	self._Maid:DoCleaning()
+
+	local s, playerSaveDataJson = Network.invokeServer("GetPlayerSaveData", self.Player)
 	if not s then
 		local errorMessage = playerSaveDataJson
 		return false, errorMessage
@@ -34,6 +40,8 @@ local function loadClientPlayerDataAsync(self)
 
 	local PlayerSaveData = PlayerDocument.new(playerSaveDataJson)
 	self._PlayerSaveData = PlayerSaveData
+
+	MainGui.new(self)
 
 	for callback, _ in self._PlayerDataLoadedCallbacks do
 		callback(PlayerSaveData)
@@ -43,6 +51,8 @@ local function loadClientPlayerDataAsync(self)
 	if LoadingScreen then
 		LoadingScreen:Destroy()
 	end
+
+	LobbyCharacters.initialize(self)
 
 	return true
 end
