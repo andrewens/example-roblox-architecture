@@ -72,6 +72,11 @@ local function organizeDependenciesServerOnly()
 		RbxInstance.Parent = ReplicatedStorage.UserInterface
 	end
 
+	local CharacterGuiTemplate = workspace:FindFirstChild("CharacterGuiTemplate")
+	if CharacterGuiTemplate then
+		CharacterGuiTemplate.Parent = ReplicatedStorage.UserInterface
+	end
+
 	local SoccerDuelsServerModule = SoccerDuelsModule:FindFirstChild("SoccerDuelsServer")
 	SoccerDuelsServerModule.Parent = ServerScriptService
 end

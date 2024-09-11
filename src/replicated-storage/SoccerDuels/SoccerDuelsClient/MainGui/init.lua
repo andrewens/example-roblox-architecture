@@ -3,6 +3,7 @@ local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 local Assets = require(SoccerDuelsModule.AssetDependencies)
 
+local CharacterLevelGui = require(script.CharacterLevelGui)
 local LobbyButtons = require(script.LobbyButtons)
 local ModalGui = require(script.ModalGui)
 local TestingModeGui = require(script.TestingModeGui)
@@ -16,6 +17,7 @@ local function newMainGui(self)
 	LobbyButtons.new(self)
 	ModalGui.new(self)
 	ToastGui.new(self)
+	CharacterLevelGui.new(self)
 
 	self._MainGui.Parent = self.Player.PlayerGui
 	self._Maid:GiveTask(self._MainGui)

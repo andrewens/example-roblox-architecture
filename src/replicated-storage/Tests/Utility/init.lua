@@ -7,10 +7,14 @@ do
 	-- the root fix of this is to create server instances so all that state
 	-- is encapsulated in a single object. this is just a quick fix.
 
-	local TestsFolder = script:FindFirstAncestor("Tests")
-	local TestRemoteEvents = TestsFolder.RemoteEvents
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+	local SoccerDuels = require(ReplicatedStorage.SoccerDuels)
+	local TestRemoteEvents = script.RemoteEvents
 
 	function serverFinishedTests()
+		SoccerDuels.resetTestingVariables()
+		SoccerDuels.disconnectAllPlayers()
+
 		TestRemoteEvents.TestsFinished.OnServerEvent:Connect(function(Player)
 			TestRemoteEvents.TestsFinished:FireClient(Player)
 		end)

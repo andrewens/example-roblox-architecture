@@ -56,7 +56,12 @@ local function getExpectedAsset(assetName, rootAssetName, RootInstance)
 		return AssetInstance
 	end
 
-	return getAssetByPath(AssetJson.Path)
+	local AssetInstance = getAssetByPath(AssetJson.Path)
+	if AssetInstance == nil then
+		error(`Couldn't find Asset "{assetName}" with path "{AssetJson.Path}"`)
+	end
+
+	return AssetInstance
 end
 local function cloneExpectedAsset(assetName, rootAssetName, RootInstance)
 	local AssetInstance = getExpectedAsset(assetName, rootAssetName, RootInstance)

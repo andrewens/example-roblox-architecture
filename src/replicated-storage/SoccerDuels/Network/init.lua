@@ -94,7 +94,7 @@ if not TESTING_MODE then
 		end
 
 		local RemoteFunction = RemoteEvents[remoteName]
-		RemoteFunction:InvokeServer(...)
+		return RemoteFunction:InvokeServer(...)
 	end
 	local function onServerInvokeConnect(remoteName, callback)
 		if not (typeof(remoteName) == "string") then

@@ -62,17 +62,31 @@ end
 -- toast notifications
 do
 	ExpectedAssets.ToastContainer = {
-		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Lobby/ToastNotification"
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Lobby/ToastNotification",
 	}
 	ExpectedAssets.ToastMessage = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Lobby/ToastNotification/Message",
-		ClassName = "TextLabel"
+		ClassName = "TextLabel",
 	}
 end
 
 -- testing mode
 ExpectedAssets.TestingModeLabel = {
-	Path = "ReplicatedStorage/UserInterface/Windows/Middle/Lobby/TestingMode"
+	Path = "ReplicatedStorage/UserInterface/Windows/Middle/Lobby/TestingMode",
+}
+
+-- level / win streak overhead
+ExpectedAssets.CharacterLevelGui = {
+	Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/OverheadGui",
+	ClassName = "BillboardGui",
+}
+ExpectedAssets.OverheadWinStreakLabel = {
+	Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/OverheadGui/Trophy/WinStreak",
+	ClassName = "TextLabel",
+}
+ExpectedAssets.OverheadLevelLabel = {
+	Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/OverheadGui/Star/Level",
+	ClassName = "TextLabel",
 }
 
 return ExpectedAssets
