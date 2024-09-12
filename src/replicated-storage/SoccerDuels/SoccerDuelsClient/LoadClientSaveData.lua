@@ -37,6 +37,7 @@ local function updateCachedPlayerSaveData(self, Player, key, value)
 	CachedSaveData:ChangeValue(key, value)
 end
 
+-- public / Client class methods
 local function getAnyPlayerDataCachedValue(self, valueName, Player)
 	if not (typeof(valueName) == "string") then
 		error(`{valueName} is not a string!`)
@@ -72,8 +73,8 @@ local function onClientPlayerDataLoadedConnect(self, callback)
 		end,
 	}
 end
-local function getClientPlayerSaveData(self)
-	return self._PlayerSaveData[self.Player]
+local function getAnyPlayerCachedSaveData(self, Player)
+	return self._PlayerSaveData[Player or self.Player]
 end
 local function loadClientPlayerDataAsync(self)
 	self._Maid:DoCleaning()
@@ -108,7 +109,7 @@ end
 
 return {
 	getAnyPlayerDataCachedValue = getAnyPlayerDataCachedValue,
-	getClientPlayerSaveData = getClientPlayerSaveData,
+	getAnyPlayerCachedSaveData = getAnyPlayerCachedSaveData,
 	onClientPlayerDataLoadedConnect = onClientPlayerDataLoadedConnect,
 	loadClientPlayerDataAsync = loadClientPlayerDataAsync,
 }

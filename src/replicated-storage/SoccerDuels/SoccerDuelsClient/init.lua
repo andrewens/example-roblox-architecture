@@ -76,7 +76,7 @@ local function initializeClients()
 		-- loading player save data
 		GetAnyPlayerDataValue = LoadClientSaveData.getAnyPlayerDataCachedValue,
 		OnPlayerSaveDataLoadedConnect = LoadClientSaveData.onClientPlayerDataLoadedConnect,
-		GetPlayerSaveData = LoadClientSaveData.getClientPlayerSaveData,
+		GetPlayerSaveData = LoadClientSaveData.getAnyPlayerCachedSaveData,
 		LoadPlayerDataAsync = LoadClientSaveData.loadClientPlayerDataAsync,
 
 		-- client root

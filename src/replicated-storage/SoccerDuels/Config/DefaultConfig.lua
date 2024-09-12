@@ -71,7 +71,7 @@ for _, dataFieldName in ipairs(DefaultConfig.SaveDataThatPlayerDecides) do
 end
 
 -- network
-DefaultConfig.RemoteEventSandwichTimeoutSeconds = 30
+DefaultConfig.RemoteEventSandwichTimeoutSeconds = 60
 
 -- settings UI
 DefaultConfig.BooleanSettingOnColor3 = Color3.fromRGB(0, 255, 0) -- TODO change this to a color palette-type vibe (less specific)
