@@ -29,6 +29,8 @@ return function()
 
             assert(toastCount == 1)
             assert(lastMessage == "This is a popup message")
+
+            Client:Destroy()
         end)
     end)
 end

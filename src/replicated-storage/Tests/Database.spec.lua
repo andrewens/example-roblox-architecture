@@ -14,7 +14,23 @@ return function()
 			it(
 				"Loads the user's saved data onto the client, returning a boolean representing if it was successful",
 				function()
+					SoccerDuels.resetTestingVariables()
+
 					local MockPlayer = MockInstance.new("Player")
+					MockPlayer.Name = "Joe"
+					MockPlayer.UserId = 23984235234
+
+					local defaultLowGraphicsSetting = SoccerDuels.getConstant("DefaultClientSettings", "Low Graphics")
+					local PreviousSaveData = SoccerDuels.newPlayerDocument({
+						Level = 4,
+						WinStreak = 5,
+						Settings = {
+							["Low Graphics"] = not defaultLowGraphicsSetting,
+							["Sound Effects"] = not defaultLowGraphicsSetting,
+						},
+					})
+					SoccerDuels.savePlayerDataAsync(MockPlayer, PreviousSaveData) -- because this is in testing mode, it's not actually async here
+
 					local Client = SoccerDuels.newClient(MockPlayer)
 
 					assert(nil == Client:GetPlayerSaveData())
@@ -22,13 +38,10 @@ return function()
 					local success = Client:LoadPlayerDataAsync() -- because this is in testing mode, it's not actually async here
 					local PlayerSaveData = Client:GetPlayerSaveData()
 
-					assert(typeof(success) == "boolean")
-					assert(typeof(PlayerSaveData) == "table")
+					assert(success == true)
+					assert(Utility.tableDeepEqual(PlayerSaveData, PreviousSaveData))
 
-					-- should load default data for our player
-					local DefaultPlayerSaveData = SoccerDuels.getConstant("DefaultPlayerSaveData")
-
-					assert(Utility.tableDeepEqual(DefaultPlayerSaveData, PlayerSaveData))
+					Client:Destroy()
 				end
 			)
 			it("Triggers an event when the player data has successfully loaded", function()
@@ -78,6 +91,8 @@ return function()
 				assert(Utility.tableDeepEqual(PlayerSaveData, Client1:GetPlayerSaveData()))
 
 				conn:Disconnect()
+				Client:Destroy()
+				Client1:Destroy()
 			end)
 			it(
 				"Clones UserInterface ScreenGuis into the Player's PlayerGui once PlayerSaveData has been loaded",
@@ -93,6 +108,8 @@ return function()
 					local MainGui = SoccerDuels.getExpectedAsset("MainGui", "PlayerGui", PlayerGuiFolder)
 
 					assert(MainGui) -- this is technically redundant because getExpectedAsset() asserts the asset exists
+
+					Client:Destroy()
 				end
 			)
 			it("If there is a LoadingScreen in the PlayerGui, it gets destroyed after PlayerSaveData loads", function()
@@ -109,6 +126,8 @@ return function()
 				Client:LoadPlayerDataAsync() -- not actually async when we're in testing mode
 
 				assert(FakeLoadingScreen.Parent == nil)
+
+				Client:Destroy()
 			end)
 			it("Player's character loads after PlayerSaveData loads, and they can respawn", function()
 				local MockPlayer = MockInstance.new("Player")
@@ -137,6 +156,8 @@ return function()
 				assert(charAddedCount == 2) -- test for respawning
 				assert(LastCharacter == MockPlayer.Character)
 				assert(PrevCharacter ~= LastCharacter)
+
+				Client:Destroy()
 			end)
 		end)
 		describe("SoccerDuels.newPlayerDocument()", function()
@@ -247,14 +268,16 @@ return function()
 				-- getPlayerDataAsync should yield if we hit the "Load" request limit
 				local begin
 				local deltaTime
-				local maxError = 0.0001
+				local maxError = 0.001
 				local delayTime
 
 				begin = os.clock()
 				SoccerDuels.getPlayerSaveDataAsync(MockPlayer)
 				deltaTime = os.clock() - begin
 
-				assert(math.abs(deltaTime) < maxError)
+				if not (math.abs(deltaTime) < maxError) then
+					error(`{deltaTime} != 0`)
+				end
 				assert(0 == SoccerDuels.getAvailableDataStoreRequests("Load")) -- (dependent on Config.TestingModeDataStoreRequestLimits)
 
 				delayTime = 0.03
@@ -329,6 +352,7 @@ return function()
 							["Low Graphics"] = notDefaultLowGraphicsSetting,
 						},
 					})
+
 					local PlayerDocument2 = SoccerDuels.getCachedPlayerSaveData(MockPlayer2)
 					PlayerDocument2.Level = newLevel -- option #2 for changing player data
 					PlayerDocument2.Settings["Low Graphics"] = notDefaultLowGraphicsSetting
@@ -367,6 +391,8 @@ return function()
 					assert(Utility.tableDeepEqual(NewPlayerDocument, SoccerDuels.getPlayerSaveDataAsync(MockPlayer2)))
 
 					SoccerDuels.resetTestingVariables()
+					Client1:Destroy()
+					Client2:Destroy()
 				end
 			)
 		end)

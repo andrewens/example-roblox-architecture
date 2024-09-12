@@ -14,6 +14,7 @@ local TESTING_MODE = Config.getConstant("TestingMode")
 local DEFAULT_CLIENT_SETTINGS = Config.getConstant("DefaultClientSettings")
 local AUTO_SAVE_RATE_SECONDS = Config.getConstant("AutoSavePollRateSeconds")
 local AUTO_SAVE_MESSAGE = Config.getConstant("NotificationMessages", "AutoSave")
+local PLAYER_DECIDED_SAVE_DATA = Config.getConstant("SaveDataThatPlayerDecides")
 
 -- var
 local CachedPlayerSaveData = {} -- Player --> PlayerDocument
@@ -92,15 +93,35 @@ local function getPlayerSaveData(Player)
 		TestingVariables.wait(testingExtraLoadTime)
 	end
 
-	local s, output = pcall(Database.getPlayerSaveDataAsync, Player)
+	local s, PlayerSaveData = pcall(Database.getPlayerSaveDataAsync, Player)
 	if not s then
-		Player:Kick(`Failed to load your saved data: {output}`)
-		return false, output
+		local errorMessage = PlayerSaveData
+		Player:Kick(`Failed to load your saved data: {errorMessage}`)
+
+		return false, errorMessage
 	end
 
-	local PlayerSaveData = output
+	-- updating all clients' caches (including our Player's) with our new player's data
+	PlayerSaveData:OnValueChangedConnect(function(key, value)
+		Network.fireAllClients("UpdatePlayerSaveData", Player, key, value)
+	end)
+
+	for OtherPlayer, OtherSaveData in CachedPlayerSaveData do
+		-- ** intentionally, this doesn't include our Player yet
+
+		for key, value in OtherSaveData do
+			if PLAYER_DECIDED_SAVE_DATA[key] then
+				continue
+			end
+
+			Network.fireClient("UpdatePlayerSaveData", Player, OtherPlayer, key, value)
+		end
+	end
+
+	-- save to server cache
 	CachedPlayerSaveData[Player] = PlayerSaveData
 
+	-- spawning character in lobby
 	Utility.onPlayerDiedConnect(Player, function()
 		spawnCharacterInLobby(Player)
 	end)
@@ -151,8 +172,15 @@ local function disconnectPlayer(Player, kickPlayer)
 	end
 
 	local CachedSaveData = CachedPlayerSaveData[Player]
-	if CachedSaveData and not CachedSaveData:SaveTimestampIsGreaterThanLastEditTimestamp() then
-		task.spawn(Database.savePlayerDataAsync, Player, CachedSaveData)
+	if CachedSaveData then
+		if CachedSaveData:SaveTimestampIsGreaterThanLastEditTimestamp() then
+			task.spawn(CachedSaveData.Destroy, CachedSaveData)
+		else
+			task.spawn(function()
+				Database.savePlayerDataAsync(Player, CachedSaveData)
+				CachedSaveData:Destroy()
+			end)
+		end
 	end
 
 	CachedPlayerSaveData[Player] = nil
@@ -191,17 +219,12 @@ function saveAllPlayerData()
 		if playerDataIsSaved(Player) then
 			continue
 		end
-		if Database.getAvailableDataStoreRequests("Save") <= 0 then
-			return false
-		end
 
 		task.spawn(function()
 			Database.savePlayerDataAsync(Player, CachedSaveData) -- this could error but that's ok
 			notifyPlayer(Player, AUTO_SAVE_MESSAGE)
 		end)
 	end
-
-	return true
 end
 local function initializeServer()
 	Database.initialize()

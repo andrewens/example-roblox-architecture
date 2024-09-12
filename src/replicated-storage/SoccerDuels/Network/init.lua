@@ -20,19 +20,30 @@ local RemoteEvents = script.RemoteEvents
 
 local Config = require(SoccerDuelsModule.Config)
 local Utility = require(SoccerDuelsModule.Utility)
+local RemoteEventSandwiches = require(script.RemoteEventSandwiches)
 
 -- const
 local TESTING_MODE = Config.getConstant("TestingMode")
+local REMOTE_EVENT_SANDWICH_TIMEOUT_MILLISECONDS = 1000 * Config.getConstant("RemoteEventSandwichTimeoutSeconds")
 local IS_SERVER = RunService:IsServer()
 
 -- public
 if not TESTING_MODE then
+	-- var
+	local IsRemoteEventSandwich = {} -- remoteEventName --> true | nil
+	local RemoteEventSandwichConnections = {} -- RemoteEvent --> RBXScriptConnection	SERVER_ONLY
+	local RemoteEventSandwichReturnValues = {} -- RemoteEvent --> timestamp --> { ... }	CLIENT_ONLY
+
+	-- public
 	local function fireServer(remoteName, Player, ...)
 		if not (typeof(remoteName) == "string") then
 			error(`{remoteName} is not a string!`)
 		end
 		if not Utility.isA(Player, "Player") then
 			error(`{Player} is not a Player!`)
+		end
+		if IsRemoteEventSandwich[remoteName] then
+			error(`RemoteEvent "{remoteName}" is a RemoteEventSandwich and should be treated as a RemoteFunction`)
 		end
 
 		local RemoteEvent = RemoteEvents[remoteName]
@@ -45,6 +56,9 @@ if not TESTING_MODE then
 		if not Utility.isA(Player, "Player") then
 			error(`{Player} is not a Player!`)
 		end
+		if IsRemoteEventSandwich[remoteName] then
+			error(`RemoteEvent "{remoteName}" is a RemoteEventSandwich and should be treated as a RemoteFunction`)
+		end
 
 		local RemoteEvent = RemoteEvents[remoteName]
 		RemoteEvent:FireClient(Player, ...)
@@ -52,6 +66,9 @@ if not TESTING_MODE then
 	local function fireAllClients(remoteName, ...)
 		if not (typeof(remoteName) == "string") then
 			error(`{remoteName} is not a string!`)
+		end
+		if IsRemoteEventSandwich[remoteName] then
+			error(`RemoteEvent "{remoteName}" is a RemoteEventSandwich and should be treated as a RemoteFunction`)
 		end
 
 		local RemoteEvent = RemoteEvents[remoteName]
@@ -67,6 +84,9 @@ if not TESTING_MODE then
 		if not (typeof(callback) == "function") then
 			error(`{callback} is not a function!`)
 		end
+		if IsRemoteEventSandwich[remoteName] then
+			error(`RemoteEvent "{remoteName}" is a RemoteEventSandwich and should be treated as a RemoteFunction`)
+		end
 
 		local RemoteEvent = RemoteEvents[remoteName]
 
@@ -79,9 +99,11 @@ if not TESTING_MODE then
 		if not (typeof(callback) == "function") then
 			error(`{callback} is not a function!`)
 		end
+		if IsRemoteEventSandwich[remoteName] then
+			error(`RemoteEvent "{remoteName}" is a RemoteEventSandwich and should be treated as a RemoteFunction`)
+		end
 
 		local RemoteEvent = RemoteEvents[remoteName]
-
 		return RemoteEvent.OnServerEvent:Connect(callback)
 	end
 
@@ -94,6 +116,27 @@ if not TESTING_MODE then
 		end
 
 		local RemoteFunction = RemoteEvents[remoteName]
+
+		if IsRemoteEventSandwich[remoteName] then
+			local timestamp = Utility.getUnixTimestampMilliseconds()
+
+			RemoteFunction:FireServer(timestamp, ...)
+
+			-- while loop
+			while Utility.getUnixTimestampMilliseconds() - timestamp < REMOTE_EVENT_SANDWICH_TIMEOUT_MILLISECONDS do
+				local ReturnValues = RemoteEventSandwichReturnValues[RemoteFunction][timestamp]
+				if ReturnValues then
+					RemoteEventSandwichReturnValues[RemoteFunction][timestamp] = nil
+					return table.unpack(ReturnValues)
+				end
+
+				task.wait()
+			end
+
+			-- timeout
+			error(`RemoteEventSandwich "{remoteName}" timed out waiting for the server`)
+		end
+
 		return RemoteFunction:InvokeServer(...)
 	end
 	local function onServerInvokeConnect(remoteName, callback)
@@ -105,7 +148,59 @@ if not TESTING_MODE then
 		end
 
 		local RemoteFunction = RemoteEvents[remoteName]
+
+		if IsRemoteEventSandwich[remoteName] then
+			if RemoteEventSandwichConnections[RemoteFunction] then
+				RemoteEventSandwichConnections[RemoteFunction]:Disconnect()
+				RemoteEventSandwichConnections[RemoteFunction] = nil
+			end
+
+			RemoteEventSandwichConnections[RemoteFunction] = RemoteFunction.OnServerEvent:Connect(
+				function(Player, timestamp, ...)
+					RemoteFunction:FireClient(Player, timestamp, callback(Player, ...))
+				end
+			)
+
+			return
+		end
+
 		RemoteFunction.OnServerInvoke = callback
+	end
+	local function initializeNetwork()
+		local ErrorMessages = {}
+
+		for _, remoteEventSandwichName in RemoteEventSandwiches do
+			local RemoteEvent = RemoteEvents:FindFirstChild(remoteEventSandwichName)
+
+			if RemoteEvent == nil then
+				table.insert(ErrorMessages, `RemoteEventSandwich "{remoteEventSandwichName}" doesn't exist`)
+				continue
+			end
+
+			if not RemoteEvent:IsA("RemoteEvent") then
+				table.insert(
+					ErrorMessages,
+					`RemoteEventSandwich "{remoteEventSandwichName}" is actually a {RemoteEvent.ClassName}`
+				)
+				continue
+			end
+
+			IsRemoteEventSandwich[remoteEventSandwichName] = true
+
+			-- client only
+			if IS_SERVER then
+				continue
+			end
+
+			RemoteEventSandwichReturnValues[RemoteEvent] = {}
+			RemoteEvent.OnClientEvent:Connect(function(timestamp, ...)
+				RemoteEventSandwichReturnValues[RemoteEvent][timestamp] = { ... }
+			end)
+		end
+
+		if #ErrorMessages > 0 then
+			error(`Network RemoteEventSandwiches failed to initialize:\n{table.concat(ErrorMessages, ";\n")}`)
+		end
 	end
 
 	return {
@@ -119,6 +214,8 @@ if not TESTING_MODE then
 		-- RemoteFunction (intentionally did not implement invokeClient because it's bad practice to use it)
 		invokeServer = invokeServer,
 		onServerInvokeConnect = onServerInvokeConnect,
+
+		initialize = initializeNetwork,
 	}
 end
 
@@ -126,6 +223,10 @@ end
 local OnServerInvoke = {} -- string remoteName --> function callback(Player, ...)
 local OnServerEvent = {} -- string remoteName --> { function callback(Player, ...) --> true }
 local OnClientEvent = {} -- string remoteName --> table MockPlayer --> { function callback(...) --> true }
+
+local IsRemoteEventSandwich = {} -- remoteEventName --> true | nil
+local RemoteEventSandwichConnections = {} -- RemoteEvent --> RBXScriptConnection	SERVER_ONLY
+local RemoteEventSandwichReturnValues = {} -- RemoteEvent --> timestamp --> { ... } CLIENT_ONLY
 
 -- public / TESTING_MODE
 local function fireServerTestingMode(remoteName, Player, ...)
@@ -250,6 +351,9 @@ local function invokeServerTestingMode(remoteName, Player, ...)
 	end
 
 	local RemoteFunction = RemoteEvents[remoteName]
+	if RemoteFunction:IsA("RemoteEvent") and not IsRemoteEventSandwich[remoteName] then
+		error(`RemoteFunction "{remoteName}" is actually a RemoteEvent (and not a RemoteEventSandwich)`)
+	end
 
 	if IS_SERVER then
 		if OnServerInvoke[remoteName] then
@@ -257,6 +361,26 @@ local function invokeServerTestingMode(remoteName, Player, ...)
 		end
 
 		return -- should consider making this yield forever like it does if there's no OnServerInvoke hooked up
+	end
+
+	if IsRemoteEventSandwich[remoteName] then
+		local timestamp = Utility.getUnixTimestampMilliseconds()
+
+		RemoteFunction:FireServer(timestamp, ...)
+
+		-- while loop
+		while Utility.getUnixTimestampMilliseconds() - timestamp < REMOTE_EVENT_SANDWICH_TIMEOUT_MILLISECONDS do
+			local ReturnValues = RemoteEventSandwichReturnValues[RemoteFunction][timestamp]
+			if ReturnValues then
+				RemoteEventSandwichReturnValues[RemoteFunction][timestamp] = nil
+				return table.unpack(ReturnValues)
+			end
+
+			task.wait()
+		end
+
+		-- timeout
+		error(`RemoteEventSandwich "{remoteName}" timed out waiting for the server`)
 	end
 
 	return RemoteFunction:InvokeServer(...)
@@ -270,10 +394,65 @@ local function onServerInvokeConnectTestingMode(remoteName, callback)
 	end
 
 	local RemoteFunction = RemoteEvents[remoteName]
+	if RemoteFunction:IsA("RemoteEvent") and not IsRemoteEventSandwich[remoteName] then
+		error(`RemoteFunction "{remoteName}" is actually a RemoteEvent (and not a RemoteEventSandwich)`)
+	end
 
 	OnServerInvoke[remoteName] = callback
 
+	if IsRemoteEventSandwich[remoteName] then
+		if RemoteEventSandwichConnections[RemoteFunction] then
+			RemoteEventSandwichConnections[RemoteFunction]:Disconnect()
+			RemoteEventSandwichConnections[RemoteFunction] = nil
+		end
+
+		RemoteEventSandwichConnections[RemoteFunction] = RemoteFunction.OnServerEvent:Connect(
+			function(Player, timestamp, ...)
+				RemoteFunction:FireClient(Player, timestamp, callback(Player, ...))
+			end
+		)
+
+		return
+	end
+
 	RemoteFunction.OnServerInvoke = callback
+end
+
+local function initializeNetworkTestingMode()
+	local ErrorMessages = {}
+
+	for _, remoteEventSandwichName in RemoteEventSandwiches do
+		local RemoteEvent = RemoteEvents:FindFirstChild(remoteEventSandwichName)
+
+		if RemoteEvent == nil then
+			table.insert(ErrorMessages, `RemoteEventSandwich "{remoteEventSandwichName}" doesn't exist`)
+			continue
+		end
+
+		if not RemoteEvent:IsA("RemoteEvent") then
+			table.insert(
+				ErrorMessages,
+				`RemoteEventSandwich "{remoteEventSandwichName}" is actually a {RemoteEvent.ClassName}`
+			)
+			continue
+		end
+
+		IsRemoteEventSandwich[remoteEventSandwichName] = true
+
+		-- client only
+		if IS_SERVER then
+			continue
+		end
+
+		RemoteEventSandwichReturnValues[RemoteEvent] = {}
+		RemoteEvent.OnClientEvent:Connect(function(timestamp, ...)
+			RemoteEventSandwichReturnValues[RemoteEvent][timestamp] = { ... }
+		end)
+	end
+
+	if #ErrorMessages > 0 then
+		error(`Network RemoteEventSandwiches failed to initialize:\n{table.concat(ErrorMessages, ";\n")}`)
+	end
 end
 
 return {
@@ -287,4 +466,8 @@ return {
 	-- RemoteFunction (intentionally did not implement invokeClient because it's bad practice to use it)
 	invokeServer = invokeServerTestingMode,
 	onServerInvokeConnect = onServerInvokeConnectTestingMode,
+
+	initialize = initializeNetworkTestingMode,
 }
+
+-- TODO the RemoteEventSandwich behaviors could probably be factored into shared functions

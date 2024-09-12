@@ -22,6 +22,8 @@ return function()
 			s = pcall(SoccerDuels.newClient, Instance.new("Part"))
 
 			assert(not s)
+
+			Client:Destroy()
 		end)
 		it("Client fires an event when other loaded clients' characters load", function()
 			SoccerDuels.disconnectAllPlayers()
@@ -123,6 +125,59 @@ return function()
 
 			-- TODO later test that this does NOT fire when a player spawns a character into a match
 			SoccerDuels.resetTestingVariables()
+			Client1:Destroy()
+			Client2:Destroy()
+			Client3:Destroy()
+		end)
+		it("Clients maintain a cache of all other clients' PlayerDocuments", function()
+			SoccerDuels.disconnectAllPlayers()
+
+			local MockPlayer1 = MockInstance.new("Player")
+			local MockPlayer2 = MockInstance.new("Player")
+
+			MockPlayer1.UserId = 234823623234
+			MockPlayer2.UserId = 230842834823
+
+			MockPlayer1.Name = "Louise"
+			MockPlayer2.Name = "Gertrude"
+
+			local Client1 = SoccerDuels.newClient(MockPlayer1)
+			local Client2 = SoccerDuels.newClient(MockPlayer2)
+
+			Client1:LoadPlayerDataAsync()
+			Client2:LoadPlayerDataAsync()
+
+			assert(Client1:GetAnyPlayerDataValue("Level", MockPlayer1) == 0)
+			assert(Client2:GetAnyPlayerDataValue("Level", MockPlayer1) == 0)
+			assert(Client1:GetAnyPlayerDataValue("Level", MockPlayer2) == 0)
+			assert(Client2:GetAnyPlayerDataValue("Level", MockPlayer2) == 0)
+
+			SoccerDuels.updateCachedPlayerSaveData(MockPlayer1, {
+				Level = 2,
+			})
+
+			assert(Client1:GetAnyPlayerDataValue("Level", MockPlayer1) == 2)
+			assert(Client2:GetAnyPlayerDataValue("Level", MockPlayer1) == 2)
+			assert(Client1:GetAnyPlayerDataValue("Level", MockPlayer2) == 0)
+			assert(Client2:GetAnyPlayerDataValue("Level", MockPlayer2) == 0)
+
+			SoccerDuels.updateCachedPlayerSaveData(MockPlayer1, {
+				WinStreak = 3,
+			})
+
+			assert(Client1:GetAnyPlayerDataValue("WinStreak", MockPlayer1) == 3)
+			assert(Client2:GetAnyPlayerDataValue("WinStreak", MockPlayer1) == 3)
+			assert(Client1:GetAnyPlayerDataValue("WinStreak", MockPlayer2) == 0)
+			assert(Client2:GetAnyPlayerDataValue("WinStreak", MockPlayer2) == 0)
+
+			local s1 = pcall(Client1.GetAnyPlayerDataValue, Client1, "This isn't a value", MockPlayer1)
+			local s2 = pcall(Client2.GetAnyPlayerDataValue, Client2, "WinStreak", "This isn't a player")
+
+			assert(not s1)
+			assert(not s2)
+
+			Client1:Destroy()
+			Client2:Destroy()
 		end)
 	end)
 	describe("SoccerDuels testing API", function()
@@ -194,6 +249,9 @@ return function()
 			SoccerDuels.disconnectPlayer(MockPlayer1)
 
 			assert(#SoccerDuels.getLoadedPlayers() == 0)
+
+			Client1:Destroy()
+			Client2:Destroy()
 		end)
 	end)
 end

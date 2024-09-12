@@ -26,6 +26,8 @@ return function()
 					assert(Setting.Name == ClientSettingsDisplayOrder[i])
 					assert(Setting.Value == DefaultClientSettings[Setting.Name])
 				end
+
+				Client:Destroy()
 			end)
 		end)
 		describe("Client:OnSettingChangedConnect()", function()
@@ -44,6 +46,8 @@ return function()
 				end)
 
 				assert(i == #ClientSettings)
+
+				Client:Destroy()
 			end)
 			it("Invokes callback when a setting is changed, until it's been disconnected", function()
 				SoccerDuels.resetTestingVariables()
@@ -79,6 +83,8 @@ return function()
 				assert(changeCount == 2)
 				assert(lastSettingName == "Low Graphics")
 				assert(lastSettingValue == true)
+
+				Client:Destroy()
 			end)
 		end)
 		describe("Client:ChangeSetting()", function()
@@ -100,6 +106,8 @@ return function()
 				local ClientCachedPlayerData = Client:GetPlayerSaveData()
 
 				assert(Utility.tableDeepEqual(ServerCachedPlayerData, ClientCachedPlayerData))
+
+				Client:Destroy()
 			end)
 		end)
 	end)

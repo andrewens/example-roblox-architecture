@@ -5,9 +5,11 @@ local RunService = game:GetService("RunService")
 if RunService:IsClient() then
 	local Config = require(script.Config) -- needs to be required first!
 	local SoccerDuelsClient = require(script.SoccerDuelsClient)
+	local Network = require(script.Network)
 
 	-- public
 	local function initializeSoccerDuelsClient()
+		Network.initialize()
 		SoccerDuelsClient.initialize()
 	end
 
@@ -30,10 +32,12 @@ local PlayerDocument = require(script.PlayerDocument)
 local SoccerDuelsClient = require(script.SoccerDuelsClient)
 local SoccerDuelsServer = require(script.SoccerDuelsServer)
 local Utility = require(script.Utility)
+local Network = require(script.Network)
 
 -- public
 local function initializeSoccerDuels()
 	Utility.organizeDependencies()
+	Network.initialize()
 	SoccerDuelsServer.initialize()
 	SoccerDuelsClient.initialize()
 end

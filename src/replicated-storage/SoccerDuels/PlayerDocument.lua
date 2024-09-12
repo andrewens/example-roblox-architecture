@@ -19,6 +19,21 @@ local PlayerDocumentMetatable
 local PlayerDocumentMethods
 
 -- private
+local function changeNestedTableValue(self, tableName, key2, value)
+	if self._Data[tableName][key2] == nil then
+		error(`PlayerDocument.{tableName}["{key2}"] doesn't exist`)
+	end
+	if not (typeof(value) == typeof(self._Data[tableName][key2])) then
+		error(`PlayerDocument.{tableName}["{key2}"] is a {typeof(self._Data[tableName][key2])}, not a {typeof(value)}`)
+	end
+
+	self._Data[tableName][key2] = value
+	self._LastEditTimestamp = Utility.getUnixTimestampMilliseconds()
+
+	for callback, _ in self._DataChangedCallbacks do
+		callback(tableName, self._Data[tableName])
+	end
+end
 local function nestedTableInterface(self, tableName)
 	local TableInterface = {}
 	setmetatable(TableInterface, {
@@ -26,14 +41,30 @@ local function nestedTableInterface(self, tableName)
 			return self._Data[tableName][key2]
 		end,
 		__newindex = function(_, key2, value)
-			self._Data[tableName][key2] = value
-			self._LastEditTimestamp = Utility.getUnixTimestampMilliseconds()
+			changeNestedTableValue(self, tableName, key2, value)
 		end,
 	})
 	return TableInterface
 end
 
 -- public / PlayerDocument class methods
+local function onPlayerDocumentValueChangedConnect(self, callback)
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	for key, value in self._Data do
+		callback(key, value)
+	end
+
+	self._DataChangedCallbacks[callback] = true
+
+	return {
+		Disconnect = function()
+			self._DataChangedCallbacks[callback] = false
+		end,
+	}
+end
 local function playerDocumentUpdateLastSavedTimestamp(self)
 	self._LastSaveTimestamp = Utility.getUnixTimestampMilliseconds()
 end
@@ -49,13 +80,23 @@ local function changePlayerDocumentValue(self, key, value)
 	end
 
 	if typeof(self._Data[key]) == "table" then
-		for key2, value2 in value do -- note that this has same functionality as a NestedTableInterface but it is a duplicate implementation
-			self._Data[key][key2] = value2
+		for key2, value2 in value do
+			changeNestedTableValue(self, key, key2, value2)
 		end
+
+		for callback, _ in self._DataChangedCallbacks do
+			callback(key, value)
+		end
+
+		return
 	end
 
 	self._Data[key] = value
 	self._LastEditTimestamp = Utility.getUnixTimestampMilliseconds()
+
+	for callback, _ in self._DataChangedCallbacks do
+		callback(key, value)
+	end
 end
 local function changeMultiplePlayerDocumentValues(self, DataToUpdate)
 	if not (typeof(DataToUpdate) == "table") then
@@ -68,6 +109,13 @@ local function changeMultiplePlayerDocumentValues(self, DataToUpdate)
 end
 local function playerDocumentToJson(self)
 	return HttpService:JSONEncode(self._Data)
+end
+local function playerDocumentDestroy(self)
+	self._Data = nil
+	self._DataChangedCallbacks = nil
+	self._LastSaveTimestamp = nil
+	self._LastEditTimestamp = nil
+	self._NestedTableInterfaces = nil
 end
 
 -- public / PlayerDocument metamethods
@@ -121,21 +169,18 @@ local function newPlayerDocument(LoadedSaveData)
 		error(`{LoadedSaveData} is not a table!`)
 	end
 
+	LoadedSaveData.Settings = LoadedSaveData.Settings or {}
+
 	local Data = Utility.tableDeepCopy(DEFAULT_PLAYER_SAVE_DATA)
 
 	Data.DataFormatVersion = CURRENT_DATA_FORMAT_VERSION
 	Data.Level = LoadedSaveData.Level or Data.Level
 	Data.WinStreak = LoadedSaveData.WinStreak or Data.WinStreak
 
-	if LoadedSaveData.Settings then
-		for settingName, defaultSettingValue in DEFAULT_CLIENT_SETTINGS do
-			local loadedSettingValue = LoadedSaveData.Settings[settingName]
-			if loadedSettingValue == nil or loadedSettingValue == defaultSettingValue then
-				continue
-			end
-
-			Data.Settings[settingName] = loadedSettingValue
-		end
+	for settingName, defaultSettingValue in DEFAULT_CLIENT_SETTINGS do
+		Data.Settings[settingName] = if LoadedSaveData.Settings[settingName] == nil
+			then defaultSettingValue
+			else LoadedSaveData.Settings[settingName]
 	end
 
 	local self = {}
@@ -145,8 +190,9 @@ local function newPlayerDocument(LoadedSaveData)
 	self._NestedTableInterfaces = {
 		-- we have to create more metatables to support self._LastEditTimestamp when editing nested tables like Settings,
 		-- but all the data has to be in the _Data table to work with HttpService:JSONEncode()
-		Settings = nestedTableInterface(self, "Settings")
+		Settings = nestedTableInterface(self, "Settings"),
 	}
+	self._DataChangedCallbacks = {} -- function callback(string key, any value) --> true
 
 	setmetatable(self, PlayerDocumentMetatable)
 
@@ -154,12 +200,16 @@ local function newPlayerDocument(LoadedSaveData)
 end
 local function initializePlayerDocument()
 	PlayerDocumentMethods = {
+		OnValueChangedConnect = onPlayerDocumentValueChangedConnect,
+
 		UpdateLastSavedTimestamp = playerDocumentUpdateLastSavedTimestamp,
 		SaveTimestampIsGreaterThanLastEditTimestamp = playerDocumentSaveTimestampIsGreaterThanLastEditTimestamp,
 
 		ChangeValues = changeMultiplePlayerDocumentValues,
 		ChangeValue = changePlayerDocumentValue,
+
 		ToJson = playerDocumentToJson,
+		Destroy = playerDocumentDestroy,
 	}
 	PlayerDocumentMetatable = {
 		__index = indexPlayerDocument,

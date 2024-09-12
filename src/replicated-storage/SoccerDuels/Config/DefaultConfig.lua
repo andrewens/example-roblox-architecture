@@ -35,21 +35,9 @@ DefaultConfig.TestingVariables = {
 	DisableAutoSave = false,
 }
 
--- database
-DefaultConfig.DatabaseQueryRetries = 3
-DefaultConfig.DatabaseRetryWaitSeconds = 2
-DefaultConfig.CurrentPlayerDataVersion = 0
-DefaultConfig.DefaultPlayerSaveData = {
-	DataFormatVersion = DefaultConfig.CurrentPlayerDataVersion,
-	Level = 0,
-	WinStreak = 0,
-	Settings = {},
-}
-DefaultConfig.AutoSavePollRateSeconds = 5
-
 -- client notifications
 DefaultConfig.NotificationMessages = {
-	AutoSave = "Your data has been saved"
+	AutoSave = "Your data has been saved",
 }
 DefaultConfig.ToastNotificationDurationSeconds = 2
 
@@ -62,6 +50,28 @@ DefaultConfig.ClientSettingsDisplayOrder = {
 	"Sound Effects",
 	"Low Graphics",
 }
+
+-- database
+DefaultConfig.DatabaseQueryRetries = 3
+DefaultConfig.DatabaseRetryWaitSeconds = 2
+DefaultConfig.CurrentPlayerDataVersion = 0
+DefaultConfig.DefaultPlayerSaveData = {
+	DataFormatVersion = DefaultConfig.CurrentPlayerDataVersion,
+	Level = 0,
+	WinStreak = 0,
+	Settings = DefaultConfig.DefaultClientSettings,
+}
+DefaultConfig.AutoSavePollRateSeconds = 15
+DefaultConfig.SaveDataThatPlayerDecides = {
+	"Settings",
+}
+
+for _, dataFieldName in ipairs(DefaultConfig.SaveDataThatPlayerDecides) do
+	DefaultConfig.SaveDataThatPlayerDecides[dataFieldName] = true
+end
+
+-- network
+DefaultConfig.RemoteEventSandwichTimeoutSeconds = 30
 
 -- settings UI
 DefaultConfig.BooleanSettingOnColor3 = Color3.fromRGB(0, 255, 0) -- TODO change this to a color palette-type vibe (less specific)

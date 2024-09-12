@@ -21,6 +21,8 @@ return function()
 					Client:ToggleModalVisibility("Settings")
 
 					assert(nil == Client:GetVisibleModalName())
+
+					Client:Destroy()
 				end
 			)
 			it("Throws an error if you pass an invalid modal name", function()
@@ -34,6 +36,8 @@ return function()
 				s = pcall(Client.ToggleModalVisibility, Client, nil)
 
 				assert(not s)
+
+				Client:Destroy()
 			end)
 		end)
         describe("SoccerDuelsClient:OnVisibleModalChangedConnect()", function()
@@ -67,6 +71,8 @@ return function()
 
 				assert(3 == changeCount)
 				assert(nil == lastModalName)
+
+				Client:Destroy()
             end)
         end)
 	end)

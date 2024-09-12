@@ -3,7 +3,7 @@
   "Children": [
     {
       "Name": "GetPlayerSaveData",
-      "ClassName": "RemoteFunction"
+      "ClassName": "RemoteEvent"
     },
     {
       "Name": "NotifyPlayer",
@@ -15,6 +15,10 @@
     },
     {
       "Name": "CharacterSpawnedInLobby",
+      "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "UpdatePlayerSaveData",
       "ClassName": "RemoteEvent"
     }
   ]

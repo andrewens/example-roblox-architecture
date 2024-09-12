@@ -10,11 +10,12 @@ local CLIENT_SETTINGS_DISPLAY_ORDER = Config.getConstant("ClientSettingsDisplayO
 
 -- public
 local function getClientSettingValue(self, settingName)
-	if self._PlayerSaveData == nil or self._PlayerSaveData.Settings[settingName] == nil then
+	local ThisPlayersData = self._PlayerSaveData[self.Player]
+	if ThisPlayersData == nil or ThisPlayersData.Settings[settingName] == nil then
 		return DEFAULT_CLIENT_SETTINGS[settingName]
 	end
 
-	return self._PlayerSaveData.Settings[settingName]
+	return ThisPlayersData.Settings[settingName]
 end
 local function clientChangeSetting(self, settingName, newValue)
 	if not (typeof(settingName) == "string") then
@@ -26,11 +27,13 @@ local function clientChangeSetting(self, settingName, newValue)
 	if DEFAULT_CLIENT_SETTINGS[settingName] == nil then
 		error(`"{settingName}" is not a ClientSetting!`)
 	end
-	if self._PlayerSaveData == nil then
+
+	local ThisPlayersData = self._PlayerSaveData[self.Player]
+	if ThisPlayersData == nil then
 		error(`Player {self.Player} hasn't loaded their data yet!`)
 	end
 
-	self._PlayerSaveData.Settings[settingName] = newValue
+	ThisPlayersData.Settings[settingName] = newValue
 
 	Network.fireServer("PlayerChangeSetting", self.Player, settingName, newValue)
 
@@ -79,9 +82,9 @@ local function getClientSettingsJson(self)
 end
 
 return {
-    onClientSettingChangedConnect = onClientSettingChangedConnect,
-    clientToggleBooleanSetting = clientToggleBooleanSetting,
-    clientChangeSetting = clientChangeSetting,
-    getClientSettingValue = getClientSettingValue,
-    getClientSettingsJson = getClientSettingsJson,
+	onClientSettingChangedConnect = onClientSettingChangedConnect,
+	clientToggleBooleanSetting = clientToggleBooleanSetting,
+	clientChangeSetting = clientChangeSetting,
+	getClientSettingValue = getClientSettingValue,
+	getClientSettingsJson = getClientSettingsJson,
 }

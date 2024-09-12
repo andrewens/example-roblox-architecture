@@ -1,8 +1,11 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
-local Utility = require(SoccerDuelsModule.Utility)
+local Config = require(SoccerDuelsModule.Config)
 local Maid = require(SoccerDuelsModule.Maid)
+local Network = require(SoccerDuelsModule.Network)
+local PlayerDocument = require(SoccerDuelsModule.PlayerDocument)
+local Utility = require(SoccerDuelsModule.Utility)
 
 local ClientSettings = require(script.ClientSettings)
 local ClientModalState = require(script.ClientModalState)
@@ -13,14 +16,6 @@ local MainGui = require(script.MainGui)
 
 -- var
 local ClientMetatable
-
--- private
-local function initializeGuiWhenPlayerDataLoads(self, PlayerSaveData)
-	if self._MainGui then
-		return
-	end
-	self._MainGui = MainGui.new(self)
-end
 
 -- public / Client class methods
 local function destroyClient(self) -- TODO this isn't really tested
@@ -41,7 +36,7 @@ local function newClient(Player)
 	self._Maid = Maid.new() -- cleans on self:Destroy() and self:LoadPlayerDataAsync()
 	self._VisibleModalEnum = nil -- int | nil
 	self._VisibleModalChangedCallbacks = {} -- function callback(string visibleModalName) --> true
-	self._PlayerSaveData = nil -- nil | JSON
+	self._PlayerSaveData = {} -- Player --> PlayerDocument
 	self._PlayerDataLoadedCallbacks = {} -- function callback(table PlayerSaveData) --> true
 	self._SettingChangedCallbacks = {} -- function callback(string settingName, any settingValue) --> true
 	self._ToastCallbacks = {} -- function callback(string notificationMessage) --> true
@@ -52,9 +47,6 @@ local function newClient(Player)
 	-- init
 	setmetatable(self, ClientMetatable)
 
-	self._Maid:GiveTask(self:OnPlayerSaveDataLoadedConnect(function(PlayerSaveData)
-		initializeGuiWhenPlayerDataLoads(self, PlayerSaveData)
-	end))
 	ClientToastNotificationState.initializeClientToastNotifications(self)
 
 	return self
@@ -82,6 +74,7 @@ local function initializeClients()
 		GetSettings = ClientSettings.getClientSettingsJson,
 
 		-- loading player save data
+		GetAnyPlayerDataValue = LoadClientSaveData.getAnyPlayerDataCachedValue,
 		OnPlayerSaveDataLoadedConnect = LoadClientSaveData.onClientPlayerDataLoadedConnect,
 		GetPlayerSaveData = LoadClientSaveData.getClientPlayerSaveData,
 		LoadPlayerDataAsync = LoadClientSaveData.loadClientPlayerDataAsync,
