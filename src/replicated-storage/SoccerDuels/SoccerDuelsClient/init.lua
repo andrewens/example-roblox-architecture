@@ -21,6 +21,15 @@ local ClientMetatable
 -- public / Client class methods
 local function destroyClient(self) -- TODO this isn't really tested
 	self._Maid:DoCleaning()
+
+	self._VisibleModalChangedCallbacks = nil
+	self._PlayerDataLoadedCallbacks = nil
+	self._SettingChangedCallbacks = nil
+	self._ToastCallbacks = nil
+	self._LobbyCharacterSpawnedCallbacks = nil
+	self._ControllerTypeChangedCallbacks = nil
+
+	self._CharactersInLobby = nil
 end
 
 -- public
@@ -50,6 +59,7 @@ local function newClient(Player)
 	self._CharactersInLobby = {} -- Player --> Character
 
 	self._ControllerTypeEnum = nil
+	self._ControllerTypeChangedCallbacks = {} -- function callback(string controllerType) --> true
 
 	-- init
 	setmetatable(self, ClientMetatable)
@@ -61,8 +71,9 @@ end
 local function initializeClients()
 	local ClientMethods = {
 		-- client input
-		GetControllerType = ClientInput.getClientControllerType,
 		TapInput = ClientInput.clientTapInput,
+		OnControllerTypeChangedConnect = ClientInput.onClientControllerTypeChangedConnect,
+		GetControllerType = ClientInput.getClientControllerType,
 
 		-- lobby characters
 		GetCharactersInLobby = LobbyCharacters.getCharactersInLobby,

@@ -25,6 +25,7 @@ return function()
 						-- testing every UserInputType versus the platform it corresponds to
 						local TEST_CASES = {
 							-- { UserInputType, ControllerType (nil=same as before) }
+
 							{ "MouseButton1", "Keyboard" },
 							{ "MouseButton2", "Keyboard" },
 							{ "MouseButton3", "Keyboard" },
@@ -78,10 +79,121 @@ return function()
 						Client:Destroy()
 					end
 				)
-			end)
-			--describe("Client:OnControllerTypeChangedConnect()", function()
+				--[[
+				it("Client's controller type is replicated to all other clients", function()
+					SoccerDuels.resetTestingVariables()
+					SoccerDuels.disconnectAllPlayers()
 
-			--end)
+					local Player1 = MockInstance.new("Player")
+					local Player2 = MockInstance.new("Player")
+
+					Player1.Name = "Greg"
+					Player2.Name = "Margaret"
+
+					local Client1 = SoccerDuels.newClient(Player1)
+					local Client2 = SoccerDuels.newClient(Player2)
+
+					Client1:TapInput(MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.Keyboard }))
+					Client1:LoadPlayerDataAsync()
+					Client2:LoadPlayerDataAsync()
+
+					local defaultControllerType = SoccerDuels.getConstant("DefaultControllerType")
+
+					assert(Client1:GetControllerType() == "Keyboard")
+					assert(Client1:GetControllerType(Player1) == "Keyboard")
+					assert(Client2:GetControllerType(Player1) == "Keyboard")
+					assert(Client1:GetControllerType() == defaultControllerType)
+					assert(Client1:GetControllerType(Player2) == defaultControllerType)
+					assert(Client2:GetControllerType(Player2) == defaultControllerType)
+
+					Client2:TapInput(MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.Gamepad1 }))
+
+					assert(Client1:GetControllerType() == "Keyboard")
+					assert(Client1:GetControllerType(Player1) == "Keyboard")
+					assert(Client2:GetControllerType(Player1) == "Keyboard")
+					assert(Client1:GetControllerType() == "Gamepad")
+					assert(Client1:GetControllerType(Player2) == "Gamepad")
+					assert(Client2:GetControllerType(Player2) == "Gamepad")
+
+					Client1:TapInput(MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.Touch }))
+
+					assert(Client1:GetControllerType() == "Touch")
+					assert(Client1:GetControllerType(Player1) == "Touch")
+					assert(Client2:GetControllerType(Player1) == "Touch")
+					assert(Client1:GetControllerType() == "Gamepad")
+					assert(Client1:GetControllerType(Player2) == "Gamepad")
+					assert(Client2:GetControllerType(Player2) == "Gamepad")
+
+					Client1:Destroy()
+					Client2:Destroy()
+				end)--]]
+			end)
+			describe("Client:OnControllerTypeChangedConnect()", function()
+				it("Connects a callback to whenever the client's controller changes", function()
+					SoccerDuels.resetTestingVariables()
+
+					local Client = SoccerDuels.newClient(MockInstance.new("Player"))
+					Client:TapInput(MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.Keyboard }))
+
+					local changeCount = 0
+					local prevControllerType
+					local conn = Client:OnControllerTypeChangedConnect(function(newControllerType)
+						changeCount += 1
+						prevControllerType = newControllerType
+					end)
+
+					assert(changeCount == 1)
+					assert(prevControllerType == "Keyboard")
+
+					local TEST_CASES = {
+						-- { UserInputType, ControllerType, changeCount }
+
+						{ "MouseButton1", "Keyboard", 1 },
+						{ "Gamepad1", "Gamepad", 2 },
+						{ "MouseButton2", "Keyboard", 3 },
+						{ "MouseButton3", "Keyboard", 3 },
+						{ "Gyro", "Touch", 4 },
+						{ "Focus", "Touch", 4 },
+						{ "MouseWheel", "Keyboard", 5 },
+						{ "MouseMovement", "Keyboard", 5 },
+						{ "Touch", "Touch", 6 },
+						{ "Keyboard", "Keyboard", 7 },
+						{ "Accelerometer", "Touch", 8 },
+						{ "Gamepad2", "Gamepad", 9 },
+						{ "TextInput", "Gamepad", 9 },
+						{ "Gamepad3", "Gamepad", 9 },
+						{ "Gamepad4", "Gamepad", 9 },
+						{ "Gamepad5", "Gamepad", 9 },
+						{ "Gamepad6", "Gamepad", 9 },
+						{ "Gamepad7", "Gamepad", 9 },
+						{ "Gamepad8", "Gamepad", 9 },
+					}
+
+					for i, TestCase in TEST_CASES do
+						Client:TapInput(MockInstance.new("InputObject", {
+							UserInputType = Enum.UserInputType[TestCase[1]],
+						}))
+
+						if not (changeCount == TestCase[3]) then
+							error(`changeCount = {changeCount}, which isn't {TestCase[3]} (FAILS TEST CASE #{i})`)
+						end
+						if not (prevControllerType == TestCase[2]) then
+							error(
+								`prevControllerType = "{prevControllerType}", which isn't "{TestCase[2]}" (TEST CASE #{i})`
+							)
+						end
+					end
+
+					-- no more changes after disconnect
+					conn:Disconnect()
+					Client:TapInput(MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.Keyboard }))
+
+					assert(changeCount == 9)
+					assert(prevControllerType == "Gamepad")
+
+					Client:Destroy()
+				end)
+			end)
 		end)
 	end)
 end

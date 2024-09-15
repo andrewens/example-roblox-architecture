@@ -4,6 +4,7 @@ local RunService = game:GetService("RunService")
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
 
+local ClientInput = require(SoccerDuelsClientModule.ClientInput)
 local LobbyCharacters = require(SoccerDuelsClientModule.LobbyCharacters)
 local MainGui = require(SoccerDuelsClientModule.MainGui)
 
@@ -103,6 +104,7 @@ local function loadClientPlayerDataAsync(self)
 	end
 
 	LobbyCharacters.initialize(self)
+	ClientInput.initializeClientInput(self)
 
 	return true
 end

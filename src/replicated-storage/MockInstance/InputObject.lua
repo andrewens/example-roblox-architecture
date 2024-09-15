@@ -18,7 +18,9 @@ return function(Properties)
 		assert(typeof(Properties.Position) == "Vector3")
 	end
 	if Properties.UserInputType then
-		assert(typeof(Properties.UserInputType) == "EnumItem")
+		if not (typeof(Properties.UserInputType) == "EnumItem") then
+			error(`{Properties.UserInputType} is not an EnumItem!`)
+		end
 		if not (Properties.UserInputType.EnumType == Enum.UserInputType) then
 			error(`{Properties.UserInputType} is not a UserInputType Enum!`)
 		end
