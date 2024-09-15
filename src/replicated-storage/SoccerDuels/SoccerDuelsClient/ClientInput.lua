@@ -16,12 +16,15 @@ local function onPlayerControllerTypeChanged(self, Player, controllerTypeEnum)
 	if Player == self.Player then
 		return
 	end
+	if self._ControllerTypeEnum[Player] == controllerTypeEnum then
+		return
+	end
 
 	self._ControllerTypeEnum[Player] = controllerTypeEnum
 
 	local controllerType = Enums.enumToName("ControllerType", controllerTypeEnum)
 	for callback, _ in self._ControllerTypeChangedCallbacks do
-		callback(controllerType, Player)
+		callback(Player, controllerType)
 	end
 end
 
@@ -48,7 +51,7 @@ local function clientTapInput(self, InputObject)
 	Network.fireServer("PlayerControllerTypeChanged", self.Player, newControllerTypeEnum)
 
 	for callback, _ in self._ControllerTypeChangedCallbacks do
-		callback(controllerType, self.Player)
+		callback(self.Player, controllerType)
 	end
 end
 
@@ -73,8 +76,8 @@ local function onClientControllerTypeChangedConnect(self, callback)
 	self._ControllerTypeChangedCallbacks[callback] = true
 
 	for Player, controllerTypeEnum in self._ControllerTypeEnum do
-        local controllerType = Enums.enumToName("ControllerType", controllerTypeEnum)
-		callback(controllerType, Player)
+		local controllerType = Enums.enumToName("ControllerType", controllerTypeEnum)
+		callback(Player, controllerType)
 	end
 
 	return {

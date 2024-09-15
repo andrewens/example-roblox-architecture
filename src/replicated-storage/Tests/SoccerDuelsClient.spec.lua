@@ -138,7 +138,7 @@ return function()
 
 					local changeCount = 0
 					local prevControllerType
-					local conn = Client:OnControllerTypeChangedConnect(function(newControllerType)
+					local conn = Client:OnControllerTypeChangedConnect(function(Player, newControllerType)
 						changeCount += 1
 						prevControllerType = newControllerType
 					end)
@@ -193,6 +193,81 @@ return function()
 					assert(prevControllerType == "Gamepad")
 
 					Client:Destroy()
+				end)
+				it("Also fires callbacks when other client's controller type changes", function()
+					SoccerDuels.resetTestingVariables()
+					SoccerDuels.disconnectAllPlayers()
+
+					local Player1 = MockInstance.new("Player")
+					local Player2 = MockInstance.new("Player")
+
+					Player1.Name = "Grug"
+					Player2.Name = "Roberto"
+
+					local Client1 = SoccerDuels.newClient(Player1)
+					local Client2 = SoccerDuels.newClient(Player2)
+
+					Client1:LoadPlayerDataAsync()
+					Client2:LoadPlayerDataAsync()
+
+					local changeCount = 0
+					local prevControllerType
+					local PrevPlayer
+
+					local conn = Client1:OnControllerTypeChangedConnect(function(Player, controllerType)
+						changeCount += 1
+						PrevPlayer = Player
+						prevControllerType = controllerType
+					end)
+
+					local defaultControllerType = SoccerDuels.getConstant("DefaultControllerType")
+
+					if not (changeCount == 2) then
+						error(`{changeCount} != 2`)
+					end
+					assert(prevControllerType == defaultControllerType)
+					assert(PrevPlayer == Player1 or PrevPlayer == Player2)
+
+					Client2:TapInput(MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.Gamepad1 }))
+					Client2:TapInput(MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.Gamepad2 }))
+
+					assert(changeCount == 3) -- changing DefaultControllerType might break this test
+					assert(prevControllerType == "Gamepad")
+					assert(PrevPlayer == Player2)
+
+					Client1:TapInput(
+						MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.MouseButton3 })
+					)
+
+					if not (changeCount == 4) then
+						error(`{changeCount} != 4`)
+					end
+					assert(prevControllerType == "Keyboard")
+					assert(PrevPlayer == Player1)
+
+					Client2:TapInput(MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.Gamepad3 }))
+
+					assert(changeCount == 4)
+					assert(prevControllerType == "Keyboard")
+					assert(PrevPlayer == Player1)
+
+					Client2:TapInput(MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.Keyboard }))
+
+					assert(changeCount == 5)
+					assert(prevControllerType == "Keyboard")
+					assert(PrevPlayer == Player2)
+
+					conn:Disconnect()
+
+					Client1:TapInput(MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.Gamepad1 }))
+					Client2:TapInput(MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.Gamepad1 }))
+
+					assert(changeCount == 5)
+					assert(prevControllerType == "Keyboard")
+					assert(PrevPlayer == Player2)
+
+					Client1:Destroy()
+					Client2:Destroy()
 				end)
 			end)
 		end)

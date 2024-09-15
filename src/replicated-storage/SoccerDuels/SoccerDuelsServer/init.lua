@@ -9,6 +9,7 @@ local Utility = require(SoccerDuelsModule.Utility)
 
 local Database = require(script.Database)
 local TestingVariables = require(script.TestingVariables)
+local PlayerControllerTypeServer = require(script.PlayerControllerTypeServer)
 
 -- const
 local TESTING_MODE = Config.getConstant("TestingMode")
@@ -20,15 +21,10 @@ local PLAYER_DECIDED_SAVE_DATA = Config.getConstant("SaveDataThatPlayerDecides")
 -- var
 local CachedPlayerSaveData = {} -- Player --> PlayerDocument
 local CharactersInLobby = {} -- Player --> Character
-local PlayerControllerTypeEnums = {} -- Player --> int controllerTypeEnum
 
 local saveAllPlayerData
 
 -- private
-local function clearPlayerControllerTypeEnum(Player)
-	PlayerControllerTypeEnums[Player] = nil
-	Network.fireAllClients("PlayerControllerTypeChanged", Player, nil)
-end
 local function lobbyCharacterDespawned(Player)
 	if CharactersInLobby[Player] == nil then
 		return
@@ -68,27 +64,6 @@ local function autoSaveAllPlayerData()
 end
 
 -- protected / network methods
-local function playerControllerTypeChanged(Player, controllerTypeEnum)
-	if CachedPlayerSaveData[Player] == nil then
-		return
-	end
-	if not Enums.enumToName("ControllerType", controllerTypeEnum) then
-		error(`{controllerTypeEnum} is not a controller type enum!`)
-	end
-
-	PlayerControllerTypeEnums[Player] = controllerTypeEnum
-
-	Network.fireAllClients("PlayerControllerTypeChanged", Player, controllerTypeEnum)
-end
-local function onPlayerRequestPlayersControllerTypeEnums(RequestingPlayer)
-	for OtherPlayer, controllerTypeEnum in PlayerControllerTypeEnums do
-		if OtherPlayer == RequestingPlayer then
-			continue
-		end
-
-		Network.fireClient("PlayerControllerTypeChanged", RequestingPlayer, OtherPlayer, controllerTypeEnum)
-	end
-end
 local function onPlayerRequestCharactersInLobby(RequestingPlayer)
 	for OtherPlayer, Character in CharactersInLobby do
 		local Humanoid = Character:FindFirstChild("Humanoid")
@@ -213,7 +188,7 @@ local function disconnectPlayer(Player, kickPlayer)
 	CachedPlayerSaveData[Player] = nil
 
 	lobbyCharacterDespawned(Player)
-	clearPlayerControllerTypeEnum(Player)
+	PlayerControllerTypeServer.disconnectPlayer(Player)
 end
 local function disconnectAllPlayers(kickPlayers)
 	for Player, _ in CachedPlayerSaveData do
@@ -268,8 +243,7 @@ local function initializeServer()
 	Network.onServerEventConnect("CharacterSpawnedInLobby", onPlayerRequestCharactersInLobby)
 	Utility.onCharacterLoadedConnect(lobbyCharacterSpawned)
 
-	Network.onServerEventConnect("PlayerControllerTypeChanged", playerControllerTypeChanged)
-	Network.onServerEventConnect("GetPlayersControllerTypeEnums", onPlayerRequestPlayersControllerTypeEnums)
+	PlayerControllerTypeServer.initialize()
 end
 
 return {
