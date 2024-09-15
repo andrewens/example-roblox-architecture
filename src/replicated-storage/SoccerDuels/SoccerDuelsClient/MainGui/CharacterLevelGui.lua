@@ -17,7 +17,26 @@ local function initializeCharacterLevelGuis(self)
 	Folder.Name = "CharacterLevelGuis"
 	Folder.Parent = self._MainGui --> gets destroyed when MainGui gets destroyed, which is when Maid does cleaning
 
-	local OverheadGuiMaids = {}
+	local OverheadGuiMaids = {} -- Player --> Maid
+	local OverheadGuis = {} -- Player --> BillboardGui
+
+	local function updatePlayerDeviceIcon(Player, controllerType)
+		local OverheadGui = OverheadGuis[Player]
+		if OverheadGui == nil then
+			return
+		end
+
+		local DeviceIconContainer =
+			Assets.getExpectedAsset("OverheadDeviceIconContainer", "CharacterLevelGui", OverheadGui)
+
+		for _, DeviceIcon in DeviceIconContainer:GetChildren() do
+			if not DeviceIcon:IsA("ImageLabel") then
+				continue
+			end
+
+			DeviceIcon.Visible = DeviceIcon.Name == controllerType
+		end
+	end
 
 	self._Maid:GiveTask(self:OnCharacterSpawnedInLobbyConnect(function(Character, Player)
 		-- clean up last OverheadGui
@@ -29,19 +48,24 @@ local function initializeCharacterLevelGuis(self)
 			OverheadGuiMaids[Player] = OverheadGuiMaid
 		end
 
-		-- create new LevelGui
+		-- create new LevelGui & store it
 		local LevelGui = Assets.cloneExpectedAsset("CharacterLevelGui")
 		LevelGui.Adornee = Character:FindFirstChild("Head")
 		LevelGui.Parent = Folder
 
 		OverheadGuiMaid:GiveTask(LevelGui)
 
+		OverheadGuis[Player] = LevelGui
+		OverheadGuiMaid:GiveTask(function()
+			if OverheadGuis[Player] == LevelGui then
+				OverheadGuis[Player] = nil
+			end
+		end)
+
 		-- get assets
 		local WinStreakLabel = Assets.getExpectedAsset("OverheadWinStreakLabel", "CharacterLevelGui", LevelGui)
 		local LevelLabel = Assets.getExpectedAsset("OverheadLevelLabel", "CharacterLevelGui", LevelGui)
 		local NameLabel = Assets.getExpectedAsset("OverheadNameLabel", "CharacterLevelGui", LevelGui)
-		local DeviceIconContainer =
-			Assets.getExpectedAsset("OverheadDeviceIconContainer", "CharacterLevelGui", LevelGui)
 
 		-- set name
 		local playerName = Player.Name --"TWENTYCHARACTERS____" (a 20 character name is a good test case here)
@@ -49,6 +73,9 @@ local function initializeCharacterLevelGuis(self)
 
 		NameLabel.Text = playerName
 		NameLabel.Size = UDim2.new(labelSizeXScale, 0, NameLabel.Size.Y.Scale, NameLabel.Size.Y.Offset)
+
+		-- update device for first time
+		updatePlayerDeviceIcon(Player, self:GetControllerType(Player))
 
 		-- update saved player data gui when it changes
 		local PlayerSaveData = self:GetPlayerSaveData(Player)
@@ -65,6 +92,8 @@ local function initializeCharacterLevelGuis(self)
 			end
 		end))
 	end))
+
+	self._Maid:GiveTask(self:OnControllerTypeChangedConnect(updatePlayerDeviceIcon))
 
 	self._Maid:GiveTask(function()
 		for Player, OverheadGuiMaid in OverheadGuiMaids do

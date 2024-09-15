@@ -96,6 +96,8 @@ do
 	ExpectedAssets.OverheadDeviceIconContainer = {
 		Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/UI/User/Device",
 	}
+
+	-- icon names must match the controller type enum
 	ExpectedAssets.OverheadGamepadIcon = {
 		Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/UI/User/Device/Gamepad",
 		ClassName = "ImageLabel",
