@@ -58,8 +58,8 @@ local function newClient(Player)
 	self._LobbyCharacterSpawnedCallbacks = {} -- function callback(Model Character, Player PlayerThatSpawned) --> true
 	self._CharactersInLobby = {} -- Player --> Character
 
-	self._ControllerTypeEnum = nil
-	self._ControllerTypeChangedCallbacks = {} -- function callback(string controllerType) --> true
+	self._ControllerTypeEnum = {} -- Player --> int controllerTypeEnum
+	self._ControllerTypeChangedCallbacks = {} -- function callback(string controllerType, Player AnyPlayer) --> true
 
 	-- init
 	setmetatable(self, ClientMetatable)

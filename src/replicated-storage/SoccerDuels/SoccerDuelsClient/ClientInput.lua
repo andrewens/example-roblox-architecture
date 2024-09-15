@@ -3,12 +3,27 @@ local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 local Config = require(SoccerDuelsModule.Config)
 local Enums = require(SoccerDuelsModule.Enums)
+local Network = require(SoccerDuelsModule.Network)
 local Utility = require(SoccerDuelsModule.Utility)
 
 -- const
 local DEFAULT_CONTROLLER_TYPE = Config.getConstant("DefaultControllerType")
 local USER_INPUT_TYPE_TO_CONTROLLER_TYPE = Config.getConstant("UserInputTypeToControllerType")
 local DEFAULT_CONTROLLER_TYPE_ENUM = Enums.getEnum("ControllerType", DEFAULT_CONTROLLER_TYPE)
+
+-- protected / Network methods
+local function onPlayerControllerTypeChanged(self, Player, controllerTypeEnum)
+	if Player == self.Player then
+		return
+	end
+
+	self._ControllerTypeEnum[Player] = controllerTypeEnum
+
+	local controllerType = Enums.enumToName("ControllerType", controllerTypeEnum)
+	for callback, _ in self._ControllerTypeChangedCallbacks do
+		callback(controllerType, Player)
+	end
+end
 
 -- public / Client class methods
 local function clientTapInput(self, InputObject)
@@ -21,19 +36,31 @@ local function clientTapInput(self, InputObject)
 		return
 	end
 
-	local prevControllerTypeEnum = self._ControllerTypeEnum
-	self._ControllerTypeEnum = Enums.getEnum("ControllerType", controllerType)
+	local prevControllerTypeEnum = self._ControllerTypeEnum[self.Player]
+	local newControllerTypeEnum = Enums.getEnum("ControllerType", controllerType)
 
-	if prevControllerTypeEnum ~= self._ControllerTypeEnum then
-		for callback, _ in self._ControllerTypeChangedCallbacks do
-			callback(controllerType)
-		end
+	if prevControllerTypeEnum == newControllerTypeEnum then
+		return
+	end
+
+	self._ControllerTypeEnum[self.Player] = newControllerTypeEnum
+
+	Network.fireServer("PlayerControllerTypeChanged", self.Player, newControllerTypeEnum)
+
+	for callback, _ in self._ControllerTypeChangedCallbacks do
+		callback(controllerType, self.Player)
 	end
 end
 
-local function getClientControllerType(self)
-	if self._ControllerTypeEnum then
-		return Enums.enumToName("ControllerType", self._ControllerTypeEnum)
+local function getClientControllerType(self, Player)
+	Player = Player or self.Player
+
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+
+	if self._ControllerTypeEnum[Player] then
+		return Enums.enumToName("ControllerType", self._ControllerTypeEnum[Player])
 	end
 
 	return DEFAULT_CONTROLLER_TYPE
@@ -45,7 +72,10 @@ local function onClientControllerTypeChangedConnect(self, callback)
 
 	self._ControllerTypeChangedCallbacks[callback] = true
 
-	callback(getClientControllerType(self))
+	for Player, controllerTypeEnum in self._ControllerTypeEnum do
+        local controllerType = Enums.enumToName("ControllerType", controllerTypeEnum)
+		callback(controllerType, Player)
+	end
 
 	return {
 		Disconnect = function()
@@ -54,7 +84,12 @@ local function onClientControllerTypeChangedConnect(self, callback)
 	}
 end
 local function initializeClientInput(self)
-	self._ControllerTypeEnum = DEFAULT_CONTROLLER_TYPE_ENUM
+	self._ControllerTypeEnum[self.Player] = DEFAULT_CONTROLLER_TYPE_ENUM
+
+	self._Maid:GiveTask(Network.onClientEventConnect("PlayerControllerTypeChanged", self.Player, function(...)
+		onPlayerControllerTypeChanged(self, ...)
+	end))
+	Network.fireServer("GetPlayersControllerTypeEnums", self.Player)
 end
 
 -- public

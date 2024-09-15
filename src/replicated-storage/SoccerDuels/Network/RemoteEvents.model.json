@@ -20,6 +20,14 @@
     {
       "Name": "UpdatePlayerSaveData",
       "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "PlayerControllerTypeChanged",
+      "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "GetPlayersControllerTypeEnums",
+      "ClassName": "RemoteEvent"
     }
   ]
 }

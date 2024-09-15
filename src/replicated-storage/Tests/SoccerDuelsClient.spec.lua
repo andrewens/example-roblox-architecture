@@ -79,7 +79,6 @@ return function()
 						Client:Destroy()
 					end
 				)
-				--[[
 				it("Client's controller type is replicated to all other clients", function()
 					SoccerDuels.resetTestingVariables()
 					SoccerDuels.disconnectAllPlayers()
@@ -93,17 +92,19 @@ return function()
 					local Client1 = SoccerDuels.newClient(Player1)
 					local Client2 = SoccerDuels.newClient(Player2)
 
-					Client1:TapInput(MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.Keyboard }))
 					Client1:LoadPlayerDataAsync()
 					Client2:LoadPlayerDataAsync()
+					Client1:TapInput(MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.Keyboard }))
 
 					local defaultControllerType = SoccerDuels.getConstant("DefaultControllerType")
 
-					assert(Client1:GetControllerType() == "Keyboard")
+					if not (Client1:GetControllerType() == "Keyboard") then
+						error(`{Client1:GetControllerType()} != "Keyboard"`)
+					end
 					assert(Client1:GetControllerType(Player1) == "Keyboard")
 					assert(Client2:GetControllerType(Player1) == "Keyboard")
-					assert(Client1:GetControllerType() == defaultControllerType)
 					assert(Client1:GetControllerType(Player2) == defaultControllerType)
+					assert(Client2:GetControllerType() == defaultControllerType)
 					assert(Client2:GetControllerType(Player2) == defaultControllerType)
 
 					Client2:TapInput(MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.Gamepad1 }))
@@ -111,8 +112,8 @@ return function()
 					assert(Client1:GetControllerType() == "Keyboard")
 					assert(Client1:GetControllerType(Player1) == "Keyboard")
 					assert(Client2:GetControllerType(Player1) == "Keyboard")
-					assert(Client1:GetControllerType() == "Gamepad")
 					assert(Client1:GetControllerType(Player2) == "Gamepad")
+					assert(Client2:GetControllerType() == "Gamepad")
 					assert(Client2:GetControllerType(Player2) == "Gamepad")
 
 					Client1:TapInput(MockInstance.new("InputObject", { UserInputType = Enum.UserInputType.Touch }))
@@ -120,13 +121,13 @@ return function()
 					assert(Client1:GetControllerType() == "Touch")
 					assert(Client1:GetControllerType(Player1) == "Touch")
 					assert(Client2:GetControllerType(Player1) == "Touch")
-					assert(Client1:GetControllerType() == "Gamepad")
 					assert(Client1:GetControllerType(Player2) == "Gamepad")
+					assert(Client2:GetControllerType() == "Gamepad")
 					assert(Client2:GetControllerType(Player2) == "Gamepad")
 
 					Client1:Destroy()
 					Client2:Destroy()
-				end)--]]
+				end)
 			end)
 			describe("Client:OnControllerTypeChangedConnect()", function()
 				it("Connects a callback to whenever the client's controller changes", function()
