@@ -73,9 +73,10 @@ end
 -- network
 DefaultConfig.RemoteEventSandwichTimeoutSeconds = 60
 
--- settings UI
+-- user interface
 DefaultConfig.BooleanSettingOnColor3 = Color3.fromRGB(0, 255, 0) -- TODO change this to a color palette-type vibe (less specific)
 DefaultConfig.BooleanSettingOffColor3 = Color3.fromRGB(255, 0, 0)
+DefaultConfig.OverheadNameXScalePerCharacter = 0.03 -- be careful -- long usernames can make the level / device icons invisible
 
 -- user input
 DefaultConfig.DefaultControllerType = "Touch"

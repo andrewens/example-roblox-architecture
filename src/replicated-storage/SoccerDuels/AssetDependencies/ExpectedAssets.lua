@@ -76,17 +76,38 @@ ExpectedAssets.TestingModeLabel = {
 }
 
 -- level / win streak overhead
-ExpectedAssets.CharacterLevelGui = {
-	Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/OverheadGui",
-	ClassName = "BillboardGui",
-}
-ExpectedAssets.OverheadWinStreakLabel = {
-	Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/OverheadGui/Trophy/WinStreak",
-	ClassName = "TextLabel",
-}
-ExpectedAssets.OverheadLevelLabel = {
-	Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/OverheadGui/Star/Level",
-	ClassName = "TextLabel",
-}
+do
+	ExpectedAssets.CharacterLevelGui = {
+		Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/UI",
+		ClassName = "BillboardGui",
+	}
+	ExpectedAssets.OverheadWinStreakLabel = {
+		Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/UI/Stats/Winstreak/Value",
+		ClassName = "TextLabel",
+	}
+	ExpectedAssets.OverheadLevelLabel = {
+		Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/UI/User/Level/Value",
+		ClassName = "TextLabel",
+	}
+	ExpectedAssets.OverheadNameLabel = {
+		Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/UI/User/Display",
+		ClassName = "TextLabel",
+	}
+	ExpectedAssets.OverheadDeviceIconContainer = {
+		Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/UI/User/Device",
+	}
+	ExpectedAssets.OverheadGamepadIcon = {
+		Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/UI/User/Device/Gamepad",
+		ClassName = "ImageLabel",
+	}
+	ExpectedAssets.OverheadTouchIcon = {
+		Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/UI/User/Device/Touch",
+		ClassName = "ImageLabel",
+	}
+	ExpectedAssets.OverheadKeyboardIcon = {
+		Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/UI/User/Device/Keyboard",
+		ClassName = "ImageLabel",
+	}
+end
 
 return ExpectedAssets
