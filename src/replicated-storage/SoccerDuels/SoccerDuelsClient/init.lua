@@ -7,8 +7,9 @@ local Network = require(SoccerDuelsModule.Network)
 local PlayerDocument = require(SoccerDuelsModule.PlayerDocument)
 local Utility = require(SoccerDuelsModule.Utility)
 
-local ClientSettings = require(script.ClientSettings)
+local ClientInput = require(script.ClientInput)
 local ClientModalState = require(script.ClientModalState)
+local ClientSettings = require(script.ClientSettings)
 local ClientToastNotificationState = require(script.ClientToastNotificationState)
 local LoadClientSaveData = require(script.LoadClientSaveData)
 local LobbyCharacters = require(script.LobbyCharacters)
@@ -34,15 +35,21 @@ local function newClient(Player)
 
 	-- private properties (don't use outside of this module)
 	self._Maid = Maid.new() -- cleans on self:Destroy() and self:LoadPlayerDataAsync()
+
 	self._VisibleModalEnum = nil -- int | nil
 	self._VisibleModalChangedCallbacks = {} -- function callback(string visibleModalName) --> true
+
 	self._PlayerSaveData = {} -- Player --> PlayerDocument
 	self._PlayerDataLoadedCallbacks = {} -- function callback(table PlayerSaveData) --> true
 	self._SettingChangedCallbacks = {} -- function callback(string settingName, any settingValue) --> true
+
 	self._ToastCallbacks = {} -- function callback(string notificationMessage) --> true
 	self._MainGui = nil -- ScreenGui
+
 	self._LobbyCharacterSpawnedCallbacks = {} -- function callback(Model Character, Player PlayerThatSpawned) --> true
 	self._CharactersInLobby = {} -- Player --> Character
+
+	self._ControllerTypeEnum = nil
 
 	-- init
 	setmetatable(self, ClientMetatable)
@@ -53,6 +60,10 @@ local function newClient(Player)
 end
 local function initializeClients()
 	local ClientMethods = {
+		-- client input
+		GetControllerType = ClientInput.getClientControllerType,
+		TapInput = ClientInput.clientTapInput,
+
 		-- lobby characters
 		GetCharactersInLobby = LobbyCharacters.getCharactersInLobby,
 		OnCharacterSpawnedInLobbyConnect = LobbyCharacters.clientOnCharacterSpawnedInLobbyConnect,
@@ -84,6 +95,7 @@ local function initializeClients()
 	}
 	ClientMetatable = { __index = ClientMethods }
 
+	ClientInput.initialize()
 	MainGui.initialize()
 end
 

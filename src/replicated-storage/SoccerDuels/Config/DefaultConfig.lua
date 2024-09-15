@@ -77,4 +77,29 @@ DefaultConfig.RemoteEventSandwichTimeoutSeconds = 60
 DefaultConfig.BooleanSettingOnColor3 = Color3.fromRGB(0, 255, 0) -- TODO change this to a color palette-type vibe (less specific)
 DefaultConfig.BooleanSettingOffColor3 = Color3.fromRGB(255, 0, 0)
 
+-- user input
+DefaultConfig.DefaultControllerType = "Touch"
+DefaultConfig.UserInputTypeToControllerType = {
+	["MouseButton1"] = "Keyboard",
+	["MouseButton2"] = "Keyboard",
+	["MouseButton3"] = "Keyboard",
+	["MouseWheel"] = "Keyboard",
+	["MouseMovement"] = "Keyboard",
+	["Touch"] = "Touch",
+	["Keyboard"] = "Keyboard",
+	["Focus"] = nil,
+	["Accelerometer"] = "Touch",
+	["Gyro"] = "Touch",
+	["Gamepad1"] = "Gamepad",
+	["Gamepad2"] = "Gamepad",
+	["Gamepad3"] = "Gamepad",
+	["Gamepad4"] = "Gamepad",
+	["Gamepad5"] = "Gamepad",
+	["Gamepad6"] = "Gamepad",
+	["Gamepad7"] = "Gamepad",
+	["Gamepad8"] = "Gamepad",
+	["TextInput"] = nil,
+	["InputMethod"] = nil,
+}
+
 return DefaultConfig
