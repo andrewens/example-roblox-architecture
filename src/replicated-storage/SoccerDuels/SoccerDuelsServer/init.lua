@@ -9,8 +9,9 @@ local Utility = require(SoccerDuelsModule.Utility)
 
 local Database = require(script.Database)
 local LobbyCharacterServer = require(script.LobbyCharacterServer)
-local TestingVariables = require(script.TestingVariables)
 local PlayerControllerTypeServer = require(script.PlayerControllerTypeServer)
+local TestingVariables = require(script.TestingVariables)
+local NotifyPlayerServer = require(script.NotifyPlayerServer)
 
 -- const
 local TESTING_MODE = Config.getConstant("TestingMode")
@@ -91,16 +92,6 @@ local function getPlayerSaveData(Player)
 end
 
 -- public
-local function notifyPlayer(Player, notificationMessage)
-	if not (Utility.isA(Player, "Player")) then
-		error(`{Player} is not a Player!`)
-	end
-	if not (typeof(notificationMessage) == "string") then
-		error(`{notificationMessage} is not a string!`)
-	end
-
-	Network.fireClient("NotifyPlayer", Player, notificationMessage)
-end
 local function getLoadedPlayers()
 	local LoadedPlayers = {}
 
@@ -182,7 +173,7 @@ function saveAllPlayerData()
 
 		task.spawn(function()
 			Database.savePlayerDataAsync(Player, CachedSaveData) -- this could error but that's ok
-			notifyPlayer(Player, AUTO_SAVE_MESSAGE)
+			NotifyPlayerServer.notifyPlayer(Player, AUTO_SAVE_MESSAGE)
 		end)
 	end
 end
@@ -202,6 +193,9 @@ local function initializeServer()
 end
 
 return {
+	-- toast notifications
+	notifyPlayer = NotifyPlayerServer.notifyPlayer,
+
 	-- database
 	getAvailableDataStoreRequests = Database.getAvailableDataStoreRequests,
 	getPlayerSaveDataAsync = Database.getPlayerSaveDataAsync,
@@ -222,6 +216,5 @@ return {
 	playerDataIsSaved = playerDataIsSaved,
 	updateCachedPlayerSaveData = updateCachedPlayerSaveData,
 	getCachedPlayerSaveData = getCachedPlayerSaveData,
-	notifyPlayer = notifyPlayer,
 	initialize = initializeServer,
 }
