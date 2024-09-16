@@ -1,9 +1,12 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
+local MainGuiModule = script:FindFirstAncestor("MainGui")
 
 local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Config = require(SoccerDuelsModule.Config)
 local Maid = require(SoccerDuelsModule.Maid)
+
+local UIAnimations = require(MainGuiModule.UIAnimations)
 
 -- const
 local BOOLEAN_SETTING_ON_COLOR3 = Config.getConstant("BooleanSettingOnColor3")
@@ -61,6 +64,8 @@ local function initializeSettingsModal(self)
 	SettingsModalCloseButton.Activated:Connect(function()
 		self._Client:SetVisibleModalName(nil)
 	end)
+
+	UIAnimations.initializeButton(SettingsModalCloseButton)
 end
 local function showSettingsModal(self)
 	local SettingButtonsContainer = Assets.getExpectedAsset("SettingButtonsContainer", "ModalFrames", self._ModalFrames)
