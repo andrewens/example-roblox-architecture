@@ -50,10 +50,10 @@ local function initializeSettingsModal(self)
 
 		local SettingNameTextLabel =
 			Assets.getExpectedAsset("BooleanSettingTemplateName", "BooleanSettingTemplate", SettingButton)
-		SettingNameTextLabel.Text = Setting.Name
-
 		local SettingButtonImageButton =
 			Assets.getExpectedAsset("BooleanSettingTemplateButton", "BooleanSettingTemplate", SettingButton)
+
+		SettingNameTextLabel.Text = Setting.Name
 		SettingButtonImageButton.Activated:Connect(
 			function() -- TODO should this be put in showSettingsModal() to save memory?
 				self._Client:ToggleBooleanSetting(settingName)
@@ -66,6 +66,7 @@ local function initializeSettingsModal(self)
 	end)
 
 	UIAnimations.initializeButton(SettingsModalCloseButton)
+	UIAnimations.initializePopup(SettingsModalFrame)
 end
 local function showSettingsModal(self)
 	local SettingButtonsContainer = Assets.getExpectedAsset("SettingButtonsContainer", "ModalFrames", self._ModalFrames)
@@ -75,10 +76,10 @@ local function showSettingsModal(self)
 
 		local SettingValueTextLabel =
 			Assets.getExpectedAsset("BooleanSettingTemplateValue", "BooleanSettingTemplate", SettingButton)
-		SettingValueTextLabel.Text = if settingValue then "ON" else "OFF"
-
 		local SettingButtonImageButton =
 			Assets.getExpectedAsset("BooleanSettingTemplateButton", "BooleanSettingTemplate", SettingButton)
+
+		SettingValueTextLabel.Text = if settingValue then "ON" else "OFF"
 		SettingButtonImageButton.ImageColor3 = if settingValue
 			then BOOLEAN_SETTING_ON_COLOR3
 			else BOOLEAN_SETTING_OFF_COLOR3

@@ -87,6 +87,10 @@ DefaultConfig.ButtonMouseOverTweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Qua
 DefaultConfig.ButtonMouseOverPositionOffset = UDim2.new(0, 0, -0.1, 0) -- (remember, negative Y is up)
 DefaultConfig.ButtonMouseOverSize = UDim2.new(1.1, 0, 1.1, 0)
 
+DefaultConfig.PopupVisibleTweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Back)
+DefaultConfig.PopupStartPositionOffset = UDim2.new(0, 0, 0.05, 0) -- (negative Y is still up)
+DefaultConfig.PopupStartSizeRatio = 0.6 -- 1 for same size as normal, 0.5 for half-size, etc
+
 -- user input
 DefaultConfig.DefaultControllerType = "Touch"
 DefaultConfig.UserInputTypeToControllerType = {

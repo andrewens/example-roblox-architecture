@@ -20,7 +20,44 @@ local BUTTON_ANCHOR_POINT = Vector2.new(0.5, BUTTON_CLICK_CENTER_Y_SCALE)
 local BUTTON_DEFAULT_POSITION = UDim2.new(0.5, 0, BUTTON_CLICK_CENTER_Y_SCALE, 0)
 local BUTTON_MOUSE_OVER_POSITION = BUTTON_DEFAULT_POSITION + BUTTON_MOUSE_OVER_POSITION_OFFSET
 
+local POPUP_VISIBLE_TWEEN_INFO = Config.getConstant("PopupVisibleTweenInfo")
+local POPUP_START_POSITION_OFFSET = Config.getConstant("PopupStartPositionOffset")
+local POPUP_START_SIZE_RATIO = Config.getConstant("PopupStartSizeRatio")
+
 -- public
+local function initializePopupVisibilityAnimations(Frame)
+	if not (typeof(Frame) == "Instance") then
+		error(`{Frame} is not an Instance!`)
+	end
+	if not (Frame:IsA("GuiObject")) then
+		error(`{Frame} is not a GuiObject!`)
+	end
+
+	local defaultSize = Frame.Size
+	local defaultPosition = Frame.Position
+
+	local startPosition = defaultPosition + POPUP_START_POSITION_OFFSET
+	local startSize = UDim2.new(
+		POPUP_START_SIZE_RATIO * defaultSize.X.Scale,
+		POPUP_START_SIZE_RATIO * defaultSize.X.Offset,
+		POPUP_START_SIZE_RATIO * defaultSize.Y.Scale,
+		POPUP_START_SIZE_RATIO * defaultSize.Y.Offset
+	)
+
+	Frame:GetPropertyChangedSignal("Visible"):Connect(function()
+		if not Frame.Visible then
+			return
+		end
+
+		Frame.Size = startSize
+		Frame.Position = startPosition
+
+		TweenService:Create(Frame, POPUP_VISIBLE_TWEEN_INFO, {
+			Size = defaultSize,
+			Position = defaultPosition,
+		}):Play()
+	end)
+end
 local function initializeButtonAnimations(GuiButton, Options)
 	if not (typeof(GuiButton) == "Instance") then
 		error(`{GuiButton} is not an Instance!`)
@@ -83,12 +120,13 @@ local function initializeButtonAnimations(GuiButton, Options)
 		end)
 	end
 
-    -- TODO currently it is possible for you to click a button and it still doesn't register,
-    -- because the animation resizes the button and you're no longer hovered over the button
+	-- TODO currently it is possible for you to click a button and it still doesn't register,
+	-- because the animation resizes the button and you're no longer hovered over the button
 
-    -- TODO also MouseLeave is not very reliable on xbox and the xbox virtual cursor is really fat
+	-- TODO also MouseLeave is not very reliable on xbox and the xbox virtual cursor is really fat
 end
 
 return {
+	initializePopup = initializePopupVisibilityAnimations,
 	initializeButton = initializeButtonAnimations,
 }
