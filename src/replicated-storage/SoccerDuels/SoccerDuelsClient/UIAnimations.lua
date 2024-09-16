@@ -90,7 +90,7 @@ local function initializeButtonAnimations(self, GuiButton, Options)
 	GuiButton.Parent = ContainerFrame
 
 	GuiButton.MouseButton1Down:Connect(function()
-		Sounds.playSound(self, "ButtonClick")
+		Sounds.playSound(self, "ButtonClickSound")
 
 		TweenService:Create(GuiButton, BUTTON_CLICK_TWEEN_INFO, {
 			Size = BUTTON_CLICK_SIZE,
@@ -111,7 +111,7 @@ local function initializeButtonAnimations(self, GuiButton, Options)
 
 	if Options.LiftButtonOnMouseOver then
 		ContainerFrame.MouseEnter:Connect(function()
-			Sounds.playSound(self, "ButtonMouseEnter")
+			Sounds.playSound(self, "ButtonMouseEnterSound")
 
 			TweenService:Create(GuiButton, BUTTON_MOUSE_OVER_TWEEN_INFO, {
 				Position = BUTTON_MOUSE_OVER_POSITION,
@@ -120,7 +120,7 @@ local function initializeButtonAnimations(self, GuiButton, Options)
 		end)
 	else
 		ContainerFrame.MouseEnter:Connect(function()
-			Sounds.playSound(self, "ButtonMouseEnter")
+			Sounds.playSound(self, "ButtonMouseEnterSound")
 
 			TweenService:Create(GuiButton, BUTTON_MOUSE_OVER_TWEEN_INFO, {
 				Size = BUTTON_MOUSE_OVER_SIZE,

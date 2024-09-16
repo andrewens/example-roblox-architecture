@@ -117,12 +117,16 @@ do
 	ExpectedAssets.SoundsFolder = {
 		Path = "ReplicatedStorage/Sounds",
 	}
-	ExpectedAssets.ButtonClick = {
+	ExpectedAssets.ButtonClickSound = {
 		Path = "ReplicatedStorage/Sounds/ButtonClick",
 		ClassName = "Sound",
 	}
-	ExpectedAssets.ButtonMouseEnter = {
+	ExpectedAssets.ButtonMouseEnterSound = {
 		Path = "ReplicatedStorage/Sounds/ButtonMouseEnter",
+		ClassName = "Sound",
+	}
+	ExpectedAssets.NotificationSound = {
+		Path = "ReplicatedStorage/Sounds/Notification",
 		ClassName = "Sound",
 	}
 end

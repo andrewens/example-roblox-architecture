@@ -2,9 +2,12 @@
 local Debris = game:GetService("Debris")
 
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
+local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
 
 local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Config = require(SoccerDuelsModule.Config)
+
+local Sounds = require(SoccerDuelsClientModule.Sounds)
 
 -- const
 local TOAST_NOTIFICATION_DURATION = Config.getConstant("ToastNotificationDurationSeconds")
@@ -22,6 +25,8 @@ local function newToastGui(self)
 		ToastMessage.Parent = ToastContainer
 
 		Debris:AddItem(ToastMessage, TOAST_NOTIFICATION_DURATION)
+
+		Sounds.playSound(self, "NotificationSound")
 	end))
 end
 
