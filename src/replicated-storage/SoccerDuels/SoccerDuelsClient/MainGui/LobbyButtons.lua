@@ -1,7 +1,10 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
+local MainGuiModule = script:FindFirstAncestor("MainGui")
 
 local Assets = require(SoccerDuelsModule.AssetDependencies)
+
+local UIAnimations = require(MainGuiModule.UIAnimations)
 
 -- public
 local function newLobbyButtons(self)
@@ -15,6 +18,8 @@ local function newLobbyButtons(self)
 		LobbyButton.Activated:Connect(function()
 			self:ToggleModalVisibility(LobbyButton.Name)
 		end)
+
+		UIAnimations.initializeButton(LobbyButton)
 	end
 end
 
