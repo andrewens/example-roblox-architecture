@@ -1,10 +1,10 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
-local MainGuiModule = script:FindFirstAncestor("MainGui")
+local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
 
 local Assets = require(SoccerDuelsModule.AssetDependencies)
 
-local UIAnimations = require(MainGuiModule.UIAnimations)
+local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 
 -- public
 local function newLobbyButtons(self)
@@ -19,7 +19,7 @@ local function newLobbyButtons(self)
 			self:ToggleModalVisibility(LobbyButton.Name)
 		end)
 
-		UIAnimations.initializeButton(LobbyButton, {
+		UIAnimations.initializeButton(self, LobbyButton, {
 			LiftButtonOnMouseOver = true,
 		})
 	end

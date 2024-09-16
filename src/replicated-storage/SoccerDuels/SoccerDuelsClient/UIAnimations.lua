@@ -2,8 +2,10 @@
 local TweenService = game:GetService("TweenService")
 
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
+local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
 
 local Config = require(SoccerDuelsModule.Config)
+local Sounds = require(SoccerDuelsClientModule.Sounds)
 
 -- const
 local BUTTON_CLICK_TWEEN_INFO = Config.getConstant("ButtonClickTweenInfo")
@@ -24,8 +26,8 @@ local POPUP_VISIBLE_TWEEN_INFO = Config.getConstant("PopupVisibleTweenInfo")
 local POPUP_START_POSITION_OFFSET = Config.getConstant("PopupStartPositionOffset")
 local POPUP_START_SIZE_RATIO = Config.getConstant("PopupStartSizeRatio")
 
--- public
-local function initializePopupVisibilityAnimations(Frame)
+-- public / Client class methods
+local function initializePopupVisibilityAnimations(self, Frame)
 	if not (typeof(Frame) == "Instance") then
 		error(`{Frame} is not an Instance!`)
 	end
@@ -58,7 +60,7 @@ local function initializePopupVisibilityAnimations(Frame)
 		}):Play()
 	end)
 end
-local function initializeButtonAnimations(GuiButton, Options)
+local function initializeButtonAnimations(self, GuiButton, Options)
 	if not (typeof(GuiButton) == "Instance") then
 		error(`{GuiButton} is not an Instance!`)
 	end
@@ -88,6 +90,8 @@ local function initializeButtonAnimations(GuiButton, Options)
 	GuiButton.Parent = ContainerFrame
 
 	GuiButton.MouseButton1Down:Connect(function()
+		Sounds.playSound(self, "ButtonClick")
+
 		TweenService:Create(GuiButton, BUTTON_CLICK_TWEEN_INFO, {
 			Size = BUTTON_CLICK_SIZE,
 		}):Play()
@@ -107,6 +111,8 @@ local function initializeButtonAnimations(GuiButton, Options)
 
 	if Options.LiftButtonOnMouseOver then
 		ContainerFrame.MouseEnter:Connect(function()
+			Sounds.playSound(self, "ButtonMouseEnter")
+
 			TweenService:Create(GuiButton, BUTTON_MOUSE_OVER_TWEEN_INFO, {
 				Position = BUTTON_MOUSE_OVER_POSITION,
 				Size = BUTTON_MOUSE_OVER_SIZE,
@@ -114,10 +120,14 @@ local function initializeButtonAnimations(GuiButton, Options)
 		end)
 	else
 		ContainerFrame.MouseEnter:Connect(function()
+			Sounds.playSound(self, "ButtonMouseEnter")
+
 			TweenService:Create(GuiButton, BUTTON_MOUSE_OVER_TWEEN_INFO, {
 				Size = BUTTON_MOUSE_OVER_SIZE,
 			}):Play()
 		end)
+
+        -- (duplicate code is because it will take less memory this way)
 	end
 
 	-- TODO currently it is possible for you to click a button and it still doesn't register,

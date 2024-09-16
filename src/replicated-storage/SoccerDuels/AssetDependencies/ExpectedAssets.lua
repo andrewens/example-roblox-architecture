@@ -75,7 +75,7 @@ ExpectedAssets.TestingModeLabel = {
 	Path = "ReplicatedStorage/UserInterface/Windows/Middle/Lobby/TestingMode",
 }
 
--- level / win streak overhead
+-- level / win streak overhead gui
 do
 	ExpectedAssets.CharacterLevelGui = {
 		Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/UI",
@@ -109,6 +109,21 @@ do
 	ExpectedAssets.OverheadKeyboardIcon = {
 		Path = "ReplicatedStorage/UserInterface/CharacterGuiTemplate/Head/UI/User/Device/Keyboard",
 		ClassName = "ImageLabel",
+	}
+end
+
+-- sounds
+do
+	ExpectedAssets.SoundsFolder = {
+		Path = "ReplicatedStorage/Sounds",
+	}
+	ExpectedAssets.ButtonClick = {
+		Path = "ReplicatedStorage/Sounds/ButtonClick",
+		ClassName = "Sound",
+	}
+	ExpectedAssets.ButtonMouseEnter = {
+		Path = "ReplicatedStorage/Sounds/ButtonMouseEnter",
+		ClassName = "Sound",
 	}
 end
 
