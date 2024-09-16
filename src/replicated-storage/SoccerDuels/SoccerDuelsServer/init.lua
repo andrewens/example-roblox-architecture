@@ -8,6 +8,7 @@ local Network = require(SoccerDuelsModule.Network)
 local Utility = require(SoccerDuelsModule.Utility)
 
 local Database = require(script.Database)
+local LobbyCharacterServer = require(script.LobbyCharacterServer)
 local TestingVariables = require(script.TestingVariables)
 local PlayerControllerTypeServer = require(script.PlayerControllerTypeServer)
 
@@ -20,39 +21,10 @@ local PLAYER_DECIDED_SAVE_DATA = Config.getConstant("SaveDataThatPlayerDecides")
 
 -- var
 local CachedPlayerSaveData = {} -- Player --> PlayerDocument
-local CharactersInLobby = {} -- Player --> Character
 
 local saveAllPlayerData
 
 -- private
-local function lobbyCharacterDespawned(Player)
-	if CharactersInLobby[Player] == nil then
-		return
-	end
-
-	CharactersInLobby[Player] = nil
-	Network.fireAllClients("CharacterSpawnedInLobby", Player, nil)
-end
-local function lobbyCharacterSpawned(Player, Character)
-	CharactersInLobby[Player] = Character
-
-	Character.Humanoid.Died:Connect(function()
-		if CharactersInLobby[Player] ~= Character then
-			return
-		end
-		lobbyCharacterDespawned(Player)
-	end)
-
-	Network.fireAllClients("CharacterSpawnedInLobby", Player, Character)
-end
-local function spawnCharacterInLobby(Player)
-	Player:LoadCharacter()
-
-	-- TODO ideally there should be a mock Players service so that the connection is the same...
-	if TESTING_MODE and typeof(Player) == "table" then
-		lobbyCharacterSpawned(Player, Player.Character)
-	end
-end
 local function autoSaveAllPlayerData()
 	while task.wait(AUTO_SAVE_RATE_SECONDS) do
 		if TestingVariables.getVariable("DisableAutoSave") then
@@ -64,16 +36,6 @@ local function autoSaveAllPlayerData()
 end
 
 -- protected / network methods
-local function onPlayerRequestCharactersInLobby(RequestingPlayer)
-	for OtherPlayer, Character in CharactersInLobby do
-		local Humanoid = Character:FindFirstChild("Humanoid")
-		if Humanoid == nil or Humanoid.Health <= 0 then
-			continue
-		end
-
-		Network.fireClient("CharacterSpawnedInLobby", RequestingPlayer, OtherPlayer, Character)
-	end
-end
 local function playerChangedSetting(Player, settingName, newValue)
 	local PlayerSaveData = CachedPlayerSaveData[Player]
 	if PlayerSaveData == nil then
@@ -123,12 +85,7 @@ local function getPlayerSaveData(Player)
 	-- save to server cache
 	CachedPlayerSaveData[Player] = PlayerSaveData
 
-	-- spawning character in lobby
-	Utility.onPlayerDiedConnect(Player, function()
-		spawnCharacterInLobby(Player)
-	end)
-
-	spawnCharacterInLobby(Player)
+	LobbyCharacterServer.playerDataLoaded(Player)
 
 	return true, PlayerSaveData:ToJson()
 end
@@ -187,7 +144,7 @@ local function disconnectPlayer(Player, kickPlayer)
 
 	CachedPlayerSaveData[Player] = nil
 
-	lobbyCharacterDespawned(Player)
+	LobbyCharacterServer.disconnectPlayer(Player)
 	PlayerControllerTypeServer.disconnectPlayer(Player)
 end
 local function disconnectAllPlayers(kickPlayers)
@@ -240,9 +197,7 @@ local function initializeServer()
 	task.spawn(autoSaveAllPlayerData)
 	game:BindToClose(saveAllPlayerData)
 
-	Network.onServerEventConnect("CharacterSpawnedInLobby", onPlayerRequestCharactersInLobby)
-	Utility.onCharacterLoadedConnect(lobbyCharacterSpawned)
-
+	LobbyCharacterServer.initialize()
 	PlayerControllerTypeServer.initialize()
 end
 
