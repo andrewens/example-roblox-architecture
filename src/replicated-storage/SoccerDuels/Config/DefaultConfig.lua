@@ -80,8 +80,12 @@ DefaultConfig.BooleanSettingOffColor3 = Color3.fromRGB(255, 0, 0)
 DefaultConfig.OverheadNameXScalePerCharacter = 0.03 -- be careful -- long usernames can make the level / device icons invisible
 
 DefaultConfig.ButtonClickTweenInfo = TweenInfo.new(0.09, Enum.EasingStyle.Quart)
-DefaultConfig.ButtonClickSize = UDim2.new(0.8, 0, 0.8, 0) -- size is relative to its original size
+DefaultConfig.ButtonClickSize = UDim2.new(0.9, 0, 0.9, 0) -- size is relative to its original size
 DefaultConfig.ButtonCenterYScale = 0.7 -- this decides where buttons are centered for animations. 0.5 for dead center, 0 for top, 1 for bottom
+
+DefaultConfig.ButtonMouseOverTweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quart)
+DefaultConfig.ButtonMouseOverPositionOffset = UDim2.new(0, 0, -0.1, 0) -- (remember, negative Y is up)
+DefaultConfig.ButtonMouseOverSize = UDim2.new(1.1, 0, 1.1, 0)
 
 -- user input
 DefaultConfig.DefaultControllerType = "Touch"

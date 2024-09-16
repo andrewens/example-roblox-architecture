@@ -19,7 +19,9 @@ local function newLobbyButtons(self)
 			self:ToggleModalVisibility(LobbyButton.Name)
 		end)
 
-		UIAnimations.initializeButton(LobbyButton)
+		UIAnimations.initializeButton(LobbyButton, {
+			LiftButtonOnMouseOver = true,
+		})
 	end
 end
 
