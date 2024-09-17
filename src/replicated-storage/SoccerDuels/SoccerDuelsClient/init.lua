@@ -2,6 +2,7 @@
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 local Config = require(SoccerDuelsModule.Config)
+local Enums = require(SoccerDuelsModule.Enums)
 local Maid = require(SoccerDuelsModule.Maid)
 local Network = require(SoccerDuelsModule.Network)
 local PlayerDocument = require(SoccerDuelsModule.PlayerDocument)
@@ -12,6 +13,7 @@ local ClientMatchPad = require(script.ClientMatchPad)
 local ClientModalState = require(script.ClientModalState)
 local ClientSettings = require(script.ClientSettings)
 local ClientToastNotificationState = require(script.ClientToastNotificationState)
+local ClientUserInterfaceMode = require(script.ClientUserInterfaceMode)
 local LoadClientSaveData = require(script.LoadClientSaveData)
 local LobbyCharacters = require(script.LobbyCharacters)
 local MainGui = require(script.MainGui)
@@ -29,6 +31,7 @@ local function destroyClient(self) -- TODO this isn't really tested
 	self._ToastCallbacks = nil
 	self._LobbyCharacterSpawnedCallbacks = nil
 	self._ControllerTypeChangedCallbacks = nil
+	self._UserInterfaceModeChangedCallbacks = nil
 
 	self._CharactersInLobby = nil
 end
@@ -65,6 +68,9 @@ local function newClient(Player)
 	self._ConnectedMatchJoiningPadEnum = nil -- int | nil
 	self._ConnectedMatchJoiningPadTeamIndex = nil -- int | nil
 
+	self._UserInterfaceModeEnum = Enums.getEnum("UserInterfaceMode", "Lobby") -- int
+	self._UserInterfaceModeChangedCallbacks = {} -- function callback(string userInterfaceMode)
+
 	-- init
 	setmetatable(self, ClientMetatable)
 
@@ -74,6 +80,10 @@ local function newClient(Player)
 end
 local function initializeClients()
 	local ClientMethods = {
+		-- client user interface mode
+		OnUserInterfaceModeChangedConnect = ClientUserInterfaceMode.onClientUserInterfaceModeChangedConnect,
+		GetUserInterfaceMode = ClientUserInterfaceMode.getClientUserInterfaceMode,
+
 		-- client match pad
 		GetConnectedMatchPadName = ClientMatchPad.getClientConnectedMatchPadName,
 		GetConnectedMatchPadTeam = ClientMatchPad.getClientConnectedMatchPadTeam,

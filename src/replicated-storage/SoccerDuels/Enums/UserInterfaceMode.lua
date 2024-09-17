@@ -1,0 +1,4 @@
+return {
+    "Lobby",
+    "MatchJoiningPad"
+}
