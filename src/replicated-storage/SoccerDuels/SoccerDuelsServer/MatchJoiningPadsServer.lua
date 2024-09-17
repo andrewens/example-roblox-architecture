@@ -5,6 +5,7 @@ local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Enums = require(SoccerDuelsModule.Enums)
 local Network = require(SoccerDuelsModule.Network)
+local Utility = require(SoccerDuelsModule.Utility)
 
 -- var
 local MaxPlayersPerTeam = {} -- int matchPadEnum --> int
@@ -51,6 +52,28 @@ local function clientJoinMatchPad(Player, matchPadEnum, teamIndex)
 end
 
 -- public
+local function disconnectPlayer(Player)
+    Network.fireClient("PlayerJoinedMatchPad", Player, nil, nil)
+end
+local function connectPlayerToMatchPad(Player, matchPadName, teamIndex)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+
+	if not (typeof(matchPadName) == "string") then
+		error(`{matchPadName} is not a string!`)
+	end
+	if not (teamIndex == 1 or teamIndex == 2) then
+		error(`{teamIndex} is not 1 or 2!`)
+	end
+
+	local matchPadEnum = Enums.getEnum("MatchJoiningPad", matchPadName)
+	if matchPadEnum == nil then
+		error(`{matchPadName} is not the name of a match joining pad!`)
+	end
+
+	Network.fireClient("PlayerJoinedMatchPad", Player, matchPadEnum, teamIndex)
+end
 local function getMatchJoiningPads()
 	local Pads = {}
 
@@ -75,6 +98,8 @@ local function initializeMatchJoiningPads()
 end
 
 return {
+    disconnectPlayer = disconnectPlayer,
+	connectPlayerToMatchPad = connectPlayerToMatchPad,
 	getMatchJoiningPads = getMatchJoiningPads,
 	initialize = initializeMatchJoiningPads,
 }

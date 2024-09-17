@@ -138,6 +138,7 @@ local function disconnectPlayer(Player, kickPlayer)
 
 	LobbyCharacterServer.disconnectPlayer(Player)
 	PlayerControllerTypeServer.disconnectPlayer(Player)
+	MatchJoiningPadsServer.disconnectPlayer(Player)
 end
 local function disconnectAllPlayers(kickPlayers)
 	for Player, _ in CachedPlayerSaveData do
@@ -197,6 +198,7 @@ end
 return {
 	-- match joining pads
 	getMatchJoiningPads = MatchJoiningPadsServer.getMatchJoiningPads,
+	connectPlayerToMatchPad = MatchJoiningPadsServer.connectPlayerToMatchPad,
 
 	-- toast notifications
 	notifyPlayer = NotifyPlayerServer.notifyPlayer,

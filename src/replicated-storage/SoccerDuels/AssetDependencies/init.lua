@@ -35,7 +35,7 @@ local function getAssetByPath(assetPath, RootInstance)
 		repeat
 			Child = Child:FindFirstChild(childName)
 			if Child == nil then
-				break
+				return nil
 			end
 		until not Child:GetAttribute(PATH_IGNORE_ATTRIBUTE_NAME)
 	end

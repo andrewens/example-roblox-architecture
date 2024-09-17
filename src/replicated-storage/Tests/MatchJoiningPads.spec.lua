@@ -29,8 +29,8 @@ return function()
 				local MockPlayer = MockInstance.new("Player")
 				local Client = SoccerDuels.newClient(MockPlayer)
 
-                -- can't join matches until we're loaded
-                s = pcall(Client.JoinMatchPadAsync, Client, "1v1 #1", 1)
+				-- can't join matches until we're loaded
+				s = pcall(Client.JoinMatchPadAsync, Client, "1v1 #1", 1)
 				assert(not s)
 
 				Client:LoadPlayerDataAsync()
@@ -38,17 +38,17 @@ return function()
 				assert(Client:GetConnectedMatchPadName() == nil)
 				assert(Client:GetConnectedMatchPadTeam() == 1)
 
-                -- input validation
+				-- input validation
 				s = pcall(Client.JoinMatchPadAsync, Client, "1v1 #1", "This isn't a team number")
 				assert(not s)
 
 				s = pcall(Client.JoinMatchPadAsync, Client, "This isn't a match pad name", 1)
 				assert(not s)
 
-                s = pcall(Client.JoinMatchPadAsync, Client, "1v1 #1", 3) -- only can pass 1 or 2 for teams
+				s = pcall(Client.JoinMatchPadAsync, Client, "1v1 #1", 3) -- only can pass 1 or 2 for teams
 				assert(not s)
 
-                -- getters / setters
+				-- getters / setters
 				Client:JoinMatchPadAsync("1v1 #1", 1) -- not actually async when in testing mode on server
 
 				assert(Client:GetConnectedMatchPadName() == "1v1 #1")
@@ -69,51 +69,78 @@ return function()
 				assert(Client:GetConnectedMatchPadName() == nil)
 				assert(Client:GetConnectedMatchPadTeam() == 1)
 
+				Client:Destroy()
+			end)
+			it(
+				"Client's UserInterfaceMode changes to 'MatchJoiningPad' when it is connected to a match joining pad",
+				function()
+					local MockPlayer = MockInstance.new("Player")
+					local Client = SoccerDuels.newClient(MockPlayer)
+					Client:LoadPlayerDataAsync()
+
+					local changeCount = 0
+					local lastUIMode
+					local conn = Client:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
+						changeCount += 1
+						lastUIMode = userInterfaceMode
+					end)
+
+					assert(changeCount == 1)
+					assert(lastUIMode == "Lobby")
+					assert(Client:GetUserInterfaceMode() == lastUIMode)
+
+					Client:JoinMatchPadAsync("1v1 #1", 1)
+
+					assert(changeCount == 2)
+					assert(lastUIMode == "MatchJoiningPad")
+					assert(Client:GetUserInterfaceMode() == lastUIMode)
+
+					Client:JoinMatchPadAsync("1v1 #1", 2)
+
+					assert(changeCount == 2)
+					assert(lastUIMode == "MatchJoiningPad")
+					assert(Client:GetUserInterfaceMode() == lastUIMode)
+
+					Client:DisconnectFromMatchPadAsync()
+
+					assert(changeCount == 3)
+					assert(lastUIMode == "Lobby")
+					assert(Client:GetUserInterfaceMode() == lastUIMode)
+
+					conn:Disconnect()
+					Client:JoinMatchPadAsync("1v1 #1", 2)
+
+					assert(changeCount == 3)
+					assert(lastUIMode == "Lobby")
+					assert(Client:GetUserInterfaceMode() == "MatchJoiningPad")
+
+					Client:Destroy()
+				end
+			)
+		end)
+		describe("SoccerDuels.connectPlayerToMatchPad()", function()
+			it("Forces a client to connect to that match pad", function()
+				local MockPlayer = MockInstance.new("Player")
+				local Client = SoccerDuels.newClient(MockPlayer)
+
+				Client:LoadPlayerDataAsync()
+				Client:JoinMatchPadAsync("1v1 #1", 1)
+
+				SoccerDuels.connectPlayerToMatchPad(MockPlayer, "1v1 #2", 2)
+
+				assert(Client:GetConnectedMatchPadName() == "1v1 #2")
+				assert(Client:GetConnectedMatchPadTeam() == 2)
+
+				SoccerDuels.disconnectPlayer(MockPlayer)
+
+				assert(Client:GetConnectedMatchPadName() == nil)
+				assert(Client:GetConnectedMatchPadTeam() == 1)
+
+                --local s = pcall(Client.JoinMatchPadAsync, Client, "1v1 #1", 1)
+                --assert(not s)
+
                 Client:Destroy()
 			end)
-            it("Client's UserInterfaceMode changes to 'MatchJoiningPad' when it is connected to a match joining pad", function()
-                local MockPlayer = MockInstance.new("Player")
-				local Client = SoccerDuels.newClient(MockPlayer)
-                Client:LoadPlayerDataAsync()
-
-                local changeCount = 0
-                local lastUIMode
-                local conn = Client:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
-                    changeCount += 1
-                    lastUIMode = userInterfaceMode
-                end)
-
-                assert(changeCount == 1)
-                assert(lastUIMode == "Lobby")
-                assert(Client:GetUserInterfaceMode() == lastUIMode)
-
-                Client:JoinMatchPadAsync("1v1 #1", 1)
-
-                assert(changeCount == 2)
-                assert(lastUIMode == "MatchJoiningPad")
-                assert(Client:GetUserInterfaceMode() == lastUIMode)
-
-                Client:JoinMatchPadAsync("1v1 #1", 2)
-
-                assert(changeCount == 2)
-                assert(lastUIMode == "MatchJoiningPad")
-                assert(Client:GetUserInterfaceMode() == lastUIMode)
-
-                Client:DisconnectFromMatchPadAsync()
-
-                assert(changeCount == 3)
-                assert(lastUIMode == "Lobby")
-                assert(Client:GetUserInterfaceMode() == lastUIMode)
-
-                conn:Disconnect()
-                Client:JoinMatchPadAsync("1v1 #1", 2)
-
-                assert(changeCount == 3)
-                assert(lastUIMode == "Lobby")
-                assert(Client:GetUserInterfaceMode() == "MatchJoiningPad")
-
-                Client:Destroy()
-            end)
 		end)
 
 		--[[
