@@ -59,6 +59,8 @@ local function initializeSettingsModal(self)
 				self._Client:ToggleBooleanSetting(settingName)
 			end
 		)
+
+		UIAnimations.initializeButton(self._Client, SettingButtonImageButton)
 	end
 
 	SettingsModalCloseButton.Activated:Connect(function()

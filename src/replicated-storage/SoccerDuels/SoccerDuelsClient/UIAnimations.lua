@@ -4,6 +4,7 @@ local TweenService = game:GetService("TweenService")
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
 
+local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Config = require(SoccerDuelsModule.Config)
 local Sounds = require(SoccerDuelsClientModule.Sounds)
 
@@ -80,7 +81,6 @@ local function initializeButtonAnimations(self, GuiButton, Options)
 	ContainerFrame.Size = GuiButton.Size
 	ContainerFrame.ZIndex = GuiButton.ZIndex
 	ContainerFrame.LayoutOrder = GuiButton.LayoutOrder
-	ContainerFrame.Name = GuiButton.Name .. "Container"
 	ContainerFrame.Parent = GuiButton.Parent
 	ContainerFrame.BackgroundTransparency = 1
 
@@ -88,6 +88,8 @@ local function initializeButtonAnimations(self, GuiButton, Options)
 	GuiButton.Position = BUTTON_DEFAULT_POSITION
 	GuiButton.Size = UDim2.new(1, 0, 1, 0)
 	GuiButton.Parent = ContainerFrame
+
+	Assets.ignoreWrapperInstanceInPath(ContainerFrame, GuiButton)
 
 	GuiButton.MouseButton1Down:Connect(function()
 		Sounds.playSound(self, "ButtonClickSound")

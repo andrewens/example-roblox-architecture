@@ -1,16 +1,43 @@
 -- dependency
 local ExpectedAssets = require(script.ExpectedAssets)
 
+-- const
+local PATH_IGNORE_ATTRIBUTE_NAME = "AssetPathIgnore"
+
 -- public
+local function ignoreWrapperInstanceInPath(WrapperInstance, RealInstance)
+	--[[
+		In UIAnimations, we wrap things like buttons in containers to make the
+		animations work while avoiding extra configuration of the templates.
+
+		This breaks asset path behavior -- unless we can treat those wrapper Frames/etc
+		as if they're not in the path. Hence this method
+	]]
+
+	if not (typeof(WrapperInstance) == "Instance") then
+		error(`{WrapperInstance} is not an Instance!`)
+	end
+	if not (typeof(RealInstance) == "Instance") then
+		error(`{RealInstance} is not an Instance!`)
+	end
+	if not (RealInstance.Parent == WrapperInstance) then
+		error(`{RealInstance} is not a child of {WrapperInstance}!`)
+	end
+
+	WrapperInstance.Name = RealInstance.Name
+	WrapperInstance:SetAttribute(PATH_IGNORE_ATTRIBUTE_NAME, true)
+end
 local function getAssetByPath(assetPath, RootInstance)
 	local ChildNames = string.split(assetPath, "/")
 	local Child = RootInstance or game
 
 	for _, childName in ChildNames do
-		Child = Child:FindFirstChild(childName)
-		if Child == nil then
-			break
-		end
+		repeat
+			Child = Child:FindFirstChild(childName)
+			if Child == nil then
+				break
+			end
+		until not Child:GetAttribute(PATH_IGNORE_ATTRIBUTE_NAME)
 	end
 
 	return Child
@@ -72,6 +99,7 @@ local function getExpectedAssets()
 end
 
 return {
+	ignoreWrapperInstanceInPath = ignoreWrapperInstanceInPath,
 	cloneExpectedAsset = cloneExpectedAsset,
 
 	getAsset = getAssetByPath,
