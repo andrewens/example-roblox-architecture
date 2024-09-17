@@ -131,4 +131,25 @@ do
 	}
 end
 
+-- match joining pads
+do
+	ExpectedAssets.MatchJoiningPadsFolder = {
+		Path = "Workspace/MatchJoiningPads",
+	}
+
+	for i, padName in Enums.iterateEnumsOfType("MatchJoiningPad") do
+		ExpectedAssets[padName] = {
+			Path = "Workspace/MatchJoiningPads/" .. padName,
+		}
+		ExpectedAssets[padName .. " Pad1"] = {
+			Path = "Workspace/MatchJoiningPads/" .. padName .. "/Pad1",
+			ClassName = "BasePart",
+		}
+		ExpectedAssets[padName .. " Pad2"] = {
+			Path = "Workspace/MatchJoiningPads/" .. padName .. "/Pad2",
+			ClassName = "BasePart",
+		}
+	end
+end
+
 return ExpectedAssets

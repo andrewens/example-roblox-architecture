@@ -60,6 +60,12 @@ return {
 	getPlayerSaveDataAsync = SoccerDuelsServer.getPlayerSaveDataAsync,
 	savePlayerDataAsync = SoccerDuelsServer.savePlayerDataAsync,
 
+	-- match joining pads
+	getMatchJoiningPads = SoccerDuelsServer.getMatchJoiningPads,
+
+	-- notify players
+	notifyPlayer = SoccerDuelsServer.notifyPlayer,
+
 	-- SoccerDuels server
 	getLoadedPlayers = SoccerDuelsServer.getLoadedPlayers,
 	disconnectPlayer = SoccerDuelsServer.disconnectPlayer,
@@ -68,7 +74,6 @@ return {
 	playerDataIsSaved = SoccerDuelsServer.playerDataIsSaved,
 	updateCachedPlayerSaveData = SoccerDuelsServer.updateCachedPlayerSaveData,
 	getCachedPlayerSaveData = SoccerDuelsServer.getCachedPlayerSaveData,
-	notifyPlayer = SoccerDuelsServer.notifyPlayer,
 
 	initialize = initializeSoccerDuels,
 

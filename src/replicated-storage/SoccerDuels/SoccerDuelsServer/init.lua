@@ -9,9 +9,10 @@ local Utility = require(SoccerDuelsModule.Utility)
 
 local Database = require(script.Database)
 local LobbyCharacterServer = require(script.LobbyCharacterServer)
+local MatchJoiningPadsServer = require(script.MatchJoiningPadsServer)
+local NotifyPlayerServer = require(script.NotifyPlayerServer)
 local PlayerControllerTypeServer = require(script.PlayerControllerTypeServer)
 local TestingVariables = require(script.TestingVariables)
-local NotifyPlayerServer = require(script.NotifyPlayerServer)
 
 -- const
 local TESTING_MODE = Config.getConstant("TestingMode")
@@ -190,9 +191,13 @@ local function initializeServer()
 
 	LobbyCharacterServer.initialize()
 	PlayerControllerTypeServer.initialize()
+	MatchJoiningPadsServer.initialize()
 end
 
 return {
+	-- match joining pads
+	getMatchJoiningPads = MatchJoiningPadsServer.getMatchJoiningPads,
+
 	-- toast notifications
 	notifyPlayer = NotifyPlayerServer.notifyPlayer,
 

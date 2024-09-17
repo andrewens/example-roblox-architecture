@@ -34,6 +34,9 @@ do
 end
 
 -- public
+local function isInteger(value)
+	return typeof(value) == "number" and math.floor(value) == value
+end
 local function tableContainsValue(Table, value)
 	for k, v in Table do
 		if v == value then
@@ -87,6 +90,8 @@ local function tableDeepEqual(Table1, Table2)
 end
 
 return {
+	isInteger = isInteger,
+
 	tableContainsValue = tableContainsValue,
 	tableIsSubsetOfTable = tableIsSubsetOfTable,
 	tableDeepEqual = tableDeepEqual,
