@@ -5,6 +5,7 @@ local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
 
 local ClientInput = require(SoccerDuelsClientModule.ClientInput)
+local ClientMatchPad = require(SoccerDuelsClientModule.ClientMatchPad)
 local LobbyCharacters = require(SoccerDuelsClientModule.LobbyCharacters)
 local MainGui = require(SoccerDuelsClientModule.MainGui)
 
@@ -105,6 +106,7 @@ local function loadClientPlayerDataAsync(self)
 
 	LobbyCharacters.initialize(self)
 	ClientInput.initializeClientInput(self)
+	ClientMatchPad.initialize(self)
 
 	return true
 end

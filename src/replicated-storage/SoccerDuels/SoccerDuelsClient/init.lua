@@ -8,6 +8,7 @@ local PlayerDocument = require(SoccerDuelsModule.PlayerDocument)
 local Utility = require(SoccerDuelsModule.Utility)
 
 local ClientInput = require(script.ClientInput)
+local ClientMatchPad = require(script.ClientMatchPad)
 local ClientModalState = require(script.ClientModalState)
 local ClientSettings = require(script.ClientSettings)
 local ClientToastNotificationState = require(script.ClientToastNotificationState)
@@ -61,6 +62,9 @@ local function newClient(Player)
 	self._ControllerTypeEnum = {} -- Player --> int controllerTypeEnum
 	self._ControllerTypeChangedCallbacks = {} -- function callback(string controllerType, Player AnyPlayer) --> true
 
+	self._ConnectedMatchJoiningPadEnum = nil -- int | nil
+	self._ConnectedMatchJoiningPadTeamIndex = nil -- int | nil
+
 	-- init
 	setmetatable(self, ClientMetatable)
 
@@ -70,6 +74,13 @@ local function newClient(Player)
 end
 local function initializeClients()
 	local ClientMethods = {
+		-- client match pad
+		GetConnectedMatchPadName = ClientMatchPad.getClientConnectedMatchPadName,
+		GetConnectedMatchPadTeam = ClientMatchPad.getClientConnectedMatchPadTeam,
+
+		DisconnectFromMatchPadAsync = ClientMatchPad.clientDisconnectFromMatchPadAsync,
+		JoinMatchPadAsync = ClientMatchPad.clientJoinMatchPadAsync,
+
 		-- client input
 		TapInput = ClientInput.clientTapInput,
 		OnControllerTypeChangedConnect = ClientInput.onClientControllerTypeChangedConnect,

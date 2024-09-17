@@ -28,6 +28,14 @@
     {
       "Name": "GetPlayersControllerTypeEnums",
       "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "PlayerJoinMatchPad",
+      "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "PlayerJoinedMatchPad",
+      "className": "RemoteEvent"
     }
   ]
 }
