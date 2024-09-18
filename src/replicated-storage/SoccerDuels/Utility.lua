@@ -8,16 +8,57 @@ local StarterGui = game:GetService("StarterGui")
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 -- public
+local function onPartTouchedConnect(Part, debounceWaitSeconds, callback)
+	if callback == nil then -- support passing just a callback
+		callback = debounceWaitSeconds
+		debounceWaitSeconds = 0
+	end
+
+	if not (typeof(Part) == "Instance" and Part:IsA("BasePart")) then
+		error(`{Part} is not a BasePart!`)
+	end
+	if not (typeof(debounceWaitSeconds) == "number" and debounceWaitSeconds >= 0) then
+		error(`{debounceWaitSeconds} is not a positive number!`)
+	end
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	local debounceEndsTimestamp = 0
+	return Part.Touched:Connect(function(TouchingPart)
+		if os.clock() < debounceEndsTimestamp then
+			return
+		end
+		debounceEndsTimestamp = os.clock() + debounceWaitSeconds
+
+		callback(TouchingPart)
+	end)
+end
+local function weldPartToPart(WeldedPart, ParentPart)
+	WeldedPart.CFrame = ParentPart.CFrame
+
+	local Weld = Instance.new("WeldConstraint")
+	Weld.Part0 = ParentPart
+	Weld.Part1 = WeldedPart
+	Weld.Name = `Weld to "{ParentPart}"`
+	Weld.Parent = WeldedPart
+
+	return Weld
+end
+local function shouldIgnoreMockPlayerFromServerTests(Player)
+	-- TODO this is a band-aid to a really annoying issue: previously fired RemoteEvents queue up and still get
+	-- consume by the client, despite connecting to the remote event after the tests finish.
+	return RunService:IsClient() and typeof(Player) == "table"
+end
 local function runServiceSteppedConnect(rate, callback)
 	if callback == nil then -- support passing just a callback
 		callback = rate
 		rate = 0
-	else
-		if not (typeof(rate) == "number" and rate >= 0) then
-			error(`{rate} is not a positive number!`)
-		end
 	end
 
+	if not (typeof(rate) == "number" and rate >= 0) then
+		error(`{rate} is not a positive number!`)
+	end
 	if not (typeof(callback) == "function") then
 		error(`{callback} is not a function!`)
 	end
@@ -54,6 +95,46 @@ local function isInteger(value)
 end
 local function isA(value, className)
 	return (typeof(value) == "Instance" or typeof(value) == "table") and value:IsA(className)
+end
+local function getPlayerCharacterPosition(Player)
+	if not isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+
+	local Character = Player.Character
+	if Character == nil or Character.Parent == nil then
+		return nil
+	end
+
+	local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+	if HumanoidRootPart == nil then
+		return nil
+	end
+
+	return HumanoidRootPart.Position
+end
+local function playerCharacterIsInsideSpherePart(Player, SpherePart, padding)
+	padding = padding or 0
+
+	if not isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+	if not isA(SpherePart, "BasePart") then
+		error(`{SpherePart} is not a BasePart!`)
+	end
+	if not (typeof(padding) == "number") then
+		error(`{padding} is not a number!`)
+	end
+
+	local charPosition = getPlayerCharacterPosition(Player)
+	if charPosition == nil then
+		return false
+	end
+
+	local sphereRadius = padding + 0.5 * SpherePart.Size.X
+	local offset = charPosition - SpherePart.Position
+
+	return offset:Dot(offset) <= sphereRadius * sphereRadius
 end
 local function onCharacterLoadedConnect(callback)
 	if not (typeof(callback) == "function") then
@@ -108,14 +189,21 @@ local function organizeDependenciesServerOnly()
 end
 
 return {
-	runServiceSteppedConnect = runServiceSteppedConnect,
 	getUnixTimestampMilliseconds = getUnixTimestampMilliseconds,
 
-	tableDeepCopy = tableDeepCopy,
-	isInteger = isInteger,
 	isA = isA,
+	isInteger = isInteger,
+	tableDeepCopy = tableDeepCopy,
+
+	weldPartToPart = weldPartToPart,
+	onPartTouchedConnect = onPartTouchedConnect,
+	playerCharacterIsInsideSpherePart = playerCharacterIsInsideSpherePart,
 
 	onPlayerDiedConnect = onPlayerDiedConnect,
 	onCharacterLoadedConnect = onCharacterLoadedConnect,
+	runServiceSteppedConnect = runServiceSteppedConnect,
+	getPlayerCharacterPosition = getPlayerCharacterPosition,
+
 	organizeDependencies = organizeDependenciesServerOnly,
+	shouldIgnoreMockPlayerFromServerTests = shouldIgnoreMockPlayerFromServerTests,
 }

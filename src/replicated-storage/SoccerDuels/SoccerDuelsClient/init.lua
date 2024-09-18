@@ -85,6 +85,7 @@ local function initializeClients()
 		GetUserInterfaceMode = ClientUserInterfaceMode.getClientUserInterfaceMode,
 
 		-- client match pad
+		DisconnectFromMatchJoiningPadIfCharacterSteppedOff = ClientMatchPad.disconnectClientFromMatchPadIfCharacterSteppedOff,
 		GetConnectedMatchPadName = ClientMatchPad.getClientConnectedMatchPadName,
 		GetConnectedMatchPadTeam = ClientMatchPad.getClientConnectedMatchPadTeam,
 		DisconnectFromMatchPadAsync = ClientMatchPad.clientDisconnectFromMatchPadAsync,
@@ -96,6 +97,7 @@ local function initializeClients()
 		GetControllerType = ClientInput.getClientControllerType,
 
 		-- lobby characters
+		LobbyCharacterTouchedPart = LobbyCharacters.partTouchedClientLobbyCharacter,
 		GetCharactersInLobby = LobbyCharacters.getCharactersInLobby,
 		OnCharacterSpawnedInLobbyConnect = LobbyCharacters.clientOnCharacterSpawnedInLobbyConnect,
 

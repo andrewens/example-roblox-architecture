@@ -73,10 +73,14 @@ end
 -- network
 DefaultConfig.RemoteEventSandwichTimeoutSeconds = 60
 
--- user interface
+-- color palette
 DefaultConfig.BooleanSettingOnColor3 = Color3.fromRGB(0, 255, 0) -- TODO change this to a color palette-type vibe (less specific)
 DefaultConfig.BooleanSettingOffColor3 = Color3.fromRGB(255, 0, 0)
 
+DefaultConfig.Team1Color = Color3.new(1, 0, 0)
+DefaultConfig.Team2Color = Color3.new(0, 1, 1)
+
+-- user interface
 DefaultConfig.OverheadNameXScalePerCharacter = 0.03 -- be careful -- long usernames can make the level / device icons invisible
 
 DefaultConfig.ButtonClickTweenInfo = TweenInfo.new(0.09, Enum.EasingStyle.Quart)
@@ -118,6 +122,14 @@ DefaultConfig.UserInputTypeToControllerType = {
 
 -- match joining pads
 DefaultConfig.MatchJoiningPadRadiusPaddingStuds = 3 -- to account for differences in player position on server and client, and avoid needlessly teleporting the player when they touch a pad
-DefaultConfig.SecondsBetweenCheckingIfPlayersSteppedOffMatchJoiningPads = 0.1
+DefaultConfig.SecondsBetweenCheckingIfPlayerSteppedOffMatchJoiningPad = 0.25
+DefaultConfig.MatchJoiningPadIdentifierAttributeName = "MatchJoiningPad"
+
+-- lobby characters interacting with match joining pads, ... etc "LobbyDevices"
+DefaultConfig.CharacterTouchSensorSizeVector3 = Vector3.new(6, 7, 3) -- Z is in forward direction of player
+DefaultConfig.CharacterTouchSensorDebounceRateSeconds = 0.1
+DefaultConfig.CharacterTouchSensorPartName = "TouchSensor"
+DefaultConfig.LobbyDeviceCollisionGroup = "LobbyDevice"
+DefaultConfig.LobbyDeviceTransparency = if DefaultConfig.TestingMode then 0.9 else 1
 
 return DefaultConfig

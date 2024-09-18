@@ -1,10 +1,64 @@
 -- dependency
-local RunService = game:GetService("RunService")
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
+local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
 
+local Config = require(SoccerDuelsModule.Config)
 local Network = require(SoccerDuelsModule.Network)
+local Utility = require(SoccerDuelsModule.Utility)
+
+local ClientMatchPad = require(SoccerDuelsClientModule.ClientMatchPad)
+
+-- const
+local TESTING_MODE = Config.getConstant("TestingMode")
+local CHARACTER_TOUCH_SENSOR_DEBOUNCE_RATE_SECONDS = Config.getConstant("CharacterTouchSensorDebounceRateSeconds")
+local LOBBY_DEVICE_COLLISION_GROUP = Config.getConstant("LobbyDeviceCollisionGroup")
+local LOBBY_DEVICE_TRANSPARENCY = Config.getConstant("LobbyDeviceTransparency")
+local CHARACTER_TOUCH_SENSOR_PART_NAME = Config.getConstant("CharacterTouchSensorPartName")
+
+-- private / Client class methods
+local partTouchedClientLobbyCharacter
+local function initializeClientLobbyCharacter(self, Character)
+	-- band-aid to prevent this code from running in server tests
+	if typeof(Character) == "table" then
+		return
+	end
+
+	local TouchSensorPart = Character[CHARACTER_TOUCH_SENSOR_PART_NAME]
+
+	Utility.onPartTouchedConnect(TouchSensorPart, CHARACTER_TOUCH_SENSOR_DEBOUNCE_RATE_SECONDS, function(TouchingPart)
+		partTouchedClientLobbyCharacter(self, TouchingPart)
+	end)
+end
+
+-- protected / Network methods
+local function characterSpawnedInLobby(self, OtherPlayer, Character)
+	if Utility.shouldIgnoreMockPlayerFromServerTests(OtherPlayer) then
+		return
+	end
+
+	if self._CharactersInLobby[OtherPlayer] == Character then
+		return
+	end
+
+	self._CharactersInLobby[OtherPlayer] = Character
+
+	if Character == nil then
+		return
+	end
+
+	if OtherPlayer == self.Player then
+		initializeClientLobbyCharacter(self, Character)
+	end
+
+	for callback, _ in self._LobbyCharacterSpawnedCallbacks do
+		callback(Character, OtherPlayer)
+	end
+end
 
 -- public / Client class methods
+function partTouchedClientLobbyCharacter(self, TouchingPart)
+	ClientMatchPad.touchedMatchJoiningPadPart(self, TouchingPart)
+end
 local function getCharactersInLobby(self)
 	return table.clone(self._CharactersInLobby)
 end
@@ -26,29 +80,15 @@ local function clientOnCharacterSpawnedInLobbyConnect(self, callback)
 	}
 end
 local function initializeLobbyCharactersCache(self)
-	local conn = Network.onClientEventConnect("CharacterSpawnedInLobby", self.Player, function(OtherPlayer, Character)
-		-- TODO this is a band-aid to a really annoying issue: previously fired RemoteEvents queue up and still get
-		-- consume by the client, despite connecting to the remote after the tests finish.
-		if RunService:IsClient() and typeof(OtherPlayer) == "table" then
-			return
-		end
+	self._Maid:GiveTask(Network.onClientEventConnect("CharacterSpawnedInLobby", self.Player, function(...)
+		characterSpawnedInLobby(self, ...)
+	end))
 
-		self._CharactersInLobby[OtherPlayer] = Character
-
-		if Character == nil then
-			return
-		end
-
-		for callback, _ in self._LobbyCharacterSpawnedCallbacks do
-			callback(Character, OtherPlayer)
-		end
-	end)
 	Network.fireServer("CharacterSpawnedInLobby", self.Player)
-
-	self._Maid:GiveTask(conn)
 end
 
 return {
+	partTouchedClientLobbyCharacter = partTouchedClientLobbyCharacter,
 	getCharactersInLobby = getCharactersInLobby,
 	clientOnCharacterSpawnedInLobbyConnect = clientOnCharacterSpawnedInLobbyConnect,
 	initialize = initializeLobbyCharactersCache,

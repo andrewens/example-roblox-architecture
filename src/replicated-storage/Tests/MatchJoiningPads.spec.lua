@@ -134,16 +134,16 @@ return function()
 
 					local padRadius = 0.5 * Pad1.Size.X -- assuming pad is a sphere
 					local padRadiusSquared = padRadius * padRadius
-					local offset1 = Pad1.Position - Char:GetPivot().Position
-					local offset2 = Pad2.Position - Char:GetPivot().Position
+					local offset1 = Pad1.Position - Char.HumanoidRootPart.Position
+					local offset2 = Pad2.Position - Char.HumanoidRootPart.Position
 
 					assert(offset1:Dot(offset1) > padRadiusSquared)
 					assert(offset2:Dot(offset2) > padRadiusSquared)
 
 					Client:JoinMatchPadAsync("1v1 #1", 2)
 
-					offset1 = Pad1.Position - Char:GetPivot().Position
-					offset2 = Pad2.Position - Char:GetPivot().Position
+					offset1 = Pad1.Position - Char.HumanoidRootPart.Position
+					offset2 = Pad2.Position - Char.HumanoidRootPart.Position
 
 					assert(offset1:Dot(offset1) > padRadiusSquared)
 					assert(offset2:Dot(offset2) <= padRadiusSquared)
@@ -152,43 +152,74 @@ return function()
 
 					Client:JoinMatchPadAsync("1v1 #1", 1)
 
-					offset1 = Pad1.Position - Char:GetPivot().Position
-					offset2 = Pad2.Position - Char:GetPivot().Position
+					offset1 = Pad1.Position - Char.HumanoidRootPart.Position
+					offset2 = Pad2.Position - Char.HumanoidRootPart.Position
 
 					assert(offset1:Dot(offset1) <= padRadiusSquared)
 					assert(offset2:Dot(offset2) > padRadiusSquared)
 					assert(Client:GetConnectedMatchPadName() == "1v1 #1")
 					assert(Client:GetConnectedMatchPadTeam() == 1)
 
-					local radiusPadding = SoccerDuels.getConstant("MatchJoiningPadRadiusPaddingStuds")
-					local positionInPad2 = Pad2.Position + Vector3.new(radiusPadding + padRadius - 0.1, 0, 0)
+					local positionInPad2 = Pad2.Position + Vector3.new(padRadius - 0.1, 0, 0)
 
 					Char:MoveTo(positionInPad2)
 					Client:JoinMatchPadAsync("1v1 #1", 2)
 
-					offset1 = Pad1.Position - Char:GetPivot().Position
-					offset2 = Pad2.Position - Char:GetPivot().Position
+					offset1 = Pad1.Position - Char.HumanoidRootPart.Position
+					offset2 = Pad2.Position - Char.HumanoidRootPart.Position
 
-					assert(Char:GetPivot().Position:FuzzyEq(positionInPad2)) -- don't teleport if we're already in the pad
+					if not (Char.HumanoidRootPart.Position:FuzzyEq(positionInPad2)) then -- don't teleport if we're already in the pad
+						error(`{Char.HumanoidRootPart.Position} != {positionInPad2}`)
+					end
 					assert(offset1:Dot(offset1) > padRadiusSquared)
-					assert(offset2:Dot(offset2) <= (radiusPadding + padRadius)^2)
+					assert(offset2:Dot(offset2) <= padRadiusSquared)
 					assert(Client:GetConnectedMatchPadName() == "1v1 #1")
 					assert(Client:GetConnectedMatchPadTeam() == 2)
 
 					local dr = Pad2.Position - Pad1.Position
+					local radiusPadding = SoccerDuels.getConstant("MatchJoiningPadRadiusPaddingStuds")
 					local positionOutsideOfPads = dr.Unit * (padRadius + radiusPadding + 0.1) + Pad2.Position
 
 					Char:MoveTo(positionOutsideOfPads)
-					SoccerDuels.disconnectPlayersFromMatchJoiningPadsIfTheySteppedOff()
+					Client:DisconnectFromMatchJoiningPadIfCharacterSteppedOff()
 
-					offset1 = Pad1.Position - Char:GetPivot().Position
-					offset2 = Pad2.Position - Char:GetPivot().Position
+					offset1 = Pad1.Position - Char.HumanoidRootPart.Position
+					offset2 = Pad2.Position - Char.HumanoidRootPart.Position
 
-					assert(Char:GetPivot().Position:FuzzyEq(positionOutsideOfPads))
+					assert(Char.HumanoidRootPart.Position:FuzzyEq(positionOutsideOfPads))
 					assert(offset1:Dot(offset1) > padRadiusSquared)
 					assert(offset2:Dot(offset2) > padRadiusSquared)
 					assert(Client:GetConnectedMatchPadName() == nil)
 					assert(Client:GetConnectedMatchPadTeam() == 1)
+
+					Client:Destroy()
+				end
+			)
+			it(
+				"If a player's character touches a match pad part, the client joins that match joining pad", function()
+					SoccerDuels.disconnectAllPlayers()
+					SoccerDuels.resetTestingVariables()
+
+					local MockPlayer = MockInstance.new("Player")
+					local Client = SoccerDuels.newClient(MockPlayer)
+
+					Client:LoadPlayerDataAsync()
+
+					assert(Client:GetConnectedMatchPadName() == nil)
+					assert(Client:GetConnectedMatchPadTeam() == 1)
+
+					local Pad1 = SoccerDuels.getExpectedAsset("1v1 #1 Pad1")
+					local Pad2 = SoccerDuels.getExpectedAsset("1v1 #1 Pad2")
+
+					Client:LobbyCharacterTouchedPart(Pad1)
+
+					assert(Client:GetConnectedMatchPadName() == "1v1 #1")
+					assert(Client:GetConnectedMatchPadTeam() == 1)
+
+					Client:LobbyCharacterTouchedPart(Pad2)
+
+					assert(Client:GetConnectedMatchPadName() == "1v1 #1")
+					assert(Client:GetConnectedMatchPadTeam() == 2)
 
 					Client:Destroy()
 				end
