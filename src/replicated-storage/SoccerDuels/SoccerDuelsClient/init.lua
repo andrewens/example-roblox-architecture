@@ -87,7 +87,6 @@ local function initializeClients()
 		-- client match pad
 		GetConnectedMatchPadName = ClientMatchPad.getClientConnectedMatchPadName,
 		GetConnectedMatchPadTeam = ClientMatchPad.getClientConnectedMatchPadTeam,
-
 		DisconnectFromMatchPadAsync = ClientMatchPad.clientDisconnectFromMatchPadAsync,
 		JoinMatchPadAsync = ClientMatchPad.clientJoinMatchPadAsync,
 

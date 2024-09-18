@@ -1,16 +1,39 @@
-local Players = game:GetService("Players")
 -- dependency
+local RunService = game:GetService("RunService")
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 local Assets = require(SoccerDuelsModule.AssetDependencies)
+local Config = require(SoccerDuelsModule.Config)
 local Enums = require(SoccerDuelsModule.Enums)
 local Network = require(SoccerDuelsModule.Network)
 local Utility = require(SoccerDuelsModule.Utility)
 
+-- const
+local MATCH_JOINING_PAD_RADIUS_PADDING_STUDS = Config.getConstant("MatchJoiningPadRadiusPaddingStuds")
+local PLAYER_STEPPED_OFF_PADS_CHECK_RATE_SECONDS =
+	Config.getConstant("SecondsBetweenCheckingIfPlayersSteppedOffMatchJoiningPads")
+
 -- var
 local MaxPlayersPerTeam = {} -- int matchPadEnum --> int
+local PlayerToPadPart = {} -- Player -->
 
 -- private
+local function playerIsStandingOnPadPart(Player, MatchPadPart)
+	local Character = Player.Character
+	if Character == nil or Character.Parent == nil then
+		return false
+	end
+
+	local matchPadRadius = 0.5 * MatchPadPart.Size.X
+	local charPosition = Character:GetPivot().Position
+	local offset = charPosition - MatchPadPart.Position
+
+	return offset:Dot(offset) <= (matchPadRadius + MATCH_JOINING_PAD_RADIUS_PADDING_STUDS) ^ 2
+end
+local function disconnectPlayerFromAllMatchPads(Player)
+	Network.fireClient("PlayerJoinedMatchPad", Player, nil, nil)
+	PlayerToPadPart[Player] = nil
+end
 local function initializeMatchJoinPad(Folder)
 	local matchPadName = Folder.Name
 	local matchPadEnum = Enums.getEnum("MatchJoiningPad", matchPadName)
@@ -34,26 +57,45 @@ end
 
 -- protected / Network methods
 local function clientJoinMatchPad(Player, matchPadEnum, teamIndex)
-	-- TODO return if player is disconnected
-
-	if matchPadEnum == nil then
-		Network.fireClient("PlayerJoinedMatchPad", Player, nil, nil)
+	-- TODO return if player is disconnected from SoccerDuelsServer
+	if Player.Character == nil or Player.Character.Parent == nil then
+		disconnectPlayerFromAllMatchPads(Player)
 		return
 	end
 
-	if Enums.enumToName("MatchJoiningPad", matchPadEnum) == nil then
+	if matchPadEnum == nil then
+		disconnectPlayerFromAllMatchPads(Player)
+		return
+	end
+
+	local matchPadName = Enums.enumToName("MatchJoiningPad", matchPadEnum)
+	if matchPadName == nil then
 		error(`{matchPadEnum} is not a match pad enum!`)
 	end
 	if not (teamIndex == 1 or teamIndex == 2) then
 		error(`{teamIndex} is not 1 or 2!`)
 	end
 
+	-- teleport character to pad if they're not already on it
+	local MatchPadPart = Assets.getExpectedAsset(`{matchPadName} Pad{teamIndex}`)
+	if not playerIsStandingOnPadPart(Player, MatchPadPart) then
+		Player.Character:MoveTo(MatchPadPart.Position + Vector3.new(0, 3, 0))
+	end
+
+	PlayerToPadPart[Player] = MatchPadPart
 	Network.fireClient("PlayerJoinedMatchPad", Player, matchPadEnum, teamIndex)
 end
 
 -- public
+local function disconnectPlayersFromMatchJoiningPadsIfTheySteppedOff()
+	for Player, PadPart in PlayerToPadPart do
+		if not playerIsStandingOnPadPart(Player, PadPart) then
+			disconnectPlayerFromAllMatchPads(Player)
+		end
+	end
+end
 local function disconnectPlayer(Player)
-    Network.fireClient("PlayerJoinedMatchPad", Player, nil, nil)
+	Network.fireClient("PlayerJoinedMatchPad", Player, nil, nil)
 end
 local function connectPlayerToMatchPad(Player, matchPadName, teamIndex)
 	if not Utility.isA(Player, "Player") then
@@ -95,10 +137,16 @@ local function initializeMatchJoiningPads()
 	end
 
 	Network.onServerInvokeConnect("PlayerJoinMatchPad", clientJoinMatchPad)
+
+	Utility.runServiceSteppedConnect(
+		PLAYER_STEPPED_OFF_PADS_CHECK_RATE_SECONDS,
+		disconnectPlayersFromMatchJoiningPadsIfTheySteppedOff
+	)
 end
 
 return {
-    disconnectPlayer = disconnectPlayer,
+	disconnectPlayersFromMatchJoiningPadsIfTheySteppedOff = disconnectPlayersFromMatchJoiningPadsIfTheySteppedOff,
+	disconnectPlayer = disconnectPlayer,
 	connectPlayerToMatchPad = connectPlayerToMatchPad,
 	getMatchJoiningPads = getMatchJoiningPads,
 	initialize = initializeMatchJoiningPads,

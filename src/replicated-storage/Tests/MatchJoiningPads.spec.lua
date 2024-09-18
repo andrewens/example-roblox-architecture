@@ -24,7 +24,7 @@ return function()
 				assert(typeof(PadData.Team2) == "table")
 			end
 		end)
-		describe("Client:JoinMatchPadAsync() ", function()
+		describe("Client:JoinMatchPadAsync()", function()
 			it("Connects client to a match joining pad on the server", function()
 				local MockPlayer = MockInstance.new("Player")
 				local Client = SoccerDuels.newClient(MockPlayer)
@@ -117,6 +117,82 @@ return function()
 					Client:Destroy()
 				end
 			)
+			it(
+				"If a player isn't standing on the pad, they get teleported to it when they connect; if they step off, they get disconnected",
+				function()
+					SoccerDuels.disconnectAllPlayers()
+					SoccerDuels.resetTestingVariables()
+
+					local MockPlayer = MockInstance.new("Player")
+					local Client = SoccerDuels.newClient(MockPlayer)
+
+					Client:LoadPlayerDataAsync()
+
+					local Pad1 = SoccerDuels.getExpectedAsset("1v1 #1 Pad1")
+					local Pad2 = SoccerDuels.getExpectedAsset("1v1 #1 Pad2")
+					local Char = MockPlayer.Character
+
+					local padRadius = 0.5 * Pad1.Size.X -- assuming pad is a sphere
+					local padRadiusSquared = padRadius * padRadius
+					local offset1 = Pad1.Position - Char:GetPivot().Position
+					local offset2 = Pad2.Position - Char:GetPivot().Position
+
+					assert(offset1:Dot(offset1) > padRadiusSquared)
+					assert(offset2:Dot(offset2) > padRadiusSquared)
+
+					Client:JoinMatchPadAsync("1v1 #1", 2)
+
+					offset1 = Pad1.Position - Char:GetPivot().Position
+					offset2 = Pad2.Position - Char:GetPivot().Position
+
+					assert(offset1:Dot(offset1) > padRadiusSquared)
+					assert(offset2:Dot(offset2) <= padRadiusSquared)
+					assert(Client:GetConnectedMatchPadName() == "1v1 #1")
+					assert(Client:GetConnectedMatchPadTeam() == 2)
+
+					Client:JoinMatchPadAsync("1v1 #1", 1)
+
+					offset1 = Pad1.Position - Char:GetPivot().Position
+					offset2 = Pad2.Position - Char:GetPivot().Position
+
+					assert(offset1:Dot(offset1) <= padRadiusSquared)
+					assert(offset2:Dot(offset2) > padRadiusSquared)
+					assert(Client:GetConnectedMatchPadName() == "1v1 #1")
+					assert(Client:GetConnectedMatchPadTeam() == 1)
+
+					local radiusPadding = SoccerDuels.getConstant("MatchJoiningPadRadiusPaddingStuds")
+					local positionInPad2 = Pad2.Position + Vector3.new(radiusPadding + padRadius - 0.1, 0, 0)
+
+					Char:MoveTo(positionInPad2)
+					Client:JoinMatchPadAsync("1v1 #1", 2)
+
+					offset1 = Pad1.Position - Char:GetPivot().Position
+					offset2 = Pad2.Position - Char:GetPivot().Position
+
+					assert(Char:GetPivot().Position:FuzzyEq(positionInPad2)) -- don't teleport if we're already in the pad
+					assert(offset1:Dot(offset1) > padRadiusSquared)
+					assert(offset2:Dot(offset2) <= (radiusPadding + padRadius)^2)
+					assert(Client:GetConnectedMatchPadName() == "1v1 #1")
+					assert(Client:GetConnectedMatchPadTeam() == 2)
+
+					local dr = Pad2.Position - Pad1.Position
+					local positionOutsideOfPads = dr.Unit * (padRadius + radiusPadding + 0.1) + Pad2.Position
+
+					Char:MoveTo(positionOutsideOfPads)
+					SoccerDuels.disconnectPlayersFromMatchJoiningPadsIfTheySteppedOff()
+
+					offset1 = Pad1.Position - Char:GetPivot().Position
+					offset2 = Pad2.Position - Char:GetPivot().Position
+
+					assert(Char:GetPivot().Position:FuzzyEq(positionOutsideOfPads))
+					assert(offset1:Dot(offset1) > padRadiusSquared)
+					assert(offset2:Dot(offset2) > padRadiusSquared)
+					assert(Client:GetConnectedMatchPadName() == nil)
+					assert(Client:GetConnectedMatchPadTeam() == 1)
+
+					Client:Destroy()
+				end
+			)
 		end)
 		describe("SoccerDuels.connectPlayerToMatchPad()", function()
 			it("Forces a client to connect to that match pad", function()
@@ -136,33 +212,11 @@ return function()
 				assert(Client:GetConnectedMatchPadName() == nil)
 				assert(Client:GetConnectedMatchPadTeam() == 1)
 
-                --local s = pcall(Client.JoinMatchPadAsync, Client, "1v1 #1", 1)
-                --assert(not s)
+				--local s = pcall(Client.JoinMatchPadAsync, Client, "1v1 #1", 1)
+				--assert(not s)
 
-                Client:Destroy()
+				Client:Destroy()
 			end)
 		end)
-
-		--[[
-        What do the match pads need?
-
-        * this stuff needs to get replicated to client
-        * UI to display who is in it (callback + getter)
-        * state for when it's ready to begin (is full)
-        * state for ...
-            WaitingForPlayers
-            ChoosingMap
-            JoiningMatch
-        * state changed callback
-        * teleport players to pad if they're not already on it
-        * automatically disconnect player if they jump off the pad
-        * connect players to pad when they touch it
-        * connect players to pad from UI in lobby
-        * get list of open duels
-        * getter for chosen map
-        * UI for picking maps
-        * getter for player vs map choice + a callback for that
-        * instant feedback from touching a pad on client
-        ]]
 	end)
 end

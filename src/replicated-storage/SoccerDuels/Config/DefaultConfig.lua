@@ -116,4 +116,8 @@ DefaultConfig.UserInputTypeToControllerType = {
 	["InputMethod"] = nil,
 }
 
+-- match joining pads
+DefaultConfig.MatchJoiningPadRadiusPaddingStuds = 3 -- to account for differences in player position on server and client, and avoid needlessly teleporting the player when they touch a pad
+DefaultConfig.SecondsBetweenCheckingIfPlayersSteppedOffMatchJoiningPads = 0.1
+
 return DefaultConfig

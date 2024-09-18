@@ -63,6 +63,7 @@ return {
 	-- match joining pads
 	getMatchJoiningPads = SoccerDuelsServer.getMatchJoiningPads,
 	connectPlayerToMatchPad = SoccerDuelsServer.connectPlayerToMatchPad,
+	disconnectPlayersFromMatchJoiningPadsIfTheySteppedOff = SoccerDuelsServer.disconnectPlayersFromMatchJoiningPadsIfTheySteppedOff,
 
 	-- notify players
 	notifyPlayer = SoccerDuelsServer.notifyPlayer,

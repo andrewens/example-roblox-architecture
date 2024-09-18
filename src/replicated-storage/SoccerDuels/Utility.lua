@@ -1,12 +1,38 @@
 -- dependency
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 local StarterGui = game:GetService("StarterGui")
 
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 -- public
+local function runServiceSteppedConnect(rate, callback)
+	if callback == nil then -- support passing just a callback
+		callback = rate
+		rate = 0
+	else
+		if not (typeof(rate) == "number" and rate >= 0) then
+			error(`{rate} is not a positive number!`)
+		end
+	end
+
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	local deltaTime = 0
+	return RunService.Stepped:Connect(function(t, dt)
+		deltaTime += dt
+		if deltaTime < rate then
+			return
+		end
+
+		callback(t, deltaTime)
+		deltaTime = 0
+	end)
+end
 local function getUnixTimestampMilliseconds()
 	return DateTime.now().UnixTimestampMillis
 end
@@ -82,6 +108,7 @@ local function organizeDependenciesServerOnly()
 end
 
 return {
+	runServiceSteppedConnect = runServiceSteppedConnect,
 	getUnixTimestampMilliseconds = getUnixTimestampMilliseconds,
 
 	tableDeepCopy = tableDeepCopy,
