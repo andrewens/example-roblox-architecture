@@ -34,6 +34,8 @@ local function destroyClient(self) -- TODO this isn't really tested
 	self._UserInterfaceModeChangedCallbacks = nil
 
 	self._CharactersInLobby = nil
+
+	Network.fireServer("ClientDestroyed", self.Player)
 end
 
 -- public

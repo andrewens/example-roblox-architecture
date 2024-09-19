@@ -40,6 +40,10 @@
     {
       "Name": "PlayerDisconnectFromMatchPad",
       "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "ClientDestroyed",
+      "ClassName": "RemoteEvent"
     }
   ]
 }

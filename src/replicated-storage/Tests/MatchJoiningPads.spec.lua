@@ -77,6 +77,108 @@ return function()
 					Client:Destroy()
 				end
 			)
+			it("Players can't join a match pad team that is full", function()
+				SoccerDuels.disconnectAllPlayers()
+				SoccerDuels.resetTestingVariables()
+
+				local Player1 = MockInstance.new("Player")
+				local Player2 = MockInstance.new("Player")
+				local Player3 = MockInstance.new("Player")
+				local Player4 = MockInstance.new("Player")
+
+				Player1.Name = "PlayerA"
+				Player2.Name = "PlayerB"
+				Player3.Name = "PlayerC"
+				Player4.Name = "PlayerD"
+
+				local Client1 = SoccerDuels.newClient(Player1)
+				local Client2 = SoccerDuels.newClient(Player2)
+				local Client3 = SoccerDuels.newClient(Player3)
+				local Client4 = SoccerDuels.newClient(Player4)
+
+				Client1:LoadPlayerDataAsync()
+				Client2:LoadPlayerDataAsync()
+				Client3:LoadPlayerDataAsync()
+				Client4:LoadPlayerDataAsync()
+
+				Client1:TeleportToMatchPadAsync("1v1 #1", 2)
+
+				assert(SoccerDuels.getPlayerConnectedMatchPadName(Player1) == "1v1 #1")
+				assert(SoccerDuels.getPlayerConnectedMatchPadTeam(Player1) == 2)
+				assert(Client1:GetConnectedMatchPadName() == "1v1 #1")
+				assert(Client1:GetConnectedMatchPadTeam() == 2)
+
+				Client2:TeleportToMatchPadAsync("1v1 #1", 2) -- can't join because there's one max player
+
+				assert(SoccerDuels.getPlayerConnectedMatchPadName(Player2) == nil)
+				assert(SoccerDuels.getPlayerConnectedMatchPadTeam(Player2) == 1)
+				assert(Client2:GetConnectedMatchPadName() == nil)
+				assert(Client2:GetConnectedMatchPadTeam() == 1)
+
+				SoccerDuels.disconnectPlayer(Player1) -- leave method #1 -- disconnected
+				Client2:TeleportToMatchPadAsync("1v1 #1", 2)
+
+				assert(SoccerDuels.getPlayerConnectedMatchPadName(Player2) == "1v1 #1")
+				assert(SoccerDuels.getPlayerConnectedMatchPadTeam(Player2) == 2)
+				assert(Client2:GetConnectedMatchPadName() == "1v1 #1")
+				assert(Client2:GetConnectedMatchPadTeam() == 2)
+
+				Client3:TeleportToMatchPadAsync("1v1 #1", 2) -- can't join because there's one max player
+
+				assert(SoccerDuels.getPlayerConnectedMatchPadName(Player2) == "1v1 #1")
+				assert(SoccerDuels.getPlayerConnectedMatchPadTeam(Player2) == 2)
+				assert(Client2:GetConnectedMatchPadName() == "1v1 #1")
+				assert(Client2:GetConnectedMatchPadTeam() == 2)
+
+				assert(SoccerDuels.getPlayerConnectedMatchPadName(Player3) == nil)
+				assert(SoccerDuels.getPlayerConnectedMatchPadTeam(Player3) == 1)
+				assert(Client3:GetConnectedMatchPadName() == nil)
+				assert(Client3:GetConnectedMatchPadTeam() == 1)
+
+				Player2.Character.HumanoidRootPart.Position = Vector3.new(1E5, 1E5, 1E5) -- leave method #2 -- step off the pad
+				Client2:DisconnectFromMatchJoiningPadIfCharacterSteppedOffAsync()
+				Client3:TeleportToMatchPadAsync("1v1 #1", 2)
+
+				assert(SoccerDuels.getPlayerConnectedMatchPadName(Player2) == nil)
+				assert(SoccerDuels.getPlayerConnectedMatchPadTeam(Player2) == 1)
+				assert(Client2:GetConnectedMatchPadName() == nil)
+				assert(Client2:GetConnectedMatchPadTeam() == 1)
+
+				assert(SoccerDuels.getPlayerConnectedMatchPadName(Player3) == "1v1 #1")
+				assert(SoccerDuels.getPlayerConnectedMatchPadTeam(Player3) == 2)
+				assert(Client3:GetConnectedMatchPadName() == "1v1 #1")
+				assert(Client3:GetConnectedMatchPadTeam() == 2)
+
+				SoccerDuels.teleportPlayerToMatchPad(Player4, "1v1 #1", 2) -- can't join because there's one max player
+
+				assert(SoccerDuels.getPlayerConnectedMatchPadName(Player3) == "1v1 #1")
+				assert(SoccerDuels.getPlayerConnectedMatchPadTeam(Player3) == 2)
+				assert(Client3:GetConnectedMatchPadName() == "1v1 #1")
+				assert(Client3:GetConnectedMatchPadTeam() == 2)
+
+				assert(SoccerDuels.getPlayerConnectedMatchPadName(Player4) == nil)
+				assert(SoccerDuels.getPlayerConnectedMatchPadTeam(Player4) == 1)
+				assert(Client4:GetConnectedMatchPadName() == nil)
+				assert(Client4:GetConnectedMatchPadTeam() == 1)
+
+				SoccerDuels.teleportPlayerToMatchPad(Player3, "1v1 #2", 2) -- leave method #3 -- server teleports you to different pad
+				SoccerDuels.teleportPlayerToMatchPad(Player4, "1v1 #1", 2) -- can't join because there's one max player
+
+				assert(SoccerDuels.getPlayerConnectedMatchPadName(Player3) == "1v1 #2")
+				assert(SoccerDuels.getPlayerConnectedMatchPadTeam(Player3) == 2)
+				assert(Client3:GetConnectedMatchPadName() == "1v1 #2")
+				assert(Client3:GetConnectedMatchPadTeam() == 2)
+
+				assert(SoccerDuels.getPlayerConnectedMatchPadName(Player4) == "1v1 #1")
+				assert(SoccerDuels.getPlayerConnectedMatchPadTeam(Player4) == 2)
+				assert(Client4:GetConnectedMatchPadName() == "1v1 #1")
+				assert(Client4:GetConnectedMatchPadTeam() == 2)
+
+				Client1:Destroy()
+				Client2:Destroy()
+				Client3:Destroy()
+				Client4:Destroy()
+			end)
 		end)
 		describe("Client:LobbyCharacterTouchedPart()", function()
 			it("If a player's character touches a match pad part, the client joins that match joining pad", function()
@@ -179,6 +281,8 @@ return function()
 			it(
 				"Client's UserInterfaceMode changes to 'MatchJoiningPad' when it is connected to a match joining pad",
 				function()
+					SoccerDuels.disconnectAllPlayers()
+
 					local MockPlayer = MockInstance.new("Player")
 					local Client = SoccerDuels.newClient(MockPlayer)
 					Client:LoadPlayerDataAsync()
@@ -202,7 +306,9 @@ return function()
 
 					SoccerDuels.teleportPlayerToMatchPad(MockPlayer, "1v1 #1", 2)
 
-					assert(changeCount == 2)
+					if not (changeCount == 2) then
+						error(`{changeCount} != 2`)
+					end
 					assert(lastUIMode == "MatchJoiningPad")
 					assert(Client:GetUserInterfaceMode() == lastUIMode)
 

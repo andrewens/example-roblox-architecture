@@ -16,27 +16,18 @@ local MATCH_JOINING_PAD_RADIUS_PADDING_STUDS = Config.getConstant("MatchJoiningP
 local PLAYER_STEPPED_OFF_MATCH_PAD_POLL_RATE_SECONDS =
 	Config.getConstant("SecondsBetweenCheckingIfPlayerSteppedOffMatchJoiningPad")
 
+-- private
+local function getMatchPadPart(matchPadEnum, teamIndex)
+	local matchPadName = Enums.enumToName("MatchJoiningPad", matchPadEnum)
+	return Assets.getExpectedAsset(`{matchPadName} Pad{teamIndex}`)
+end
+
 -- protected / Network methods
 local function clientConnectedMatchPadChanged(self, newMatchPadEnum, teamIndex)
 	self._ConnectedMatchJoiningPadEnum = newMatchPadEnum
 	self._ConnectedMatchJoiningPadTeamIndex = teamIndex
 
 	ClientUserInterfaceMode.setClientUserInterfaceMode(self, if newMatchPadEnum then "MatchJoiningPad" else "Lobby")
-
-	if newMatchPadEnum == nil then
-		self._ConnectedMatchPadPart = nil
-		return
-	end
-
-	local Char = self.Player.Character
-	if Char == nil then
-		return
-	end
-
-	local matchPadName = Enums.enumToName("MatchJoiningPad", newMatchPadEnum)
-	local MatchPadPart = Assets.getExpectedAsset(`{matchPadName} Pad{teamIndex}`)
-
-	self._ConnectedMatchPadPart = MatchPadPart
 end
 
 -- public / Client class methods
@@ -62,7 +53,6 @@ local function clientTeleportToMatchPadAsync(self, matchPadName, teamIndex)
 		error(`{matchPadName} is not the name of a match joining pad!`)
 	end
 
-	local MatchPadPart = Assets.getExpectedAsset(`{matchPadName} Pad{teamIndex}`)
 	local Char = self.Player.Character
 	if Char == nil then
 		return
@@ -70,6 +60,7 @@ local function clientTeleportToMatchPadAsync(self, matchPadName, teamIndex)
 
 	Network.invokeServer("PlayerJoinMatchPad", self.Player, matchPadEnum, teamIndex)
 
+	local MatchPadPart = getMatchPadPart(matchPadEnum, teamIndex)
 	if
 		not Utility.playerCharacterIsInsideSpherePart(self.Player, MatchPadPart, MATCH_JOINING_PAD_RADIUS_PADDING_STUDS)
 	then
@@ -87,16 +78,19 @@ local function clientDisconnectFromMatchPadAsync(self, matchPad)
 	Network.invokeServer("PlayerJoinMatchPad", self.Player, nil)
 end
 local function disconnectClientFromMatchPadIfCharacterSteppedOffAsync(self)
-	local MatchPadPart = self._ConnectedMatchPadPart
-	if MatchPadPart == nil then
+	local matchPadEnum = self._ConnectedMatchJoiningPadEnum
+	local teamIndex = self._ConnectedMatchJoiningPadTeamIndex
+
+	if matchPadEnum == nil then
 		return
 	end
 
+	local MatchPadPart = getMatchPadPart(matchPadEnum, teamIndex)
 	if
 		not Utility.playerCharacterIsInsideSpherePart(self.Player, MatchPadPart, MATCH_JOINING_PAD_RADIUS_PADDING_STUDS)
 	then
 		-- only disconnect if client is still connected to this specific match pad
-		Network.invokeServer("PlayerDisconnectFromMatchPad", self.Player, MatchPadPart)
+		Network.invokeServer("PlayerDisconnectFromMatchPad", self.Player, matchPadEnum, teamIndex)
 	end
 end
 local function touchedMatchJoiningPadPartAsync(self, MatchPadPart)

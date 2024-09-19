@@ -193,10 +193,14 @@ local function initializeServer()
 	LobbyCharacterServer.initialize()
 	PlayerControllerTypeServer.initialize()
 	MatchJoiningPadsServer.initialize()
+
+	Network.onServerEventConnect("ClientDestroyed", disconnectPlayer)
 end
 
 return {
 	-- match joining pads
+	getPlayerConnectedMatchPadName = MatchJoiningPadsServer.getPlayerConnectedMatchPadName,
+	getPlayerConnectedMatchPadTeam = MatchJoiningPadsServer.getPlayerConnectedMatchPadTeam,
 	getMatchJoiningPads = MatchJoiningPadsServer.getMatchJoiningPads,
 	teleportPlayerToMatchPad = MatchJoiningPadsServer.teleportPlayerToMatchPad,
 

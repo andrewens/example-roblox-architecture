@@ -20,23 +20,53 @@ local TEAM2_COLOR = Config.getConstant("Team2Color")
 
 -- var
 local MaxPlayersPerTeam = {} -- int matchPadEnum --> int
-local PlayerMatchPadPart = {} -- Player --> BasePart
+local MatchPadTeamPlayers = {} -- int matchPadEnum --> int teamIndex --> Player --> true | nil
+local PlayerConnectedMatchPad = {} -- Player --> [ int matchPadEnum, int teamIndex ]
 
 -- private
+local function getMatchPadPart(matchPadEnum, teamIndex)
+	local matchPadName = Enums.enumToName("MatchJoiningPad", matchPadEnum)
+	return Assets.getExpectedAsset(`{matchPadName} Pad{teamIndex}`)
+end
+local function removePlayerFromPreviousMatchPad(Player)
+	if PlayerConnectedMatchPad[Player] == nil then
+		return
+	end
+
+	local matchPadEnum, teamIndex = table.unpack(PlayerConnectedMatchPad[Player])
+	MatchPadTeamPlayers[matchPadEnum][teamIndex][Player] = nil
+
+	PlayerConnectedMatchPad[Player] = nil
+end
+local function addPlayerToMatchPad(Player, matchPadEnum, teamIndex)
+	removePlayerFromPreviousMatchPad(Player)
+
+	MatchPadTeamPlayers[matchPadEnum][teamIndex][Player] = true
+	PlayerConnectedMatchPad[Player] = { matchPadEnum, teamIndex }
+end
+local function disconnectPlayerFromAllMatchPads(Player)
+	removePlayerFromPreviousMatchPad(Player)
+	Network.fireClient("PlayerJoinedMatchPad", Player, nil, nil)
+end
 local function connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
 	local matchPadName = Enums.enumToName("MatchJoiningPad", matchPadEnum)
 	if matchPadName == nil then
 		error(`{matchPadEnum} is not a match pad enum!`)
 	end
 
-	local MatchPadPart = Assets.getExpectedAsset(`{matchPadName} Pad{teamIndex}`)
-	PlayerMatchPadPart[Player] = MatchPadPart
+	local TeamPlayers = MatchPadTeamPlayers[matchPadEnum][teamIndex]
+	local maxPlayersPerTeam = MaxPlayersPerTeam[matchPadEnum]
+
+	if Utility.tableCount(TeamPlayers) >= maxPlayersPerTeam then
+		disconnectPlayerFromAllMatchPads(Player)
+		return false
+	end
+
+	addPlayerToMatchPad(Player, matchPadEnum, teamIndex) -- (automatically removes player from previous match pad)
 
 	Network.fireClient("PlayerJoinedMatchPad", Player, matchPadEnum, teamIndex)
-end
-local function disconnectPlayerFromAllMatchPads(Player)
-	PlayerMatchPadPart[Player] = nil
-	Network.fireClient("PlayerJoinedMatchPad", Player, nil, nil)
+
+	return true
 end
 local function initializeMatchJoinPad(Folder)
 	local matchPadName = Folder.Name
@@ -75,6 +105,9 @@ local function initializeMatchJoinPad(Folder)
 	PadPart2:SetAttribute(MATCH_JOINING_PAD_IDENTIFIER_ATTRIBUTE_NAME, true)
 
 	MaxPlayersPerTeam[matchPadEnum] = maxPlayersPerTeam
+	MatchPadTeamPlayers[matchPadEnum] = {}
+	MatchPadTeamPlayers[matchPadEnum][1] = {}
+	MatchPadTeamPlayers[matchPadEnum][2] = {}
 end
 
 -- protected / Network methods
@@ -91,11 +124,17 @@ local function clientJoinMatchPad(Player, matchPadEnum, teamIndex)
 
 	connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
 end
-local function clientDisconnectFromMatchPad(Player, MatchPadPart)
+local function clientDisconnectFromMatchPad(Player, matchPadEnum, teamIndex)
 	if not Utility.isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
 	end
-	if not (PlayerMatchPadPart[Player] == MatchPadPart) then
+
+	if PlayerConnectedMatchPad[Player] == nil then
+		return
+	end
+
+	local playerMatchPadEnum, playerTeamIndex = table.unpack(PlayerConnectedMatchPad[Player])
+	if not (playerMatchPadEnum == matchPadEnum and playerTeamIndex == teamIndex) then
 		return
 	end
 
@@ -103,6 +142,22 @@ local function clientDisconnectFromMatchPad(Player, MatchPadPart)
 end
 
 -- public
+local function getPlayerConnectedMatchPadName(Player)
+	if PlayerConnectedMatchPad[Player] == nil then
+		return
+	end
+
+	local matchPadEnum = PlayerConnectedMatchPad[Player][1]
+
+	return Enums.enumToName("MatchJoiningPad", matchPadEnum)
+end
+local function getPlayerConnectedMatchPadTeamIndex(Player)
+	if PlayerConnectedMatchPad[Player] == nil then
+		return 1
+	end
+
+	return PlayerConnectedMatchPad[Player][2]
+end
 local function playerCharacterLoaded(Player, Character)
 	local TouchSensorPart = Instance.new("Part")
 	TouchSensorPart.CollisionGroup = LOBBY_DEVICE_COLLISION_GROUP
@@ -140,12 +195,12 @@ function teleportPlayerToMatchPad(Player, matchPadName, teamIndex)
 		error(`{matchPadName} is not the name of a match joining pad!`)
 	end
 
-	local MatchPadPart = Assets.getExpectedAsset(`{matchPadName} Pad{teamIndex}`)
 	local Char = Player.Character
 	if Char == nil then
 		return
 	end
 
+	local MatchPadPart = getMatchPadPart(matchPadEnum, teamIndex)
 	Char:MoveTo(MatchPadPart.Position + Vector3.new(0, 3, 0))
 
 	connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
@@ -157,8 +212,8 @@ local function getMatchJoiningPads()
 		Pads[matchPadEnum] = {
 			Name = Enums.enumToName("MatchJoiningPad", matchPadEnum),
 			MaxPlayersPerTeam = maxPlayersPerTeam,
-			Team1 = {},
-			Team2 = {},
+			Team1 = table.clone(MatchPadTeamPlayers[matchPadEnum][1]),
+			Team2 = table.clone(MatchPadTeamPlayers[matchPadEnum][2]),
 		}
 	end
 
@@ -182,6 +237,9 @@ local function initializeMatchJoiningPads()
 end
 
 return {
+	getPlayerConnectedMatchPadName = getPlayerConnectedMatchPadName,
+	getPlayerConnectedMatchPadTeam = getPlayerConnectedMatchPadTeamIndex,
+
 	playerCharacterLoaded = playerCharacterLoaded,
 	disconnectPlayer = disconnectPlayer,
 	teleportPlayerToMatchPad = teleportPlayerToMatchPad,

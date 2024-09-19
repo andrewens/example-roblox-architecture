@@ -61,6 +61,8 @@ return {
 	savePlayerDataAsync = SoccerDuelsServer.savePlayerDataAsync,
 
 	-- match joining pads
+	getPlayerConnectedMatchPadName = SoccerDuelsServer.getPlayerConnectedMatchPadName,
+	getPlayerConnectedMatchPadTeam = SoccerDuelsServer.getPlayerConnectedMatchPadTeam,
 	getMatchJoiningPads = SoccerDuelsServer.getMatchJoiningPads,
 	teleportPlayerToMatchPad = SoccerDuelsServer.teleportPlayerToMatchPad,
 
