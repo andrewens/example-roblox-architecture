@@ -1,4 +1,5 @@
 return {
     "GetPlayerSaveData",
     "PlayerJoinMatchPad",
+    "PlayerDisconnectFromMatchPad",
 }

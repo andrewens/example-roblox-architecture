@@ -23,7 +23,7 @@ local function initializeClientLobbyCharacter(self, Character)
 		return
 	end
 
-	local TouchSensorPart = Character[CHARACTER_TOUCH_SENSOR_PART_NAME]
+	local TouchSensorPart = Character:WaitForChild(CHARACTER_TOUCH_SENSOR_PART_NAME)
 
 	Utility.onPartTouchedConnect(TouchSensorPart, CHARACTER_TOUCH_SENSOR_DEBOUNCE_RATE_SECONDS, function(TouchingPart)
 		partTouchedClientLobbyCharacter(self, TouchingPart)
@@ -57,7 +57,7 @@ end
 
 -- public / Client class methods
 function partTouchedClientLobbyCharacter(self, TouchingPart)
-	ClientMatchPad.touchedMatchJoiningPadPart(self, TouchingPart)
+	ClientMatchPad.touchedMatchJoiningPadPartAsync(self, TouchingPart)
 end
 local function getCharactersInLobby(self)
 	return table.clone(self._CharactersInLobby)

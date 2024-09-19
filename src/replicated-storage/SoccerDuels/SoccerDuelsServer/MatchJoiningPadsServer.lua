@@ -20,9 +20,22 @@ local TEAM2_COLOR = Config.getConstant("Team2Color")
 
 -- var
 local MaxPlayersPerTeam = {} -- int matchPadEnum --> int
+local PlayerMatchPadPart = {} -- Player --> BasePart
 
 -- private
+local function connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
+	local matchPadName = Enums.enumToName("MatchJoiningPad", matchPadEnum)
+	if matchPadName == nil then
+		error(`{matchPadEnum} is not a match pad enum!`)
+	end
+
+	local MatchPadPart = Assets.getExpectedAsset(`{matchPadName} Pad{teamIndex}`)
+	PlayerMatchPadPart[Player] = MatchPadPart
+
+	Network.fireClient("PlayerJoinedMatchPad", Player, matchPadEnum, teamIndex)
+end
 local function disconnectPlayerFromAllMatchPads(Player)
+	PlayerMatchPadPart[Player] = nil
 	Network.fireClient("PlayerJoinedMatchPad", Player, nil, nil)
 end
 local function initializeMatchJoinPad(Folder)
@@ -65,7 +78,6 @@ local function initializeMatchJoinPad(Folder)
 end
 
 -- protected / Network methods
-local connectPlayerToMatchPad
 local function clientJoinMatchPad(Player, matchPadEnum, teamIndex)
 	if Player.Character == nil or Player.Character.Parent == nil then
 		disconnectPlayerFromAllMatchPads(Player)
@@ -77,12 +89,17 @@ local function clientJoinMatchPad(Player, matchPadEnum, teamIndex)
 		return
 	end
 
-	local matchPadName = Enums.enumToName("MatchJoiningPad", matchPadEnum)
-	if matchPadName == nil then
-		error(`{matchPadEnum} is not a match pad enum!`)
+	connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
+end
+local function clientDisconnectFromMatchPad(Player, MatchPadPart)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+	if not (PlayerMatchPadPart[Player] == MatchPadPart) then
+		return
 	end
 
-	connectPlayerToMatchPad(Player, matchPadName, teamIndex)
+	disconnectPlayerFromAllMatchPads(Player)
 end
 
 -- public
@@ -105,8 +122,8 @@ end
 local function disconnectPlayer(Player)
 	disconnectPlayerFromAllMatchPads(Player)
 end
-function connectPlayerToMatchPad(Player, matchPadName, teamIndex)
-	-- TODO return if player is disconnected from SoccerDuelsServer
+function teleportPlayerToMatchPad(Player, matchPadName, teamIndex)
+	-- TODO return if player is disconnected from SoccerDuelsServer (?)
 
 	if not Utility.isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
@@ -123,7 +140,15 @@ function connectPlayerToMatchPad(Player, matchPadName, teamIndex)
 		error(`{matchPadName} is not the name of a match joining pad!`)
 	end
 
-	Network.fireClient("PlayerJoinedMatchPad", Player, matchPadEnum, teamIndex)
+	local MatchPadPart = Assets.getExpectedAsset(`{matchPadName} Pad{teamIndex}`)
+	local Char = Player.Character
+	if Char == nil then
+		return
+	end
+
+	Char:MoveTo(MatchPadPart.Position + Vector3.new(0, 3, 0))
+
+	connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
 end
 local function getMatchJoiningPads()
 	local Pads = {}
@@ -146,6 +171,7 @@ local function initializeMatchJoiningPads()
 	end
 
 	Network.onServerInvokeConnect("PlayerJoinMatchPad", clientJoinMatchPad)
+	Network.onServerInvokeConnect("PlayerDisconnectFromMatchPad", clientDisconnectFromMatchPad)
 
 	PhysicsService:RegisterCollisionGroup(LOBBY_DEVICE_COLLISION_GROUP)
 	PhysicsService:CollisionGroupSetCollidable(LOBBY_DEVICE_COLLISION_GROUP, "Default", false)
@@ -158,7 +184,7 @@ end
 return {
 	playerCharacterLoaded = playerCharacterLoaded,
 	disconnectPlayer = disconnectPlayer,
-	connectPlayerToMatchPad = connectPlayerToMatchPad,
+	teleportPlayerToMatchPad = teleportPlayerToMatchPad,
 	getMatchJoiningPads = getMatchJoiningPads,
 	initialize = initializeMatchJoiningPads,
 }

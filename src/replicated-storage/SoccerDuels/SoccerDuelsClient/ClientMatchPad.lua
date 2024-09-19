@@ -37,10 +37,6 @@ local function clientConnectedMatchPadChanged(self, newMatchPadEnum, teamIndex)
 	local MatchPadPart = Assets.getExpectedAsset(`{matchPadName} Pad{teamIndex}`)
 
 	self._ConnectedMatchPadPart = MatchPadPart
-
-	if not Utility.playerCharacterIsInsideSpherePart(self.Player, MatchPadPart, MATCH_JOINING_PAD_RADIUS_PADDING_STUDS) then
-		Char:MoveTo(MatchPadPart.Position + Vector3.new(0, 3, 0))
-	end
 end
 
 -- public / Client class methods
@@ -50,7 +46,7 @@ end
 local function getClientConnectedMatchPadTeam(self)
 	return self._ConnectedMatchJoiningPadTeamIndex or 1
 end
-local function clientJoinMatchPadAsync(self, matchPadName, teamIndex)
+local function clientTeleportToMatchPadAsync(self, matchPadName, teamIndex)
 	if self._PlayerSaveData[self.Player] == nil then
 		error(`{self.Player} hasn't loaded their data yet!`)
 	end
@@ -66,9 +62,21 @@ local function clientJoinMatchPadAsync(self, matchPadName, teamIndex)
 		error(`{matchPadName} is not the name of a match joining pad!`)
 	end
 
+	local MatchPadPart = Assets.getExpectedAsset(`{matchPadName} Pad{teamIndex}`)
+	local Char = self.Player.Character
+	if Char == nil then
+		return
+	end
+
 	Network.invokeServer("PlayerJoinMatchPad", self.Player, matchPadEnum, teamIndex)
+
+	if
+		not Utility.playerCharacterIsInsideSpherePart(self.Player, MatchPadPart, MATCH_JOINING_PAD_RADIUS_PADDING_STUDS)
+	then
+		Char:MoveTo(MatchPadPart.Position + Vector3.new(0, 3, 0))
+	end
 end
-local function clientDisconnectFromMatchPadAsync(self)
+local function clientDisconnectFromMatchPadAsync(self, matchPad)
 	if self._PlayerSaveData[self.Player] == nil then
 		error(`{self.Player} hasn't loaded their data yet!`)
 	end
@@ -78,26 +86,38 @@ local function clientDisconnectFromMatchPadAsync(self)
 
 	Network.invokeServer("PlayerJoinMatchPad", self.Player, nil)
 end
-local function disconnectClientFromMatchPadIfCharacterSteppedOff(self)
+local function disconnectClientFromMatchPadIfCharacterSteppedOffAsync(self)
 	local MatchPadPart = self._ConnectedMatchPadPart
 	if MatchPadPart == nil then
 		return
 	end
 
-	if not Utility.playerCharacterIsInsideSpherePart(self.Player, MatchPadPart, MATCH_JOINING_PAD_RADIUS_PADDING_STUDS) then
-		task.spawn(clientDisconnectFromMatchPadAsync, self)
+	if
+		not Utility.playerCharacterIsInsideSpherePart(self.Player, MatchPadPart, MATCH_JOINING_PAD_RADIUS_PADDING_STUDS)
+	then
+		-- only disconnect if client is still connected to this specific match pad
+		Network.invokeServer("PlayerDisconnectFromMatchPad", self.Player, MatchPadPart)
 	end
 end
-local function touchedMatchJoiningPadPart(self, MatchPadPart)
+local function touchedMatchJoiningPadPartAsync(self, MatchPadPart)
 	if not MatchPadPart:GetAttribute(MATCH_JOINING_PAD_IDENTIFIER_ATTRIBUTE_NAME) then
 		return
 	end
 
 	local MatchJoiningPadFolder = MatchPadPart.Parent
 	local matchPadName = MatchJoiningPadFolder.Name
-	local teamIndex = tonumber(string.match(MatchPadPart.Name, "%d+")) -- extract the digit out of the pad name
 
-	clientJoinMatchPadAsync(self, matchPadName, teamIndex)
+	local matchPadEnum = Enums.getEnum("MatchJoiningPad", matchPadName)
+	if matchPadEnum == nil then
+		error(`{matchPadName} is not the name of a Match Joining Pad!`)
+	end
+
+	local teamIndex = tonumber(string.match(MatchPadPart.Name, "%d+")) -- extract the digit out of the pad name
+	if teamIndex == nil then
+		error(`{MatchPadPart.Name} has no team index!`)
+	end
+
+	Network.invokeServer("PlayerJoinMatchPad", self.Player, matchPadEnum, teamIndex)
 end
 local function initializeClientMatchPad(self)
 	self._Maid:GiveTask(Network.onClientEventConnect("PlayerJoinedMatchPad", self.Player, function(...)
@@ -105,20 +125,18 @@ local function initializeClientMatchPad(self)
 	end))
 
 	self._Maid:GiveTask(Utility.runServiceSteppedConnect(PLAYER_STEPPED_OFF_MATCH_PAD_POLL_RATE_SECONDS, function(t, dt)
-		disconnectClientFromMatchPadIfCharacterSteppedOff(self)
+		task.spawn(disconnectClientFromMatchPadIfCharacterSteppedOffAsync, self)
 	end))
 end
 
 return {
-	disconnectClientFromMatchPadIfCharacterSteppedOff = disconnectClientFromMatchPadIfCharacterSteppedOff,
+	disconnectClientFromMatchPadIfCharacterSteppedOffAsync = disconnectClientFromMatchPadIfCharacterSteppedOffAsync,
 
 	getClientConnectedMatchPadName = getClientConnectedMatchPadName,
 	getClientConnectedMatchPadTeam = getClientConnectedMatchPadTeam,
 
-	clientDisconnectFromMatchPadAsync = clientDisconnectFromMatchPadAsync,
-	clientJoinMatchPadAsync = clientJoinMatchPadAsync,
-
-	touchedMatchJoiningPadPart = touchedMatchJoiningPadPart,
+	clientTeleportToMatchPadAsync = clientTeleportToMatchPadAsync,
+	touchedMatchJoiningPadPartAsync = touchedMatchJoiningPadPartAsync,
 
 	initialize = initializeClientMatchPad,
 }

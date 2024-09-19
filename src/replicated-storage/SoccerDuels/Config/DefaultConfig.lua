@@ -121,12 +121,12 @@ DefaultConfig.UserInputTypeToControllerType = {
 }
 
 -- match joining pads
-DefaultConfig.MatchJoiningPadRadiusPaddingStuds = 3 -- to account for differences in player position on server and client, and avoid needlessly teleporting the player when they touch a pad
+DefaultConfig.MatchJoiningPadRadiusPaddingStuds = 1
 DefaultConfig.SecondsBetweenCheckingIfPlayerSteppedOffMatchJoiningPad = 0.25
 DefaultConfig.MatchJoiningPadIdentifierAttributeName = "MatchJoiningPad"
 
 -- lobby characters interacting with match joining pads, ... etc "LobbyDevices"
-DefaultConfig.CharacterTouchSensorSizeVector3 = Vector3.new(6, 7, 3) -- Z is in forward direction of player
+DefaultConfig.CharacterTouchSensorSizeVector3 = Vector3.new(2, 7, 2) -- Z is in forward direction of player
 DefaultConfig.CharacterTouchSensorDebounceRateSeconds = 0.1
 DefaultConfig.CharacterTouchSensorPartName = "TouchSensor"
 DefaultConfig.LobbyDeviceCollisionGroup = "LobbyDevice"

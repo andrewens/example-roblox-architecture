@@ -35,7 +35,11 @@
     },
     {
       "Name": "PlayerJoinedMatchPad",
-      "className": "RemoteEvent"
+      "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "PlayerDisconnectFromMatchPad",
+      "ClassName": "RemoteEvent"
     }
   ]
 }

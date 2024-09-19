@@ -85,11 +85,10 @@ local function initializeClients()
 		GetUserInterfaceMode = ClientUserInterfaceMode.getClientUserInterfaceMode,
 
 		-- client match pad
-		DisconnectFromMatchJoiningPadIfCharacterSteppedOff = ClientMatchPad.disconnectClientFromMatchPadIfCharacterSteppedOff,
+		DisconnectFromMatchJoiningPadIfCharacterSteppedOffAsync = ClientMatchPad.disconnectClientFromMatchPadIfCharacterSteppedOffAsync,
+		TeleportToMatchPadAsync = ClientMatchPad.clientTeleportToMatchPadAsync,
 		GetConnectedMatchPadName = ClientMatchPad.getClientConnectedMatchPadName,
 		GetConnectedMatchPadTeam = ClientMatchPad.getClientConnectedMatchPadTeam,
-		DisconnectFromMatchPadAsync = ClientMatchPad.clientDisconnectFromMatchPadAsync,
-		JoinMatchPadAsync = ClientMatchPad.clientJoinMatchPadAsync,
 
 		-- client input
 		TapInput = ClientInput.clientTapInput,

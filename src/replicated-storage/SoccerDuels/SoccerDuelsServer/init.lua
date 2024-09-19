@@ -198,8 +198,7 @@ end
 return {
 	-- match joining pads
 	getMatchJoiningPads = MatchJoiningPadsServer.getMatchJoiningPads,
-	connectPlayerToMatchPad = MatchJoiningPadsServer.connectPlayerToMatchPad,
-	disconnectPlayersFromMatchJoiningPadsIfTheySteppedOff = MatchJoiningPadsServer.disconnectPlayersFromMatchJoiningPadsIfTheySteppedOff,
+	teleportPlayerToMatchPad = MatchJoiningPadsServer.teleportPlayerToMatchPad,
 
 	-- toast notifications
 	notifyPlayer = NotifyPlayerServer.notifyPlayer,

@@ -94,7 +94,7 @@ local function isInteger(value)
 	return typeof(value) == "number" and math.floor(value) == value
 end
 local function isA(value, className)
-	return (typeof(value) == "Instance" or typeof(value) == "table") and value:IsA(className)
+	return (typeof(value) == "Instance" or typeof(value) == "table") and (typeof(value.IsA) == "function") and value:IsA(className)
 end
 local function getPlayerCharacterPosition(Player)
 	if not isA(Player, "Player") then
