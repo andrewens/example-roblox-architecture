@@ -124,8 +124,12 @@ DefaultConfig.UserInputTypeToControllerType = {
 DefaultConfig.MatchJoiningPadRadiusPaddingStuds = 1
 DefaultConfig.SecondsBetweenCheckingIfPlayerSteppedOffMatchJoiningPad = 0.25
 DefaultConfig.MatchJoiningPadIdentifierAttributeName = "MatchJoiningPad"
+DefaultConfig.MatchJoiningPadCountdownDurationSeconds = 3
+DefaultConfig.MatchJoiningPadMapVotingDurationSeconds = 5
+DefaultConfig.MatchJoiningPadStateChangePollRateSeconds = 0.2
 
 -- lobby characters interacting with match joining pads, ... etc "LobbyDevices"
+DefaultConfig.CharacterTeleportVerticalOffset = 3
 DefaultConfig.CharacterTouchSensorSizeVector3 = Vector3.new(2, 7, 2) -- Z is in forward direction of player
 DefaultConfig.CharacterTouchSensorDebounceRateSeconds = 0.1
 DefaultConfig.CharacterTouchSensorPartName = "TouchSensor"

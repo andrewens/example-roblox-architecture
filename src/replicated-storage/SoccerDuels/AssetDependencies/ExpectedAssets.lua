@@ -152,4 +152,9 @@ do
 	end
 end
 
+ExpectedAssets.LobbySpawnLocation = {
+	Path = "Workspace/SpawnLocation",
+	ClassName = "SpawnLocation",
+}
+
 return ExpectedAssets

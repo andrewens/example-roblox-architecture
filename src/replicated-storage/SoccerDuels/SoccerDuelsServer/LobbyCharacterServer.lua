@@ -55,23 +55,23 @@ end
 
 -- public
 local function initializePlayer(Player)
-    -- TODO I think a client could invoke this twice, which would be bad
-    Utility.onPlayerDiedConnect(Player, function()
+	-- TODO I think a client could invoke this twice, which would be bad
+	Utility.onPlayerDiedConnect(Player, function()
 		spawnCharacterInLobby(Player)
 	end)
 
 	spawnCharacterInLobby(Player)
 end
 local function disconnectPlayer(Player)
-    lobbyCharacterDespawned(Player)
+	lobbyCharacterDespawned(Player)
 end
 local function initializeLobbyCharacterServer()
-    Network.onServerEventConnect("CharacterSpawnedInLobby", onPlayerRequestCharactersInLobby)
+	Network.onServerEventConnect("CharacterSpawnedInLobby", onPlayerRequestCharactersInLobby)
 	Utility.onCharacterLoadedConnect(lobbyCharacterSpawned)
 end
 
 return {
-    playerDataLoaded = initializePlayer,
-    disconnectPlayer = disconnectPlayer,
-    initialize = initializeLobbyCharacterServer,
+	playerDataLoaded = initializePlayer,
+	disconnectPlayer = disconnectPlayer,
+	initialize = initializeLobbyCharacterServer,
 }

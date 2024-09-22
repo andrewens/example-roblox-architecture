@@ -10,23 +10,76 @@ local Network = require(SoccerDuelsModule.Network)
 local Utility = require(SoccerDuelsModule.Utility)
 
 -- const
+local CHARACTER_TELEPORT_VERTICAL_OFFSET = Config.getConstant("CharacterTeleportVerticalOffset")
 local LOBBY_DEVICE_COLLISION_GROUP = Config.getConstant("LobbyDeviceCollisionGroup")
 local LOBBY_DEVICE_TRANSPARENCY = Config.getConstant("LobbyDeviceTransparency")
 local CHARACTER_TOUCH_SENSOR_SIZE = Config.getConstant("CharacterTouchSensorSizeVector3")
 local CHARACTER_TOUCH_SENSOR_PART_NAME = Config.getConstant("CharacterTouchSensorPartName")
 local MATCH_JOINING_PAD_IDENTIFIER_ATTRIBUTE_NAME = Config.getConstant("MatchJoiningPadIdentifierAttributeName")
+local MATCH_JOINING_PAD_COUNTDOWN_DURATION_SECONDS = Config.getConstant("MatchJoiningPadCountdownDurationSeconds")
+local MATCH_JOINING_PAD_MAP_VOTING_DURATION_SECONDS = Config.getConstant("MatchJoiningPadMapVotingDurationSeconds")
+local MATCH_JOINING_PAD_STATE_CHANGE_POLL_RATE_SECONDS = Config.getConstant("MatchJoiningPadStateChangePollRateSeconds")
+
 local TEAM1_COLOR = Config.getConstant("Team1Color")
 local TEAM2_COLOR = Config.getConstant("Team2Color")
+
+local WAITING_FOR_PLAYERS_STATE_ENUM = Enums.getEnum("MatchJoiningPadState", "WaitingForPlayers")
+local COUNTDOWN_STATE_ENUM = Enums.getEnum("MatchJoiningPadState", "Countdown")
+local MAP_VOTING_STATE_ENUM = Enums.getEnum("MatchJoiningPadState", "MapVoting")
 
 -- var
 local MaxPlayersPerTeam = {} -- int matchPadEnum --> int
 local MatchPadTeamPlayers = {} -- int matchPadEnum --> int teamIndex --> Player --> true | nil
 local PlayerConnectedMatchPad = {} -- Player --> [ int matchPadEnum, int teamIndex ]
+local MatchPadState = {} -- int matchPadEnum --> int matchPadStateEnum
+local extraSecondsForTesting = 0
+local MatchPadStateChangeTimestamp = {} -- int matchPadEnum --> float timestampWhenStateChanges
 
 -- private
-local function getMatchPadPart(matchPadEnum, teamIndex)
-	local matchPadName = Enums.enumToName("MatchJoiningPad", matchPadEnum)
-	return Assets.getExpectedAsset(`{matchPadName} Pad{teamIndex}`)
+local function getTimestamp()
+	return Utility.getUnixTimestamp() + extraSecondsForTesting
+end
+local function updateMatchPadState(matchPadEnum)
+	local maxPlayers = MaxPlayersPerTeam[matchPadEnum]
+	local numTeam1Players = Utility.tableCount(MatchPadTeamPlayers[matchPadEnum][1])
+	local numTeam2Players = Utility.tableCount(MatchPadTeamPlayers[matchPadEnum][2])
+
+	if numTeam1Players < maxPlayers or numTeam2Players < maxPlayers then
+		MatchPadState[matchPadEnum] = WAITING_FOR_PLAYERS_STATE_ENUM
+		MatchPadStateChangeTimestamp[matchPadEnum] = nil
+		return
+	end
+
+	local timestampWhenStateChanges = MatchPadStateChangeTimestamp[matchPadEnum]
+	local now = getTimestamp()
+
+	if timestampWhenStateChanges == nil then
+		-- previous state should have been 'WaitingForPlayers'
+		MatchPadState[matchPadEnum] = COUNTDOWN_STATE_ENUM
+		MatchPadStateChangeTimestamp[matchPadEnum] = now + MATCH_JOINING_PAD_COUNTDOWN_DURATION_SECONDS
+		return
+	end
+
+	if now < timestampWhenStateChanges then
+		return
+	end
+
+	if MatchPadState[matchPadEnum] == COUNTDOWN_STATE_ENUM then -- countdown --> map voting
+		MatchPadState[matchPadEnum] = MAP_VOTING_STATE_ENUM
+		MatchPadStateChangeTimestamp[matchPadEnum] = now + MATCH_JOINING_PAD_MAP_VOTING_DURATION_SECONDS
+		return
+	end
+
+	MatchPadState[matchPadEnum] = WAITING_FOR_PLAYERS_STATE_ENUM
+	MatchPadStateChangeTimestamp[matchPadEnum] = nil
+
+	-- put players in match
+	MatchPadTeamPlayers[matchPadEnum] = { [1] = {}, [2] = {} }
+end
+local function clockTick()
+	for matchPadEnum, _ in MatchPadStateChangeTimestamp do
+		updateMatchPadState(matchPadEnum)
+	end
 end
 local function removePlayerFromPreviousMatchPad(Player)
 	if PlayerConnectedMatchPad[Player] == nil then
@@ -37,12 +90,14 @@ local function removePlayerFromPreviousMatchPad(Player)
 	MatchPadTeamPlayers[matchPadEnum][teamIndex][Player] = nil
 
 	PlayerConnectedMatchPad[Player] = nil
+	updateMatchPadState(matchPadEnum)
 end
 local function addPlayerToMatchPad(Player, matchPadEnum, teamIndex)
 	removePlayerFromPreviousMatchPad(Player)
 
 	MatchPadTeamPlayers[matchPadEnum][teamIndex][Player] = true
 	PlayerConnectedMatchPad[Player] = { matchPadEnum, teamIndex }
+	updateMatchPadState(matchPadEnum)
 end
 local function disconnectPlayerFromAllMatchPads(Player)
 	removePlayerFromPreviousMatchPad(Player)
@@ -67,6 +122,10 @@ local function connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
 	Network.fireClient("PlayerJoinedMatchPad", Player, matchPadEnum, teamIndex)
 
 	return true
+end
+local function getMatchPadPart(matchPadEnum, teamIndex)
+	local matchPadName = Enums.enumToName("MatchJoiningPad", matchPadEnum)
+	return Assets.getExpectedAsset(`{matchPadName} Pad{teamIndex}`)
 end
 local function initializeMatchJoinPad(Folder)
 	local matchPadName = Folder.Name
@@ -105,6 +164,7 @@ local function initializeMatchJoinPad(Folder)
 	PadPart2:SetAttribute(MATCH_JOINING_PAD_IDENTIFIER_ATTRIBUTE_NAME, true)
 
 	MaxPlayersPerTeam[matchPadEnum] = maxPlayersPerTeam
+	MatchPadState[matchPadEnum] = Enums.getEnum("MatchJoiningPadState", "WaitingForPlayers")
 	MatchPadTeamPlayers[matchPadEnum] = {}
 	MatchPadTeamPlayers[matchPadEnum][1] = {}
 	MatchPadTeamPlayers[matchPadEnum][2] = {}
@@ -142,7 +202,56 @@ local function clientDisconnectFromMatchPad(Player, matchPadEnum, teamIndex)
 end
 
 -- public
+local function advanceMatchPadTimer(seconds)
+	extraSecondsForTesting += seconds
+	clockTick()
+end
+local function teleportPlayerToLobbySpawnLocation(Player)
+	disconnectPlayerFromAllMatchPads(Player)
+
+	local Char = Player.Character
+	if Char == nil then
+		return
+	end
+
+	local LobbySpawn = Assets.getExpectedAsset("LobbySpawnLocation")
+	Char:MoveTo(LobbySpawn.Position + Vector3.new(0, CHARACTER_TELEPORT_VERTICAL_OFFSET, 0))
+end
+local function getMatchPadState(matchPadName)
+	if not (typeof(matchPadName) == "string") then
+		error(`{matchPadName} is not a string!`)
+	end
+
+	local matchPadEnum = Enums.getEnum("MatchJoiningPad", matchPadName)
+	if matchPadEnum == nil then
+		error(`{matchPadName} is not a MatchJoiningPad!`)
+	end
+
+	local matchPadStateEnum = MatchPadState[matchPadEnum]
+
+	return Enums.enumToName("MatchJoiningPadState", matchPadStateEnum)
+end
+local function getMatchPadTeamPlayers(matchPadName)
+	if not (typeof(matchPadName) == "string") then
+		error(`{matchPadName} is not a string!`)
+	end
+
+	local matchPadEnum = Enums.getEnum("MatchJoiningPad", matchPadName)
+	if matchPadEnum == nil then
+		error(`{matchPadName} is not a MatchJoiningPad!`)
+	end
+
+	local TeamPlayersArray = {}
+	for teamIndex, TeamPlayersDictionary in MatchPadTeamPlayers[matchPadEnum] do
+		TeamPlayersArray[teamIndex] = Utility.dictionaryToArray(TeamPlayersDictionary)
+	end
+
+	return TeamPlayersArray
+end
 local function getPlayerConnectedMatchPadName(Player)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
 	if PlayerConnectedMatchPad[Player] == nil then
 		return
 	end
@@ -152,6 +261,9 @@ local function getPlayerConnectedMatchPadName(Player)
 	return Enums.enumToName("MatchJoiningPad", matchPadEnum)
 end
 local function getPlayerConnectedMatchPadTeamIndex(Player)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
 	if PlayerConnectedMatchPad[Player] == nil then
 		return 1
 	end
@@ -177,7 +289,7 @@ end
 local function disconnectPlayer(Player)
 	disconnectPlayerFromAllMatchPads(Player)
 end
-function teleportPlayerToMatchPad(Player, matchPadName, teamIndex)
+local function teleportPlayerToMatchPad(Player, matchPadName, teamIndex)
 	-- TODO return if player is disconnected from SoccerDuelsServer (?)
 
 	if not Utility.isA(Player, "Player") then
@@ -201,7 +313,7 @@ function teleportPlayerToMatchPad(Player, matchPadName, teamIndex)
 	end
 
 	local MatchPadPart = getMatchPadPart(matchPadEnum, teamIndex)
-	Char:MoveTo(MatchPadPart.Position + Vector3.new(0, 3, 0))
+	Char:MoveTo(MatchPadPart.Position + Vector3.new(0, CHARACTER_TELEPORT_VERTICAL_OFFSET, 0))
 
 	connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
 end
@@ -234,15 +346,21 @@ local function initializeMatchJoiningPads()
 	-- workspace.TouchesUseCollisionGroups needs to be set to true
 
 	Utility.onCharacterLoadedConnect(playerCharacterLoaded)
+	Utility.runServiceSteppedConnect(MATCH_JOINING_PAD_STATE_CHANGE_POLL_RATE_SECONDS, clockTick)
 end
 
 return {
+	advanceMatchPadTimer = advanceMatchPadTimer,
+	getMatchPadState = getMatchPadState,
+	getMatchPadTeamPlayers = getMatchPadTeamPlayers,
+	getMatchJoiningPads = getMatchJoiningPads,
 	getPlayerConnectedMatchPadName = getPlayerConnectedMatchPadName,
 	getPlayerConnectedMatchPadTeam = getPlayerConnectedMatchPadTeamIndex,
 
+	teleportPlayerToLobbySpawnLocation = teleportPlayerToLobbySpawnLocation,
+	teleportPlayerToMatchPad = teleportPlayerToMatchPad,
+
 	playerCharacterLoaded = playerCharacterLoaded,
 	disconnectPlayer = disconnectPlayer,
-	teleportPlayerToMatchPad = teleportPlayerToMatchPad,
-	getMatchJoiningPads = getMatchJoiningPads,
 	initialize = initializeMatchJoiningPads,
 }

@@ -61,10 +61,14 @@ return {
 	savePlayerDataAsync = SoccerDuelsServer.savePlayerDataAsync,
 
 	-- match joining pads
+	advanceMatchPadTimer = SoccerDuelsServer.advanceMatchPadTimer,
+	getMatchPadState = SoccerDuelsServer.getMatchPadState,
+	getMatchPadTeamPlayers = SoccerDuelsServer.getMatchPadTeamPlayers,
+	getMatchJoiningPads = SoccerDuelsServer.getMatchJoiningPads,
 	getPlayerConnectedMatchPadName = SoccerDuelsServer.getPlayerConnectedMatchPadName,
 	getPlayerConnectedMatchPadTeam = SoccerDuelsServer.getPlayerConnectedMatchPadTeam,
-	getMatchJoiningPads = SoccerDuelsServer.getMatchJoiningPads,
 	teleportPlayerToMatchPad = SoccerDuelsServer.teleportPlayerToMatchPad,
+	teleportPlayerToLobbySpawnLocation = SoccerDuelsServer.teleportPlayerToLobbySpawnLocation,
 
 	-- notify players
 	notifyPlayer = SoccerDuelsServer.notifyPlayer,

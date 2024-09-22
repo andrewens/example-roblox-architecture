@@ -330,5 +330,128 @@ return function()
 				end
 			)
 		end)
+		describe("SoccerDuels.getMatchPadState()", function()
+			it(
+				"State is 'WaitingForPlayers' if not enough players, otherwise 'Countdown' and then 'MapVoting', by timer",
+				function()
+					SoccerDuels.disconnectAllPlayers()
+					SoccerDuels.resetTestingVariables()
+
+					local maxError = 0.001 -- seconds
+					local countdownDuration = SoccerDuels.getConstant("MatchJoiningPadCountdownDurationSeconds")
+					local mapVotingDuration = SoccerDuels.getConstant("MatchJoiningPadMapVotingDurationSeconds")
+
+					local Player1 = MockInstance.new("Player")
+					local Player2 = MockInstance.new("Player")
+					local Player3 = MockInstance.new("Player")
+
+					Player1.Name = "Player1"
+					Player2.Name = "Player2"
+					Player3.Name = "Player3"
+
+					local Client1 = SoccerDuels.newClient(Player1)
+					local Client2 = SoccerDuels.newClient(Player2)
+					local Client3 = SoccerDuels.newClient(Player3)
+
+					Client1:LoadPlayerDataAsync()
+					Client2:LoadPlayerDataAsync()
+					Client3:LoadPlayerDataAsync()
+
+					local TeamPlayers = SoccerDuels.getMatchPadTeamPlayers("1v1 #1")
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "WaitingForPlayers")
+					assert(Utility.tableShallowEqual(TeamPlayers[1], {}))
+					assert(Utility.tableShallowEqual(TeamPlayers[2], {}))
+
+					SoccerDuels.teleportPlayerToMatchPad(Player1, "1v1 #1", 2)
+					TeamPlayers = SoccerDuels.getMatchPadTeamPlayers("1v1 #1")
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "WaitingForPlayers")
+					assert(Utility.tableShallowEqual(TeamPlayers[1], {}))
+					assert(Utility.tableShallowEqual(TeamPlayers[2], { Player1 }))
+
+					SoccerDuels.teleportPlayerToMatchPad(Player2, "1v1 #1", 2) -- attempt to join a full team lol
+					TeamPlayers = SoccerDuels.getMatchPadTeamPlayers("1v1 #1")
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "WaitingForPlayers")
+					assert(Utility.tableShallowEqual(TeamPlayers[1], {}))
+					assert(Utility.tableShallowEqual(TeamPlayers[2], { Player1 }))
+
+					SoccerDuels.teleportPlayerToMatchPad(Player2, "1v1 #1", 1)
+					TeamPlayers = SoccerDuels.getMatchPadTeamPlayers("1v1 #1")
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "Countdown")
+					assert(Utility.tableShallowEqual(TeamPlayers[1], { Player2 }))
+					assert(Utility.tableShallowEqual(TeamPlayers[2], { Player1 }))
+
+					SoccerDuels.teleportPlayerToLobbySpawnLocation(Player1)
+					TeamPlayers = SoccerDuels.getMatchPadTeamPlayers("1v1 #1")
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "WaitingForPlayers")
+					assert(Utility.tableShallowEqual(TeamPlayers[1], { Player2 }))
+					assert(Utility.tableShallowEqual(TeamPlayers[2], {}))
+
+					SoccerDuels.teleportPlayerToMatchPad(Player1, "1v1 #1", 2)
+					TeamPlayers = SoccerDuels.getMatchPadTeamPlayers("1v1 #1")
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "Countdown")
+					assert(Utility.tableShallowEqual(TeamPlayers[1], { Player2 }))
+					assert(Utility.tableShallowEqual(TeamPlayers[2], { Player1 }))
+
+					SoccerDuels.advanceMatchPadTimer(countdownDuration - maxError)
+					TeamPlayers = SoccerDuels.getMatchPadTeamPlayers("1v1 #1")
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "Countdown")
+					assert(Utility.tableShallowEqual(TeamPlayers[1], { Player2 }))
+					assert(Utility.tableShallowEqual(TeamPlayers[2], { Player1 }))
+
+					SoccerDuels.advanceMatchPadTimer(2 * maxError)
+					TeamPlayers = SoccerDuels.getMatchPadTeamPlayers("1v1 #1")
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "MapVoting")
+					assert(Utility.tableShallowEqual(TeamPlayers[1], { Player2 }))
+					assert(Utility.tableShallowEqual(TeamPlayers[2], { Player1 }))
+
+					SoccerDuels.disconnectPlayer(Player2)
+					TeamPlayers = SoccerDuels.getMatchPadTeamPlayers("1v1 #1")
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "WaitingForPlayers")
+					assert(Utility.tableShallowEqual(TeamPlayers[1], {}))
+					assert(Utility.tableShallowEqual(TeamPlayers[2], { Player1 }))
+
+					SoccerDuels.teleportPlayerToMatchPad(Player3, "1v1 #1", 1)
+					TeamPlayers = SoccerDuels.getMatchPadTeamPlayers("1v1 #1")
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "Countdown")
+					assert(Utility.tableShallowEqual(TeamPlayers[1], { Player3 }))
+					assert(Utility.tableShallowEqual(TeamPlayers[2], { Player1 }))
+
+					SoccerDuels.advanceMatchPadTimer(countdownDuration + maxError)
+					TeamPlayers = SoccerDuels.getMatchPadTeamPlayers("1v1 #1")
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "MapVoting")
+					assert(Utility.tableShallowEqual(TeamPlayers[1], { Player3 }))
+					assert(Utility.tableShallowEqual(TeamPlayers[2], { Player1 }))
+
+					SoccerDuels.advanceMatchPadTimer(mapVotingDuration - maxError)
+					TeamPlayers = SoccerDuels.getMatchPadTeamPlayers("1v1 #1")
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "MapVoting")
+					assert(Utility.tableShallowEqual(TeamPlayers[1], { Player3 }))
+					assert(Utility.tableShallowEqual(TeamPlayers[2], { Player1 }))
+
+					SoccerDuels.advanceMatchPadTimer(2 * maxError)
+					TeamPlayers = SoccerDuels.getMatchPadTeamPlayers("1v1 #1")
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "WaitingForPlayers") -- players are in the match now
+					assert(Utility.tableShallowEqual(TeamPlayers[1], {}))
+					assert(Utility.tableShallowEqual(TeamPlayers[2], {}))
+
+					Client1:Destroy()
+					Client2:Destroy()
+					Client3:Destroy()
+				end
+			)
+		end)
 	end)
 end

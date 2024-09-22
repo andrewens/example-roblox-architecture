@@ -64,6 +64,25 @@ local function tableIsSubsetOfTable(SubsetTable, SupersetTable)
 
 	return true
 end
+local function tableShallowEqual(Table1, Table2)
+	if typeof(Table1) == "table" and typeof(Table2) == "table" then
+		for k, v in Table1 do
+			if Table2[k] ~= v then
+				return false, `{v} != {Table2[k]} (key='{k}')`
+			end
+		end
+
+		for k, v in Table2 do
+			if Table1[k] ~= v then
+				return false, `{Table1[k]} != {v} (key='{k}')`
+			end
+		end
+
+		return true
+	end
+
+	return Table1 == Table2, `{Table1} != {Table2}`
+end
 local function tableDeepEqual(Table1, Table2)
 	if typeof(Table1) == "table" and typeof(Table2) == "table" then
 		for k, v in Table1 do
@@ -92,8 +111,9 @@ end
 return {
 	isInteger = isInteger,
 
-	tableContainsValue = tableContainsValue,
 	tableIsSubsetOfTable = tableIsSubsetOfTable,
+	tableContainsValue = tableContainsValue,
+	tableShallowEqual = tableShallowEqual,
 	tableDeepEqual = tableDeepEqual,
 
 	-- temp fix

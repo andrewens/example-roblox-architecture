@@ -199,10 +199,15 @@ end
 
 return {
 	-- match joining pads
+	advanceMatchPadTimer = MatchJoiningPadsServer.advanceMatchPadTimer,
+	getMatchPadState = MatchJoiningPadsServer.getMatchPadState,
+	getMatchPadTeamPlayers = MatchJoiningPadsServer.getMatchPadTeamPlayers,
+	getMatchJoiningPads = MatchJoiningPadsServer.getMatchJoiningPads,
 	getPlayerConnectedMatchPadName = MatchJoiningPadsServer.getPlayerConnectedMatchPadName,
 	getPlayerConnectedMatchPadTeam = MatchJoiningPadsServer.getPlayerConnectedMatchPadTeam,
-	getMatchJoiningPads = MatchJoiningPadsServer.getMatchJoiningPads,
+
 	teleportPlayerToMatchPad = MatchJoiningPadsServer.teleportPlayerToMatchPad,
+	teleportPlayerToLobbySpawnLocation = MatchJoiningPadsServer.teleportPlayerToLobbySpawnLocation,
 
 	-- toast notifications
 	notifyPlayer = NotifyPlayerServer.notifyPlayer,
