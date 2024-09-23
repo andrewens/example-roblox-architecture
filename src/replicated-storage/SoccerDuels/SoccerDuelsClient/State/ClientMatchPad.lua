@@ -24,6 +24,10 @@ end
 
 -- protected / Network methods
 local function clientConnectedMatchPadChanged(self, Player, newMatchPadEnum, teamIndex)
+	if Utility.shouldIgnoreMockPlayerFromServerTests(Player) then
+		return
+	end
+
 	self._PlayerConnectedMatchPadEnum[Player] = newMatchPadEnum
 	self._PlayerConnectedMatchPadTeam[Player] = teamIndex
 
