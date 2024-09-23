@@ -36,6 +36,7 @@ local extraSecondsForTesting = 0
 local MatchPadStateChangeTimestamp = {} -- int matchPadEnum --> float timestampWhenStateChanges
 
 -- private
+local disconnectPlayerFromAllMatchPads
 local function getTimestamp()
 	return Utility.getUnixTimestamp() + extraSecondsForTesting
 end
@@ -73,8 +74,15 @@ local function updateMatchPadState(matchPadEnum)
 	MatchPadState[matchPadEnum] = WAITING_FOR_PLAYERS_STATE_ENUM
 	MatchPadStateChangeTimestamp[matchPadEnum] = nil
 
-	-- put players in match
-	MatchPadTeamPlayers[matchPadEnum] = { [1] = {}, [2] = {} }
+	-- remove players from this match pad
+	for Player, _ in MatchPadTeamPlayers[matchPadEnum][1] do
+		disconnectPlayerFromAllMatchPads(Player)
+	end
+	for Player, _ in MatchPadTeamPlayers[matchPadEnum][2] do
+		disconnectPlayerFromAllMatchPads(Player)
+	end
+
+	-- TODO actually put players into a match
 end
 local function clockTick()
 	for matchPadEnum, _ in MatchPadStateChangeTimestamp do
@@ -83,7 +91,7 @@ local function clockTick()
 end
 local function removePlayerFromPreviousMatchPad(Player)
 	if PlayerConnectedMatchPad[Player] == nil then
-		return
+		return false
 	end
 
 	local matchPadEnum, teamIndex = table.unpack(PlayerConnectedMatchPad[Player])
@@ -91,6 +99,8 @@ local function removePlayerFromPreviousMatchPad(Player)
 
 	PlayerConnectedMatchPad[Player] = nil
 	updateMatchPadState(matchPadEnum)
+
+	return true
 end
 local function addPlayerToMatchPad(Player, matchPadEnum, teamIndex)
 	removePlayerFromPreviousMatchPad(Player)
@@ -99,9 +109,10 @@ local function addPlayerToMatchPad(Player, matchPadEnum, teamIndex)
 	PlayerConnectedMatchPad[Player] = { matchPadEnum, teamIndex }
 	updateMatchPadState(matchPadEnum)
 end
-local function disconnectPlayerFromAllMatchPads(Player)
-	removePlayerFromPreviousMatchPad(Player)
-	Network.fireClient("PlayerJoinedMatchPad", Player, nil, nil)
+function disconnectPlayerFromAllMatchPads(Player)
+	if removePlayerFromPreviousMatchPad(Player) then -- (it returns true if the player was connected to a match pad)
+		Network.fireAllClients("PlayerJoinedMatchPad", Player, nil, nil)
+	end
 end
 local function connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
 	local matchPadName = Enums.enumToName("MatchJoiningPad", matchPadEnum)
@@ -119,7 +130,7 @@ local function connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
 
 	addPlayerToMatchPad(Player, matchPadEnum, teamIndex) -- (automatically removes player from previous match pad)
 
-	Network.fireClient("PlayerJoinedMatchPad", Player, matchPadEnum, teamIndex)
+	Network.fireAllClients("PlayerJoinedMatchPad", Player, matchPadEnum, teamIndex)
 
 	return true
 end
@@ -331,6 +342,12 @@ local function getMatchJoiningPads()
 
 	return Pads
 end
+local function playerDataLoaded(Player)
+	for OtherPlayer, MatchPadData in PlayerConnectedMatchPad do
+		local matchPadEnum, teamIndex = table.unpack(MatchPadData)
+		Network.fireClient("PlayerJoinedMatchPad", Player, OtherPlayer, matchPadEnum, teamIndex)
+	end
+end
 local function initializeMatchJoiningPads()
 	local MatchJoiningPadsFolder = Assets.getExpectedAsset("MatchJoiningPadsFolder")
 	for _, Folder in MatchJoiningPadsFolder:GetChildren() do
@@ -340,10 +357,9 @@ local function initializeMatchJoiningPads()
 	Network.onServerInvokeConnect("PlayerJoinMatchPad", clientJoinMatchPad)
 	Network.onServerInvokeConnect("PlayerDisconnectFromMatchPad", clientDisconnectFromMatchPad)
 
+	-- workspace.TouchesUseCollisionGroups needs to be set to true for this optimization to work
 	PhysicsService:RegisterCollisionGroup(LOBBY_DEVICE_COLLISION_GROUP)
 	PhysicsService:CollisionGroupSetCollidable(LOBBY_DEVICE_COLLISION_GROUP, "Default", false)
-
-	-- workspace.TouchesUseCollisionGroups needs to be set to true
 
 	Utility.onCharacterLoadedConnect(playerCharacterLoaded)
 	Utility.runServiceSteppedConnect(MATCH_JOINING_PAD_STATE_CHANGE_POLL_RATE_SECONDS, clockTick)
@@ -362,5 +378,6 @@ return {
 
 	playerCharacterLoaded = playerCharacterLoaded,
 	disconnectPlayer = disconnectPlayer,
+	playerDataLoaded = playerDataLoaded,
 	initialize = initializeMatchJoiningPads,
 }

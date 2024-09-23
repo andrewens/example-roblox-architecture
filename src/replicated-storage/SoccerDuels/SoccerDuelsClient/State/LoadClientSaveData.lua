@@ -88,6 +88,8 @@ local function loadClientPlayerDataAsync(self)
 		updateCachedPlayerSaveData(self, ...)
 	end))
 
+	ClientMatchPad.initialize(self) -- must be before GetPlayerSaveData b/c it listens to a remote event that fires afterward
+
 	local s, playerSaveDataJson = Network.invokeServer("GetPlayerSaveData", self.Player)
 	if not s then
 		local errorMessage = playerSaveDataJson
@@ -107,7 +109,6 @@ local function loadClientPlayerDataAsync(self)
 
 	LobbyCharacters.initialize(self)
 	ClientInput.initializeClientInput(self)
-	ClientMatchPad.initialize(self)
 
 	ClientUserInterfaceMode.setClientUserInterfaceMode(self, "Lobby")
 

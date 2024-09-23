@@ -70,11 +70,12 @@ local function newClient(Player)
 	self._ControllerTypeEnum = {} -- Player --> int controllerTypeEnum
 	self._ControllerTypeChangedCallbacks = {} -- function callback(string controllerType, Player AnyPlayer) --> true
 
-	self._ConnectedMatchJoiningPadEnum = nil -- int | nil
-	self._ConnectedMatchJoiningPadTeamIndex = nil -- int | nil
-
 	self._UserInterfaceModeEnum = Enums.getEnum("UserInterfaceMode", "None") -- int
 	self._UserInterfaceModeChangedCallbacks = {} -- function callback(string userInterfaceMode)
+
+	self._PlayerConnectedMatchPadEnum = {} -- Player --> int matchPadEnum
+	self._PlayerConnectedMatchPadTeam = {} -- Player --> int teamIndex
+	self._PlayerMatchPadChangedCallbacks = {} -- function callback(Player AnyPlayer, string | nil matchPadName, int teamIndex)
 
 	self._MainGui = nil -- ScreenGui
 
@@ -94,28 +95,29 @@ local function initializeClients()
 
 		-- client match pad
 		DisconnectFromMatchJoiningPadIfCharacterSteppedOffAsync = ClientMatchPad.disconnectClientFromMatchPadIfCharacterSteppedOffAsync,
+		OnPlayerMatchPadChangedConnect = ClientMatchPad.onAnyPlayerMatchPadChangedConnect,
 		TeleportToMatchPadAsync = ClientMatchPad.clientTeleportToMatchPadAsync,
 		GetConnectedMatchPadName = ClientMatchPad.getClientConnectedMatchPadName,
 		GetConnectedMatchPadTeam = ClientMatchPad.getClientConnectedMatchPadTeam,
 
 		-- client input
-		TapInput = ClientInput.clientTapInput,
 		OnControllerTypeChangedConnect = ClientInput.onClientControllerTypeChangedConnect,
 		GetControllerType = ClientInput.getClientControllerType,
+		TapInput = ClientInput.clientTapInput,
 
 		-- lobby characters
+		OnCharacterSpawnedInLobbyConnect = LobbyCharacters.clientOnCharacterSpawnedInLobbyConnect,
 		LobbyCharacterTouchedPart = LobbyCharacters.partTouchedClientLobbyCharacter,
 		GetCharactersInLobby = LobbyCharacters.getCharactersInLobby,
-		OnCharacterSpawnedInLobbyConnect = LobbyCharacters.clientOnCharacterSpawnedInLobbyConnect,
 
 		-- toast notification
 		OnToastNotificationConnect = ClientToastNotificationState.onClientToastNotificationConnect,
 
 		-- modal state
 		OnVisibleModalChangedConnect = ClientModalState.clientOnVisibleModalChangedConnect,
+		ToggleModalVisibility = ClientModalState.toggleClientModalVisibility,
 		GetVisibleModalName = ClientModalState.getClientVisibleModalName,
 		SetVisibleModalName = ClientModalState.setClientVisibleModal,
-		ToggleModalVisibility = ClientModalState.toggleClientModalVisibility,
 
 		-- client settings
 		OnSettingChangedConnect = ClientSettings.onClientSettingChangedConnect,
@@ -125,11 +127,11 @@ local function initializeClients()
 		GetSettings = ClientSettings.getClientSettingsJson,
 
 		-- loading player save data
-		GetAnyPlayerDataValue = LoadClientSaveData.getAnyPlayerDataCachedValue,
 		OnPlayerSaveDataLoadedConnect = LoadClientSaveData.onClientPlayerDataLoadedConnect,
-		GetPlayerSaveData = LoadClientSaveData.getAnyPlayerCachedSaveData,
+		GetAnyPlayerDataValue = LoadClientSaveData.getAnyPlayerDataCachedValue,
 		LoadPlayerDataAsync = LoadClientSaveData.loadClientPlayerDataAsync,
 		PlayerDataIsLoaded = LoadClientSaveData.clientPlayerDataIsLoaded,
+		GetPlayerSaveData = LoadClientSaveData.getAnyPlayerCachedSaveData,
 
 		-- client root
 		Destroy = destroyClient,

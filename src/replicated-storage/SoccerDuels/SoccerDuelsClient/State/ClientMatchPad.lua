@@ -23,19 +23,54 @@ local function getMatchPadPart(matchPadEnum, teamIndex)
 end
 
 -- protected / Network methods
-local function clientConnectedMatchPadChanged(self, newMatchPadEnum, teamIndex)
-	self._ConnectedMatchJoiningPadEnum = newMatchPadEnum
-	self._ConnectedMatchJoiningPadTeamIndex = teamIndex
+local function clientConnectedMatchPadChanged(self, Player, newMatchPadEnum, teamIndex)
+	self._PlayerConnectedMatchPadEnum[Player] = newMatchPadEnum
+	self._PlayerConnectedMatchPadTeam[Player] = teamIndex
 
-	ClientUserInterfaceMode.setClientUserInterfaceMode(self, if newMatchPadEnum then "MatchJoiningPad" else "Lobby")
+	if Player == self.Player then
+		ClientUserInterfaceMode.setClientUserInterfaceMode(self, if newMatchPadEnum then "MatchJoiningPad" else "Lobby")
+	end
+
+	-- invoke callbacks
+	local matchPadName
+	if newMatchPadEnum then
+		matchPadName = Enums.enumToName("MatchJoiningPad", newMatchPadEnum)
+	end
+
+	teamIndex = teamIndex or 1
+
+	for callback, _ in self._PlayerMatchPadChangedCallbacks do
+		callback(Player, matchPadName, teamIndex)
+	end
 end
 
 -- public / Client class methods
+local function onAnyPlayerMatchPadChangedConnect(self, callback)
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	for Player, matchPadEnum in self._PlayerConnectedMatchPadEnum do
+		local teamIndex = self._PlayerConnectedMatchPadTeam[Player]
+		local matchPadName = Enums.enumToName("MatchJoiningPad", matchPadEnum)
+
+		callback(Player, matchPadName, teamIndex)
+	end
+
+	self._PlayerMatchPadChangedCallbacks[callback] = true
+
+	return {
+		Disconnect = function()
+			self._PlayerMatchPadChangedCallbacks[callback] = nil
+		end,
+	}
+end
 local function getClientConnectedMatchPadName(self)
-	return Enums.enumToName("MatchJoiningPad", self._ConnectedMatchJoiningPadEnum)
+	local matchPadEnum = self._PlayerConnectedMatchPadEnum[self.Player]
+	return Enums.enumToName("MatchJoiningPad", matchPadEnum)
 end
 local function getClientConnectedMatchPadTeam(self)
-	return self._ConnectedMatchJoiningPadTeamIndex or 1
+	return self._PlayerConnectedMatchPadTeam[self.Player] or 1
 end
 local function clientTeleportToMatchPadAsync(self, matchPadName, teamIndex)
 	if self._PlayerSaveData[self.Player] == nil then
@@ -67,24 +102,13 @@ local function clientTeleportToMatchPadAsync(self, matchPadName, teamIndex)
 		Char:MoveTo(MatchPadPart.Position + Vector3.new(0, 3, 0))
 	end
 end
-local function clientDisconnectFromMatchPadAsync(self, matchPad)
-	if self._PlayerSaveData[self.Player] == nil then
-		error(`{self.Player} hasn't loaded their data yet!`)
-	end
-	if self._ConnectedMatchJoiningPadEnum == nil then
-		return
-	end
-
-	Network.invokeServer("PlayerJoinMatchPad", self.Player, nil)
-end
 local function disconnectClientFromMatchPadIfCharacterSteppedOffAsync(self)
-	local matchPadEnum = self._ConnectedMatchJoiningPadEnum
-	local teamIndex = self._ConnectedMatchJoiningPadTeamIndex
-
+	local matchPadEnum = self._PlayerConnectedMatchPadEnum[self.Player]
 	if matchPadEnum == nil then
 		return
 	end
 
+	local teamIndex = self._PlayerConnectedMatchPadTeam[self.Player]
 	local MatchPadPart = getMatchPadPart(matchPadEnum, teamIndex)
 	if
 		not Utility.playerCharacterIsInsideSpherePart(self.Player, MatchPadPart, MATCH_JOINING_PAD_RADIUS_PADDING_STUDS)
@@ -125,12 +149,13 @@ end
 
 return {
 	disconnectClientFromMatchPadIfCharacterSteppedOffAsync = disconnectClientFromMatchPadIfCharacterSteppedOffAsync,
+	onAnyPlayerMatchPadChangedConnect = onAnyPlayerMatchPadChangedConnect,
 
 	getClientConnectedMatchPadName = getClientConnectedMatchPadName,
 	getClientConnectedMatchPadTeam = getClientConnectedMatchPadTeam,
 
-	clientTeleportToMatchPadAsync = clientTeleportToMatchPadAsync,
 	touchedMatchJoiningPadPartAsync = touchedMatchJoiningPadPartAsync,
+	clientTeleportToMatchPadAsync = clientTeleportToMatchPadAsync,
 
 	initialize = initializeClientMatchPad,
 }

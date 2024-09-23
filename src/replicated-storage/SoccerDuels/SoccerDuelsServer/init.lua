@@ -88,6 +88,7 @@ local function getPlayerSaveData(Player)
 	CachedPlayerSaveData[Player] = PlayerSaveData
 
 	LobbyCharacterServer.playerDataLoaded(Player)
+	MatchJoiningPadsServer.playerDataLoaded(Player)
 
 	return true, PlayerSaveData:ToJson()
 end
