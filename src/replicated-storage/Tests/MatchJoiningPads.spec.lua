@@ -329,6 +329,29 @@ return function()
 					Client:Destroy()
 				end
 			)
+			it(
+				"Client's ModalState gets set to nil when UserInterfaceMode changes from Lobby to MatchJoiningPads",
+				function()
+					local MockPlayer = MockInstance.new("Player")
+					local Client = SoccerDuels.newClient(MockPlayer)
+
+					assert(Client:GetUserInterfaceMode() == "None")
+					assert(Client:GetVisibleModalName() == nil)
+
+					Client:LoadPlayerDataAsync()
+					Client:SetVisibleModalName("Settings")
+
+					assert(Client:GetUserInterfaceMode() == "Lobby")
+					assert(Client:GetVisibleModalName() == "Settings")
+
+					SoccerDuels.teleportPlayerToMatchPad(MockPlayer, "1v1 #1", 1)
+
+					assert(Client:GetUserInterfaceMode() == "MatchJoiningPad")
+					assert(Client:GetVisibleModalName() == nil)
+
+					Client:Destroy()
+				end
+			)
 		end)
 		describe("SoccerDuels.getMatchPadState()", function()
 			it(

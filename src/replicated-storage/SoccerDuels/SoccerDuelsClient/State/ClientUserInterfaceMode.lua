@@ -1,7 +1,12 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
+local SoccerDuelsStateFolder = script:FindFirstAncestor("State")
 
 local Enums = require(SoccerDuelsModule.Enums)
+local ClientModalState = require(SoccerDuelsStateFolder.ClientModalState)
+
+-- const
+local MATCH_JOINING_PAD_UI_MODE_ENUM = Enums.getEnum("UserInterfaceMode", "MatchJoiningPad")
 
 -- public / Client class methods
 local function getClientUserInterfaceMode(self)
@@ -19,6 +24,10 @@ local function setClientUserInterfaceMode(self, userInterfaceMode)
 
 	if uiModeEnum == self._UserInterfaceModeEnum then
 		return
+	end
+
+	if uiModeEnum == MATCH_JOINING_PAD_UI_MODE_ENUM then
+		ClientModalState.setClientVisibleModal(self, nil)
 	end
 
 	self._UserInterfaceModeEnum = uiModeEnum

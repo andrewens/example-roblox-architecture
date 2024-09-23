@@ -6,6 +6,7 @@ local SoccerDuelsClientStateFolder = script:FindFirstAncestor("State")
 
 local ClientInput = require(SoccerDuelsClientStateFolder.ClientInput)
 local ClientMatchPad = require(SoccerDuelsClientStateFolder.ClientMatchPad)
+local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserInterfaceMode)
 local LobbyCharacters = require(SoccerDuelsClientStateFolder.LobbyCharacters)
 
 local Config = require(SoccerDuelsModule.Config)
@@ -107,6 +108,8 @@ local function loadClientPlayerDataAsync(self)
 	LobbyCharacters.initialize(self)
 	ClientInput.initializeClientInput(self)
 	ClientMatchPad.initialize(self)
+
+	ClientUserInterfaceMode.setClientUserInterfaceMode(self, "Lobby")
 
 	return true
 end

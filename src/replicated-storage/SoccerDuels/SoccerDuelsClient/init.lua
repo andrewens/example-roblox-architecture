@@ -73,7 +73,7 @@ local function newClient(Player)
 	self._ConnectedMatchJoiningPadEnum = nil -- int | nil
 	self._ConnectedMatchJoiningPadTeamIndex = nil -- int | nil
 
-	self._UserInterfaceModeEnum = Enums.getEnum("UserInterfaceMode", "Lobby") -- int
+	self._UserInterfaceModeEnum = Enums.getEnum("UserInterfaceMode", "None") -- int
 	self._UserInterfaceModeChangedCallbacks = {} -- function callback(string userInterfaceMode)
 
 	self._MainGui = nil -- ScreenGui

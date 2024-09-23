@@ -29,6 +29,12 @@ local function newLobbyGui(self)
 		})
 	end
 
+	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
+		LobbyButtons.Visible = userInterfaceMode == "Lobby"
+	end)
+
+	UIAnimations.initializePopup(self, LobbyButtons)
+
 	SettingsModalGui.new(self)
 end
 
