@@ -1,10 +1,9 @@
 -- dependency
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
 local TestsFolder = script:FindFirstAncestor("Tests")
 
-local MockInstance = require(ReplicatedStorage.MockInstance)
 local SoccerDuels = require(ReplicatedStorage.SoccerDuels)
+local MockInstance = require(TestsFolder.MockInstance)
 local Utility = require(TestsFolder.Utility)
 
 -- test
@@ -94,24 +93,21 @@ return function()
 				Client:Destroy()
 				Client1:Destroy()
 			end)
-			it(
-				"Clones UserInterface ScreenGuis into the Player's PlayerGui once PlayerSaveData has been loaded",
-				function()
-					local MockPlayer = MockInstance.new("Player")
-					local PlayerGuiFolder = MockPlayer.PlayerGui
-					local Client = SoccerDuels.newClient(MockPlayer)
+			it("Clones UserInterface ScreenGuis into the Player's PlayerGui when the client is created", function()
+				local MockPlayer = MockInstance.new("Player")
+				local PlayerGuiFolder = MockPlayer.PlayerGui
+				local Client = SoccerDuels.newClient(MockPlayer)
 
-					assert(#PlayerGuiFolder:GetChildren() == 0)
+				assert(#PlayerGuiFolder:GetChildren() == 0)
 
-					Client:LoadPlayerDataAsync() -- not actually async when we're in testing mode
+				Client:LoadPlayerDataAsync() -- not actually async when we're in testing mode
 
-					local MainGui = SoccerDuels.getExpectedAsset("MainGui", "PlayerGui", PlayerGuiFolder)
+				local MainGui = SoccerDuels.getExpectedAsset("MainGui", "PlayerGui", PlayerGuiFolder)
 
-					assert(MainGui) -- this is technically redundant because getExpectedAsset() asserts the asset exists
+				assert(MainGui) -- this is technically redundant because getExpectedAsset() asserts the asset exists
 
-					Client:Destroy()
-				end
-			)
+				Client:Destroy()
+			end)
 			it("If there is a LoadingScreen in the PlayerGui, it gets destroyed after PlayerSaveData loads", function()
 				local MockPlayer = MockInstance.new("Player")
 				local PlayerGuiFolder = MockPlayer.PlayerGui

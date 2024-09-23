@@ -1,7 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TestsFolder = script:FindFirstAncestor("Tests")
 
-local MockInstance = require(ReplicatedStorage.MockInstance)
 local SoccerDuels = require(ReplicatedStorage.SoccerDuels)
+local MockInstance = require(TestsFolder.MockInstance)
 
 return function()
 	describe("MenuButtons", function()
@@ -40,20 +41,20 @@ return function()
 				Client:Destroy()
 			end)
 		end)
-        describe("SoccerDuelsClient:OnVisibleModalChangedConnect()", function()
-            it("Connects a callback to fire every time the visible modal changes", function()
-                local MockPlayer = MockInstance.new("Player")
-                local Client = SoccerDuels.newClient(MockPlayer)
+		describe("SoccerDuelsClient:OnVisibleModalChangedConnect()", function()
+			it("Connects a callback to fire every time the visible modal changes", function()
+				local MockPlayer = MockInstance.new("Player")
+				local Client = SoccerDuels.newClient(MockPlayer)
 
-                local changeCount = 0
-                local lastModalName
-                local conn = Client:OnVisibleModalChangedConnect(function(visibleModalName)
-                    changeCount += 1
-                    lastModalName = visibleModalName
-                end)
+				local changeCount = 0
+				local lastModalName
+				local conn = Client:OnVisibleModalChangedConnect(function(visibleModalName)
+					changeCount += 1
+					lastModalName = visibleModalName
+				end)
 
-                assert(1 == changeCount)
-                assert(nil == lastModalName)
+				assert(1 == changeCount)
+				assert(nil == lastModalName)
 
 				Client:ToggleModalVisibility("Settings")
 
@@ -65,7 +66,7 @@ return function()
 				assert(3 == changeCount)
 				assert(nil == lastModalName)
 
-                conn:Disconnect()
+				conn:Disconnect()
 
 				Client:ToggleModalVisibility("Settings")
 
@@ -73,7 +74,7 @@ return function()
 				assert(nil == lastModalName)
 
 				Client:Destroy()
-            end)
-        end)
+			end)
+		end)
 	end)
 end

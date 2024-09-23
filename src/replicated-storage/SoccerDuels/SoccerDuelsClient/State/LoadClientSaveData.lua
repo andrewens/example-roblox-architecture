@@ -2,12 +2,11 @@
 local RunService = game:GetService("RunService")
 
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
-local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
+local SoccerDuelsClientStateFolder = script:FindFirstAncestor("State")
 
-local ClientInput = require(SoccerDuelsClientModule.ClientInput)
-local ClientMatchPad = require(SoccerDuelsClientModule.ClientMatchPad)
-local LobbyCharacters = require(SoccerDuelsClientModule.LobbyCharacters)
-local MainGui = require(SoccerDuelsClientModule.MainGui)
+local ClientInput = require(SoccerDuelsClientStateFolder.ClientInput)
+local ClientMatchPad = require(SoccerDuelsClientStateFolder.ClientMatchPad)
+local LobbyCharacters = require(SoccerDuelsClientStateFolder.LobbyCharacters)
 
 local Config = require(SoccerDuelsModule.Config)
 local Network = require(SoccerDuelsModule.Network)
@@ -40,6 +39,9 @@ local function updateCachedPlayerSaveData(self, Player, key, value)
 end
 
 -- public / Client class methods
+local function clientPlayerDataIsLoaded(self)
+	return self._PlayerSaveData[self.Player] ~= nil
+end
 local function getAnyPlayerDataCachedValue(self, valueName, Player)
 	if not (typeof(valueName) == "string") then
 		error(`{valueName} is not a string!`)
@@ -93,8 +95,6 @@ local function loadClientPlayerDataAsync(self)
 
 	self._PlayerSaveData[self.Player] = PlayerDocument.new(playerSaveDataJson)
 
-	MainGui.new(self)
-
 	for callback, _ in self._PlayerDataLoadedCallbacks do
 		callback(self._PlayerSaveData[self.Player])
 	end
@@ -112,6 +112,7 @@ local function loadClientPlayerDataAsync(self)
 end
 
 return {
+	clientPlayerDataIsLoaded = clientPlayerDataIsLoaded,
 	getAnyPlayerDataCachedValue = getAnyPlayerDataCachedValue,
 	getAnyPlayerCachedSaveData = getAnyPlayerCachedSaveData,
 	onClientPlayerDataLoadedConnect = onClientPlayerDataLoadedConnect,

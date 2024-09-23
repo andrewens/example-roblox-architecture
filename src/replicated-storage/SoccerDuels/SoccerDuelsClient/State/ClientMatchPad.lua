@@ -1,6 +1,6 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
-local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
+local SoccerDuelsClientStateFolder = script:FindFirstAncestor("State")
 
 local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Config = require(SoccerDuelsModule.Config)
@@ -8,7 +8,7 @@ local Enums = require(SoccerDuelsModule.Enums)
 local Network = require(SoccerDuelsModule.Network)
 local Utility = require(SoccerDuelsModule.Utility)
 
-local ClientUserInterfaceMode = require(SoccerDuelsClientModule.ClientUserInterfaceMode)
+local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserInterfaceMode)
 
 -- const
 local MATCH_JOINING_PAD_IDENTIFIER_ATTRIBUTE_NAME = Config.getConstant("MatchJoiningPadIdentifierAttributeName")

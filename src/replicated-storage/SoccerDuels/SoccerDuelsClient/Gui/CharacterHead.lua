@@ -12,7 +12,11 @@ local Maid = require(SoccerDuelsModule.Maid)
 local OVERHEAD_NAME_SCALE_PER_CHARACTER = Config.getConstant("OverheadNameXScalePerCharacter")
 
 -- public / Client class methods
-local function initializeCharacterLevelGuis(self)
+local function destroyCharacterHeadGui(self) end
+local function newCharacterHeadGui(self)
+	-- TODO this whole thing would be simplified a lot (no maids, no tables, etc)
+	-- if there was a "OnAnyPlayerSaveDataChangedConnect" method and a "IsPlayerInLobby" method
+
 	local Folder = Instance.new("Folder")
 	Folder.Name = "CharacterLevelGuis"
 	Folder.Parent = self._MainGui --> gets destroyed when MainGui gets destroyed, which is when Maid does cleaning
@@ -95,6 +99,7 @@ local function initializeCharacterLevelGuis(self)
 
 	self._Maid:GiveTask(self:OnControllerTypeChangedConnect(updatePlayerDeviceIcon))
 
+	-- cleanup
 	self._Maid:GiveTask(function()
 		for Player, OverheadGuiMaid in OverheadGuiMaids do
 			OverheadGuiMaid:DoCleaning()
@@ -112,5 +117,6 @@ local function initializeCharacterLevelGuis(self)
 end
 
 return {
-	new = initializeCharacterLevelGuis,
+	destroy = destroyCharacterHeadGui,
+	new = newCharacterHeadGui,
 }

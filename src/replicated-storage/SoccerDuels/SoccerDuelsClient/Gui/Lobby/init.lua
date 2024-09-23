@@ -1,14 +1,19 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
+local ModalGuiFolder = script.Modals
 
 local Assets = require(SoccerDuelsModule.AssetDependencies)
-
 local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 
--- public
-local function newLobbyButtons(self)
-    local LobbyButtons = Assets.getExpectedAsset("LobbyButtons", "MainGui", self._MainGui)
+local SettingsModalGui = require(ModalGuiFolder.Settings)
+
+-- public / Client class methods
+local function destroyLobbyGui(self)
+	SettingsModalGui.destroy(self)
+end
+local function newLobbyGui(self)
+	local LobbyButtons = Assets.getExpectedAsset("LobbyButtons", "MainGui", self._MainGui)
 
     for _, LobbyButton in LobbyButtons:GetChildren() do
 		if not (LobbyButton:IsA("GuiButton")) then
@@ -23,8 +28,15 @@ local function newLobbyButtons(self)
 			LiftButtonOnMouseOver = true,
 		})
 	end
+
+	SettingsModalGui.new(self)
 end
 
+-- public
+local function initializeLobbyGuiModule() end
+
 return {
-    new = newLobbyButtons,
+	destroy = destroyLobbyGui,
+	new = newLobbyGui,
+	initialize = initializeLobbyGuiModule,
 }

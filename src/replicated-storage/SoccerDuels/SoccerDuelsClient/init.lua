@@ -1,5 +1,6 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
+local SoccerDuelsClientStateFolder = script.State
 
 local Config = require(SoccerDuelsModule.Config)
 local Enums = require(SoccerDuelsModule.Enums)
@@ -8,15 +9,16 @@ local Network = require(SoccerDuelsModule.Network)
 local PlayerDocument = require(SoccerDuelsModule.PlayerDocument)
 local Utility = require(SoccerDuelsModule.Utility)
 
-local ClientInput = require(script.ClientInput)
-local ClientMatchPad = require(script.ClientMatchPad)
-local ClientModalState = require(script.ClientModalState)
-local ClientSettings = require(script.ClientSettings)
-local ClientToastNotificationState = require(script.ClientToastNotificationState)
-local ClientUserInterfaceMode = require(script.ClientUserInterfaceMode)
-local LoadClientSaveData = require(script.LoadClientSaveData)
-local LobbyCharacters = require(script.LobbyCharacters)
-local MainGui = require(script.MainGui)
+local Gui = require(script.Gui)
+
+local ClientInput = require(SoccerDuelsClientStateFolder.ClientInput)
+local ClientMatchPad = require(SoccerDuelsClientStateFolder.ClientMatchPad)
+local ClientModalState = require(SoccerDuelsClientStateFolder.ClientModalState)
+local ClientSettings = require(SoccerDuelsClientStateFolder.ClientSettings)
+local ClientToastNotificationState = require(SoccerDuelsClientStateFolder.ClientToastNotificationState)
+local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserInterfaceMode)
+local LoadClientSaveData = require(SoccerDuelsClientStateFolder.LoadClientSaveData)
+local LobbyCharacters = require(SoccerDuelsClientStateFolder.LobbyCharacters)
 
 -- var
 local ClientMetatable
@@ -25,15 +27,17 @@ local ClientMetatable
 local function destroyClient(self) -- TODO this isn't really tested
 	self._Maid:DoCleaning()
 
+	self._UserInterfaceModeChangedCallbacks = nil
+	self._ControllerTypeChangedCallbacks = nil
+	self._LobbyCharacterSpawnedCallbacks = nil
 	self._VisibleModalChangedCallbacks = nil
 	self._PlayerDataLoadedCallbacks = nil
 	self._SettingChangedCallbacks = nil
 	self._ToastCallbacks = nil
-	self._LobbyCharacterSpawnedCallbacks = nil
-	self._ControllerTypeChangedCallbacks = nil
-	self._UserInterfaceModeChangedCallbacks = nil
 
 	self._CharactersInLobby = nil
+
+	Gui.destroy(self)
 
 	Network.fireServer("ClientDestroyed", self.Player)
 end
@@ -48,7 +52,7 @@ local function newClient(Player)
 	local self = {}
 	self.Player = Player
 
-	-- private properties (don't use outside of this module)
+	-- private properties (don't use outside of client modules)
 	self._Maid = Maid.new() -- cleans on self:Destroy() and self:LoadPlayerDataAsync()
 
 	self._VisibleModalEnum = nil -- int | nil
@@ -59,7 +63,6 @@ local function newClient(Player)
 	self._SettingChangedCallbacks = {} -- function callback(string settingName, any settingValue) --> true
 
 	self._ToastCallbacks = {} -- function callback(string notificationMessage) --> true
-	self._MainGui = nil -- ScreenGui
 
 	self._LobbyCharacterSpawnedCallbacks = {} -- function callback(Model Character, Player PlayerThatSpawned) --> true
 	self._CharactersInLobby = {} -- Player --> Character
@@ -73,9 +76,12 @@ local function newClient(Player)
 	self._UserInterfaceModeEnum = Enums.getEnum("UserInterfaceMode", "Lobby") -- int
 	self._UserInterfaceModeChangedCallbacks = {} -- function callback(string userInterfaceMode)
 
+	self._MainGui = nil -- ScreenGui
+
 	-- init
 	setmetatable(self, ClientMetatable)
 
+	Gui.new(self)
 	ClientToastNotificationState.initializeClientToastNotifications(self)
 
 	return self
@@ -123,6 +129,7 @@ local function initializeClients()
 		OnPlayerSaveDataLoadedConnect = LoadClientSaveData.onClientPlayerDataLoadedConnect,
 		GetPlayerSaveData = LoadClientSaveData.getAnyPlayerCachedSaveData,
 		LoadPlayerDataAsync = LoadClientSaveData.loadClientPlayerDataAsync,
+		PlayerDataIsLoaded = LoadClientSaveData.clientPlayerDataIsLoaded,
 
 		-- client root
 		Destroy = destroyClient,
@@ -130,7 +137,7 @@ local function initializeClients()
 	ClientMetatable = { __index = ClientMethods }
 
 	ClientInput.initialize()
-	MainGui.initialize()
+	Gui.initialize()
 end
 
 return {

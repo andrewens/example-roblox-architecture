@@ -1,4 +1,5 @@
 return {
-    "Lobby",
-    "MatchJoiningPad"
+	"None",
+	"Lobby",
+	"MatchJoiningPad",
 }

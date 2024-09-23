@@ -2,8 +2,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TestsFolder = script:FindFirstAncestor("Tests")
 
-local MockInstance = require(ReplicatedStorage.MockInstance)
 local SoccerDuels = require(ReplicatedStorage.SoccerDuels)
+local MockInstance = require(TestsFolder.MockInstance)
 local Utility = require(TestsFolder.Utility)
 
 -- test

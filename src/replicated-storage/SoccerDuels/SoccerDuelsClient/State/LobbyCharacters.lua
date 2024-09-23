@@ -1,12 +1,12 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
-local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
+local SoccerDuelsClientStateFolder = script:FindFirstAncestor("State")
 
 local Config = require(SoccerDuelsModule.Config)
 local Network = require(SoccerDuelsModule.Network)
 local Utility = require(SoccerDuelsModule.Utility)
 
-local ClientMatchPad = require(SoccerDuelsClientModule.ClientMatchPad)
+local ClientMatchPad = require(SoccerDuelsClientStateFolder.ClientMatchPad)
 
 -- const
 local TESTING_MODE = Config.getConstant("TestingMode")
