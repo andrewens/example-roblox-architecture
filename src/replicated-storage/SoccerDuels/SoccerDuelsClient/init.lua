@@ -139,7 +139,6 @@ local function initializeClients()
 	ClientMetatable = { __index = ClientMethods }
 
 	ClientInput.initialize()
-	Gui.initialize()
 end
 
 return {

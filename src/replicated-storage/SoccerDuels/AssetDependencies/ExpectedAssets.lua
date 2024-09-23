@@ -18,6 +18,9 @@ ExpectedAssets.MainGui = {
 
 -- lobby modals
 do
+	ExpectedAssets.LobbyGui = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Lobby",
+	}
 	ExpectedAssets.LobbyButtons = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Lobby/Buttons",
 	}
@@ -72,7 +75,7 @@ end
 
 -- testing mode
 ExpectedAssets.TestingModeLabel = {
-	Path = "ReplicatedStorage/UserInterface/Windows/Middle/Lobby/TestingMode",
+	Path = "ReplicatedStorage/UserInterface/Windows/Left/TestingMode",
 }
 
 -- level / win streak overhead gui
@@ -156,5 +159,32 @@ ExpectedAssets.LobbySpawnLocation = {
 	Path = "Workspace/SpawnLocation",
 	ClassName = "SpawnLocation",
 }
+
+-- match joining pad gui
+do
+	ExpectedAssets.MatchJoiningPadGui = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Searching",
+	}
+	ExpectedAssets.MatchJoiningPadTeam1Container = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Searching/Team1",
+	}
+	ExpectedAssets.MatchJoiningPadTeam2Container = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Searching/Team2",
+	}
+	ExpectedAssets.MatchJoiningPadPlayerIcon = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Searching/Team1/Player",
+	}
+	ExpectedAssets.MatchJoiningPadPlayerLevelLabel = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Searching/Team1/Player/Level/Value",
+		ClassName = "TextLabel",
+	}
+	ExpectedAssets.MatchJoiningPadPlayerWinStreakLabel = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Searching/Team1/Player/Winstreak/Value",
+		ClassName = "TextLabel",
+	}
+	ExpectedAssets.MatchJoiningPadPlayerProfilePicture = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Searching/Team1/Player/Pfp",
+	}
+end
 
 return ExpectedAssets

@@ -13,7 +13,8 @@ local function destroyLobbyGui(self)
 	SettingsModalGui.destroy(self)
 end
 local function newLobbyGui(self)
-	local LobbyButtons = Assets.getExpectedAsset("LobbyButtons", "MainGui", self._MainGui)
+	local LobbyGui = Assets.getExpectedAsset("LobbyGui", "MainGui", self._MainGui)
+	local LobbyButtons = Assets.getExpectedAsset("LobbyButtons", "LobbyGui", LobbyGui)
 
     for _, LobbyButton in LobbyButtons:GetChildren() do
 		if not (LobbyButton:IsA("GuiButton")) then
@@ -36,13 +37,11 @@ local function newLobbyGui(self)
 	UIAnimations.initializePopup(self, LobbyButtons)
 
 	SettingsModalGui.new(self)
-end
 
--- public
-local function initializeLobbyGuiModule() end
+	LobbyGui.Visible = true
+end
 
 return {
 	destroy = destroyLobbyGui,
 	new = newLobbyGui,
-	initialize = initializeLobbyGuiModule,
 }

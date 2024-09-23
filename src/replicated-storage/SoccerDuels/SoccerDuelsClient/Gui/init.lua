@@ -40,11 +40,7 @@ local function newClientGui(self)
 	end)
 end
 
--- public
-local function initializeGuiModule() end
-
 return {
 	destroy = destroyClientGui,
 	new = newClientGui,
-	initialize = initializeGuiModule,
 }
