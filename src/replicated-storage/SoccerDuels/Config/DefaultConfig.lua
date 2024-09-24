@@ -95,6 +95,9 @@ DefaultConfig.PopupVisibleTweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Back)
 DefaultConfig.PopupStartPositionOffset = UDim2.new(0, 0, 0.05, 0) -- (negative Y is still up)
 DefaultConfig.PopupStartSizeRatio = 0.6 -- 1 for same size as normal, 0.5 for half-size, etc
 
+DefaultConfig.FlashingPartTweenInfo = TweenInfo.new(0.2)
+DefaultConfig.FlashingPartTransparency = 0.5
+
 -- user input
 DefaultConfig.DefaultControllerType = "Touch"
 DefaultConfig.UserInputTypeToControllerType = {

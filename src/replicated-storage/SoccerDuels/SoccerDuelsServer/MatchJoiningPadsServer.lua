@@ -150,6 +150,9 @@ local function initializeMatchJoinPad(Folder)
 	local PadPart1 = Assets.getExpectedAsset(matchPadName .. " Pad1", matchPadName, Folder)
 	local PadPart2 = Assets.getExpectedAsset(matchPadName .. " Pad2", matchPadName, Folder)
 
+	local LightPart1 = Assets.getExpectedAsset(matchPadName .. " Pad1Light", matchPadName, Folder)
+	local LightPart2 = Assets.getExpectedAsset(matchPadName .. " Pad2Light", matchPadName, Folder)
+
 	PadPart1.CollisionGroup = LOBBY_DEVICE_COLLISION_GROUP
 	PadPart2.CollisionGroup = LOBBY_DEVICE_COLLISION_GROUP
 
@@ -173,6 +176,12 @@ local function initializeMatchJoinPad(Folder)
 
 	PadPart1:SetAttribute(MATCH_JOINING_PAD_IDENTIFIER_ATTRIBUTE_NAME, true)
 	PadPart2:SetAttribute(MATCH_JOINING_PAD_IDENTIFIER_ATTRIBUTE_NAME, true)
+
+	LightPart1.Transparency = 1
+	LightPart2.Transparency = 1
+
+	LightPart1.Color = TEAM1_COLOR
+	LightPart2.Color = TEAM2_COLOR
 
 	MaxPlayersPerTeam[matchPadEnum] = maxPlayersPerTeam
 	MatchPadState[matchPadEnum] = Enums.getEnum("MatchJoiningPadState", "WaitingForPlayers")

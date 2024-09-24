@@ -132,6 +132,10 @@ do
 		Path = "ReplicatedStorage/Sounds/Notification",
 		ClassName = "Sound",
 	}
+	ExpectedAssets.StepOnMatchJoiningPadSound = {
+		Path = "ReplicatedStorage/Sounds/StepOnMatchJoiningPad",
+		ClassName = "Sound",
+	}
 end
 
 -- match joining pads
@@ -150,6 +154,14 @@ do
 		}
 		ExpectedAssets[padName .. " Pad2"] = {
 			Path = "Workspace/MatchJoiningPads/" .. padName .. "/Pad2",
+			ClassName = "BasePart",
+		}
+		ExpectedAssets[padName .. " Pad1Light"] = {
+			Path = "Workspace/MatchJoiningPads/" .. padName .. "/Pad1/Light",
+			ClassName = "BasePart",
+		}
+		ExpectedAssets[padName .. " Pad2Light"] = {
+			Path = "Workspace/MatchJoiningPads/" .. padName .. "/Pad2/Light",
 			ClassName = "BasePart",
 		}
 	end

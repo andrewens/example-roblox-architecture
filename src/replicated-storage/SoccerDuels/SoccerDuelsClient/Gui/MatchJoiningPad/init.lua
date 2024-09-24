@@ -7,8 +7,12 @@ local Maid = require(SoccerDuelsModule.Maid)
 
 local AvatarHeadshotImages = require(SoccerDuelsClientModule.AvatarHeadshotImages)
 
+local TouchSensorLights = require(script.TouchSensorLights)
+
 -- public / Client class methods
-local function destroyMatchJoiningPadGui(self) end
+local function destroyMatchJoiningPadGui(self)
+	TouchSensorLights.destroy(self)
+end
 local function newMatchJoiningPadGui(self)
 	local MatchJoiningPadGui = Assets.getExpectedAsset("MatchJoiningPadGui", "MainGui", self._MainGui)
 	local Team1Container =
@@ -87,6 +91,9 @@ local function newMatchJoiningPadGui(self)
 	-- clear out templates
 	PlayerIconTemplate.Parent = nil
 	clearMatchJoiningGui()
+
+	-- modules
+	TouchSensorLights.new(self)
 end
 
 return {

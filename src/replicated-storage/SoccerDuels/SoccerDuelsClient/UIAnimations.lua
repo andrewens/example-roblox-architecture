@@ -27,7 +27,21 @@ local POPUP_VISIBLE_TWEEN_INFO = Config.getConstant("PopupVisibleTweenInfo")
 local POPUP_START_POSITION_OFFSET = Config.getConstant("PopupStartPositionOffset")
 local POPUP_START_SIZE_RATIO = Config.getConstant("PopupStartSizeRatio")
 
+local PART_FLASH_TRANSPARENCY = Config.getConstant("FlashingPartTransparency")
+local PART_FLASHING_TWEEN_INFO = Config.getConstant("FlashingPartTweenInfo")
+
 -- public / Client class methods
+local function flashNeonPart(self, Part)
+	if not (typeof(Part) == "Instance" and Part:IsA("BasePart")) then
+		error(`{Part} is not a BasePart!`)
+	end
+
+	Part.Transparency = PART_FLASH_TRANSPARENCY
+
+	TweenService:Create(Part, PART_FLASHING_TWEEN_INFO, {
+		Transparency = 1,
+	}):Play()
+end
 local function initializePopupVisibilityAnimations(self, Frame)
 	if not (typeof(Frame) == "Instance") then
 		error(`{Frame} is not an Instance!`)
@@ -129,7 +143,7 @@ local function initializeButtonAnimations(self, GuiButton, Options)
 			}):Play()
 		end)
 
-        -- (duplicate code is because it will take less memory this way)
+		-- (duplicate code is because it will take less memory this way)
 	end
 
 	-- TODO currently it is possible for you to click a button and it still doesn't register,
@@ -141,4 +155,5 @@ end
 return {
 	initializePopup = initializePopupVisibilityAnimations,
 	initializeButton = initializeButtonAnimations,
+	flashNeonPart = flashNeonPart,
 }
