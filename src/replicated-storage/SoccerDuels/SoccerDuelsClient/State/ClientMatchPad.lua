@@ -49,6 +49,19 @@ local function clientConnectedMatchPadChanged(self, Player, newMatchPadEnum, tea
 end
 
 -- public / Client class methods
+local function onLobbyCharacterTouchedMatchPadConnect(self, callback)
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	self._CharacterTouchedMatchPadCallbacks[callback] = true
+
+	return {
+		Disconnect = function()
+			self._CharacterTouchedMatchPadCallbacks[callback] = nil
+		end,
+	}
+end
 local function onAnyPlayerMatchPadChangedConnect(self, callback)
 	if not (typeof(callback) == "function") then
 		error(`{callback} is not a function!`)
@@ -139,6 +152,10 @@ local function touchedMatchJoiningPadPartAsync(self, MatchPadPart)
 		error(`{MatchPadPart.Name} has no team index!`)
 	end
 
+	for callback, _ in self._CharacterTouchedMatchPadCallbacks do
+		callback(matchPadName, teamIndex)
+	end
+
 	Network.invokeServer("PlayerJoinMatchPad", self.Player, matchPadEnum, teamIndex)
 end
 local function initializeClientMatchPad(self)
@@ -153,6 +170,7 @@ end
 
 return {
 	disconnectClientFromMatchPadIfCharacterSteppedOffAsync = disconnectClientFromMatchPadIfCharacterSteppedOffAsync,
+	onLobbyCharacterTouchedMatchPadConnect = onLobbyCharacterTouchedMatchPadConnect,
 	onAnyPlayerMatchPadChangedConnect = onAnyPlayerMatchPadChangedConnect,
 
 	getClientConnectedMatchPadName = getClientConnectedMatchPadName,

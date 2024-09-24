@@ -86,7 +86,6 @@ local function newMatchJoiningPadGui(self)
 
 	-- clear out templates
 	PlayerIconTemplate.Parent = nil
-
 	clearMatchJoiningGui()
 end
 

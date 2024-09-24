@@ -36,6 +36,8 @@ local function destroyClient(self) -- TODO this isn't really tested
 	self._ToastCallbacks = nil
 
 	self._CharactersInLobby = nil
+	self._CachedPlayerAvatarImages = nil
+	self._ImageLabelsWaitingForAvatarImages = nil
 
 	Gui.destroy(self)
 
@@ -76,6 +78,7 @@ local function newClient(Player)
 	self._PlayerConnectedMatchPadEnum = {} -- Player --> int matchPadEnum
 	self._PlayerConnectedMatchPadTeam = {} -- Player --> int teamIndex
 	self._PlayerMatchPadChangedCallbacks = {} -- function callback(Player AnyPlayer, string | nil matchPadName, int teamIndex)
+	self._CharacterTouchedMatchPadCallbacks = {} -- function callback(string matchPadName, int teamIndex) --> true
 
 	self._MainGui = nil -- ScreenGui
 
@@ -98,6 +101,7 @@ local function initializeClients()
 
 		-- client match pad
 		DisconnectFromMatchJoiningPadIfCharacterSteppedOffAsync = ClientMatchPad.disconnectClientFromMatchPadIfCharacterSteppedOffAsync,
+		OnLobbyCharacterTouchedMatchPadConnect = ClientMatchPad.onLobbyCharacterTouchedMatchPadConnect,
 		OnPlayerMatchPadChangedConnect = ClientMatchPad.onAnyPlayerMatchPadChangedConnect,
 		TeleportToMatchPadAsync = ClientMatchPad.clientTeleportToMatchPadAsync,
 		GetConnectedMatchPadName = ClientMatchPad.getClientConnectedMatchPadName,

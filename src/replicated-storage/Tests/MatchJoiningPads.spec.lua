@@ -399,6 +399,56 @@ return function()
 
 				Client:Destroy()
 			end)
+			it("Fires an event when a character touches a match pad part", function()
+				SoccerDuels.disconnectAllPlayers()
+				SoccerDuels.resetTestingVariables()
+
+				local MockPlayer = MockInstance.new("Player")
+				local Client = SoccerDuels.newClient(MockPlayer)
+
+				Client:LoadPlayerDataAsync()
+
+				local Pad1 = SoccerDuels.getExpectedAsset("1v1 #1 Pad1")
+				local Pad2 = SoccerDuels.getExpectedAsset("1v1 #1 Pad2")
+
+				Client:LobbyCharacterTouchedPart(Pad2)
+
+				local touchCount = 0
+				local lastTouchedMatchPadName, lastTeamIndex
+				local conn = Client:OnLobbyCharacterTouchedMatchPadConnect(function(...)
+					touchCount += 1
+					lastTouchedMatchPadName, lastTeamIndex = ...
+				end)
+
+				assert(touchCount == 0) -- doesn't count any currently touched parts
+
+				Client:LobbyCharacterTouchedPart(Pad1)
+
+				assert(touchCount == 1)
+				assert(lastTouchedMatchPadName == "1v1 #1")
+				assert(lastTeamIndex == 1)
+
+				Client:LobbyCharacterTouchedPart(Pad2)
+
+				assert(touchCount == 2)
+				assert(lastTouchedMatchPadName == "1v1 #1")
+				assert(lastTeamIndex == 2)
+
+				SoccerDuels.teleportPlayerToLobbySpawnLocation(MockPlayer)
+
+				assert(touchCount == 2)
+				assert(lastTouchedMatchPadName == "1v1 #1")
+				assert(lastTeamIndex == 2)
+
+				conn:Disconnect()
+				Client:LobbyCharacterTouchedPart(Pad1)
+
+				assert(touchCount == 2)
+				assert(lastTouchedMatchPadName == "1v1 #1")
+				assert(lastTeamIndex == 2)
+
+				Client:Destroy()
+			end)
 		end)
 		describe("Client:OnUserInterfaceModeChangedConnect()", function()
 			it(
