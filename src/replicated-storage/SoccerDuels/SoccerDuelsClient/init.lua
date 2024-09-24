@@ -79,6 +79,9 @@ local function newClient(Player)
 
 	self._MainGui = nil -- ScreenGui
 
+	self._CachedPlayerAvatarImages = {} -- int userId --> string imageContent
+	self._ImageLabelsWaitingForAvatarImages = {} -- int userId --> [ ImageLabel, ... ]
+
 	-- init
 	setmetatable(self, ClientMetatable)
 

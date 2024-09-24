@@ -5,6 +5,8 @@ local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
 local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Maid = require(SoccerDuelsModule.Maid)
 
+local AvatarHeadshotImages = require(SoccerDuelsClientModule.AvatarHeadshotImages)
+
 -- public / Client class methods
 local function destroyMatchJoiningPadGui(self) end
 local function newMatchJoiningPadGui(self)
@@ -68,8 +70,7 @@ local function newMatchJoiningPadGui(self)
 
 		LevelLabel.Text = self:GetAnyPlayerDataValue("Level", Player)
 		WinStreakLabel.Text = self:GetAnyPlayerDataValue("WinStreak", Player)
-
-		-- TODO implement profile picture
+		AvatarHeadshotImages.setImageLabelImageToAvatarHeadshot(self, ProfilePicture, Player)
 	end
 
 	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)

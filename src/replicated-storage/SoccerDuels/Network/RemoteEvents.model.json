@@ -44,6 +44,14 @@
     {
       "Name": "ClientDestroyed",
       "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "PlayerDisconnected",
+      "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "PlayerConnected",
+      "ClassName": "RemoteEvent"
     }
   ]
 }

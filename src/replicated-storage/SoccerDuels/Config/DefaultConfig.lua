@@ -136,4 +136,9 @@ DefaultConfig.CharacterTouchSensorPartName = "TouchSensor"
 DefaultConfig.LobbyDeviceCollisionGroup = "LobbyDevice"
 DefaultConfig.LobbyDeviceTransparency = if DefaultConfig.TestingMode then 0.9 else 1
 
+-- avatar headshots
+DefaultConfig.AvatarHeadshotImageThumbnailType = Enum.ThumbnailType.AvatarBust
+DefaultConfig.AvatarHeadshotImageThumbnailResolution = Enum.ThumbnailSize.Size100x100
+DefaultConfig.AvatarHeadshotPlaceholderImage = "rbxassetid://0"
+
 return DefaultConfig

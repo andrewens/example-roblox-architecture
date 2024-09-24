@@ -54,11 +54,13 @@ local function playerChangedSetting(Player, settingName, newValue)
 	PlayerSaveData.Settings[settingName] = newValue
 end
 local function getPlayerSaveData(Player)
+	-- testing latency
 	local testingExtraLoadTime = TestingVariables.getVariable("ExtraLoadTime")
 	if testingExtraLoadTime and testingExtraLoadTime > 0 then
 		TestingVariables.wait(testingExtraLoadTime)
 	end
 
+	-- attempt to load player save data
 	local s, PlayerSaveData = pcall(Database.getPlayerSaveDataAsync, Player)
 	if not s then
 		local errorMessage = PlayerSaveData
@@ -84,9 +86,17 @@ local function getPlayerSaveData(Player)
 		end
 	end
 
+	-- network event so clients know a new player joined (TODO this behavior is untested)
+	Network.fireAllClients("PlayerConnected", Player)
+
+	for OtherPlayer, _ in CachedPlayerSaveData do
+		Network.fireClient("PlayerConnected", Player, OtherPlayer)
+	end
+
 	-- save to server cache
 	CachedPlayerSaveData[Player] = PlayerSaveData
 
+	-- other systems
 	LobbyCharacterServer.playerDataLoaded(Player)
 	MatchJoiningPadsServer.playerDataLoaded(Player)
 
@@ -140,6 +150,8 @@ local function disconnectPlayer(Player, kickPlayer)
 	LobbyCharacterServer.disconnectPlayer(Player)
 	PlayerControllerTypeServer.disconnectPlayer(Player)
 	MatchJoiningPadsServer.disconnectPlayer(Player)
+
+	Network.fireAllClients("PlayerDisconnected", Player) -- TODO this behavior is untested
 end
 local function disconnectAllPlayers(kickPlayers)
 	for Player, _ in CachedPlayerSaveData do

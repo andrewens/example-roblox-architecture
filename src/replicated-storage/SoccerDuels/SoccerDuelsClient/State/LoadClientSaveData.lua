@@ -3,11 +3,14 @@ local RunService = game:GetService("RunService")
 
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 local SoccerDuelsClientStateFolder = script:FindFirstAncestor("State")
+local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
 
 local ClientInput = require(SoccerDuelsClientStateFolder.ClientInput)
 local ClientMatchPad = require(SoccerDuelsClientStateFolder.ClientMatchPad)
 local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserInterfaceMode)
 local LobbyCharacters = require(SoccerDuelsClientStateFolder.LobbyCharacters)
+
+local AvatarHeadshotImages = require(SoccerDuelsClientModule.AvatarHeadshotImages)
 
 local Config = require(SoccerDuelsModule.Config)
 local Network = require(SoccerDuelsModule.Network)
@@ -89,6 +92,7 @@ local function loadClientPlayerDataAsync(self)
 	end))
 
 	ClientMatchPad.initialize(self) -- must be before GetPlayerSaveData b/c it listens to a remote event that fires afterward
+	AvatarHeadshotImages.initialize(self)
 
 	local s, playerSaveDataJson = Network.invokeServer("GetPlayerSaveData", self.Player)
 	if not s then
