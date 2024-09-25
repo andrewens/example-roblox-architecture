@@ -16,6 +16,8 @@ local MATCH_JOINING_PAD_RADIUS_PADDING_STUDS = Config.getConstant("MatchJoiningP
 local PLAYER_STEPPED_OFF_MATCH_PAD_POLL_RATE_SECONDS =
 	Config.getConstant("SecondsBetweenCheckingIfPlayerSteppedOffMatchJoiningPad")
 
+local MAP_VOTING_STATE_ENUM = Enums.getEnum("MatchJoiningPadState", "MapVoting")
+
 -- private
 local function getMatchPadPart(matchPadEnum, teamIndex)
 	local matchPadName = Enums.enumToName("MatchJoiningPad", matchPadEnum)
@@ -27,9 +29,15 @@ local function matchPadStateChanged(self, matchPadEnum, matchPadStateEnum, state
 	self._MatchJoiningPadStateEnum[matchPadEnum] = matchPadStateEnum
 	self._MatchJoiningPadStateChangeTimestamp[matchPadEnum] = stateChangeTimestamp
 
+	-- Client self.Player's match pad only below this
 	if self._PlayerConnectedMatchPadEnum[self.Player] ~= matchPadEnum then
 		return
 	end
+
+	ClientUserInterfaceMode.setClientUserInterfaceMode(
+		self,
+		if matchPadStateEnum == MAP_VOTING_STATE_ENUM then "MapVoting" else "MatchJoiningPad"
+	)
 
 	local matchPadStateName = Enums.enumToName("MatchJoiningPadState", matchPadStateEnum)
 	for callback, _ in self._PlayerConnectedMatchPadStateChangedCallbacks do

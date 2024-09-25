@@ -569,6 +569,54 @@ return function()
 					Client:Destroy()
 				end
 			)
+			it(
+				"Client's UserInterfaceMode changes to 'MapVoting' when the client's match joining pad state is set to 'MapVoting'",
+				function()
+					local countdownDuration = SoccerDuels.getConstant("MatchJoiningPadCountdownDurationSeconds")
+					local maxError = 0.010
+
+					SoccerDuels.disconnectAllPlayers()
+					SoccerDuels.resetTestingVariables()
+
+					local Player1 = MockInstance.new("Player")
+					local Player2 = MockInstance.new("Player")
+
+					local Client1 = SoccerDuels.newClient(Player1)
+					local Client2 = SoccerDuels.newClient(Player2)
+
+					Client1:LoadPlayerDataAsync()
+					Client2:LoadPlayerDataAsync()
+
+					assert(Client1:GetUserInterfaceMode() == "Lobby")
+					assert(Client2:GetUserInterfaceMode() == "Lobby")
+
+					SoccerDuels.teleportPlayerToMatchPad(Player1, "1v1 #1", 1)
+					SoccerDuels.teleportPlayerToMatchPad(Player2, "1v1 #1", 2)
+
+					assert(Client1:GetUserInterfaceMode() == "MatchJoiningPad")
+					assert(Client2:GetUserInterfaceMode() == "MatchJoiningPad")
+
+					SoccerDuels.addExtraSecondsForTesting(countdownDuration - maxError)
+					SoccerDuels.matchPadTimerTick()
+
+					assert(Client1:GetUserInterfaceMode() == "MatchJoiningPad")
+					assert(Client2:GetUserInterfaceMode() == "MatchJoiningPad")
+
+					SoccerDuels.addExtraSecondsForTesting(2 * maxError)
+					SoccerDuels.matchPadTimerTick()
+
+					assert(Client1:GetUserInterfaceMode() == "MapVoting")
+					assert(Client2:GetUserInterfaceMode() == "MapVoting")
+
+					SoccerDuels.teleportPlayerToLobbySpawnLocation(Player2)
+
+					assert(Client1:GetUserInterfaceMode() == "MatchJoiningPad")
+					assert(Client2:GetUserInterfaceMode() == "Lobby")
+
+					Client1:Destroy()
+					Client2:Destroy()
+				end
+			)
 		end)
 		describe("Client:OnPlayerMatchPadChangedConnect()", function()
 			it("Invokes a callback every time a player changes which match pad they're connected to", function()
