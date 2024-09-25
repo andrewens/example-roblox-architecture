@@ -196,6 +196,11 @@ do
 	}
 	ExpectedAssets.MatchJoiningPadPlayerProfilePicture = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Searching/Team1/Player/Pfp",
+		ClassName = "ImageLabel",
+	}
+	ExpectedAssets.MatchJoiningPadCountdownTimer = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Searching/vs/Countdown",
+		ClassName = "TextLabel",
 	}
 end
 

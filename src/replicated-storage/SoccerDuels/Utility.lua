@@ -50,6 +50,33 @@ local function shouldIgnoreMockPlayerFromServerTests(Player)
 	-- consume by the client, despite connecting to the remote event after the tests finish.
 	return RunService:IsClient() and typeof(Player) == "table"
 end
+local function runServiceRenderSteppedConnect(rate, callback)
+	if callback == nil then -- support passing just a callback
+		callback = rate
+		rate = 0
+	end
+
+	if not (typeof(rate) == "number" and rate >= 0) then
+		error(`{rate} is not a positive number!`)
+	end
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	callback(0.0167) -- 0.0167 = 1/60 which is the ideal frame rate
+
+	local deltaTime = 0
+	local Event = if RunService:IsServer() then RunService.Heartbeat else RunService.RenderStepped
+	return Event:Connect(function(dt)
+		deltaTime += dt
+		if deltaTime < rate then
+			return
+		end
+
+		callback(deltaTime)
+		deltaTime = 0
+	end)
+end
 local function runServiceSteppedConnect(rate, callback)
 	if callback == nil then -- support passing just a callback
 		callback = rate
@@ -202,21 +229,22 @@ local function organizeDependenciesServerOnly()
 end
 
 return {
-	isA = isA,
-	isInteger = isInteger,
-	tableCount = tableCount,
-	tableDeepCopy = tableDeepCopy,
 	dictionaryToArray = dictionaryToArray,
+	tableDeepCopy = tableDeepCopy,
+	tableCount = tableCount,
+	isInteger = isInteger,
+	isA = isA,
 
-	weldPartToPart = weldPartToPart,
-	onPartTouchedConnect = onPartTouchedConnect,
 	playerCharacterIsInsideSpherePart = playerCharacterIsInsideSpherePart,
-
-	onPlayerDiedConnect = onPlayerDiedConnect,
-	onCharacterLoadedConnect = onCharacterLoadedConnect,
-	runServiceSteppedConnect = runServiceSteppedConnect,
 	getPlayerCharacterPosition = getPlayerCharacterPosition,
+	weldPartToPart = weldPartToPart,
 
-	organizeDependencies = organizeDependenciesServerOnly,
+	runServiceRenderSteppedConnect = runServiceRenderSteppedConnect,
+	runServiceSteppedConnect = runServiceSteppedConnect,
+	onCharacterLoadedConnect = onCharacterLoadedConnect,
+	onPartTouchedConnect = onPartTouchedConnect,
+	onPlayerDiedConnect = onPlayerDiedConnect,
+
 	shouldIgnoreMockPlayerFromServerTests = shouldIgnoreMockPlayerFromServerTests,
+	organizeDependencies = organizeDependenciesServerOnly,
 }

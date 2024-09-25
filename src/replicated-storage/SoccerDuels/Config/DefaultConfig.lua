@@ -131,10 +131,11 @@ DefaultConfig.MatchJoiningPadIdentifierAttributeName = "MatchJoiningPad"
 DefaultConfig.MatchJoiningPadCountdownDurationSeconds = 3
 DefaultConfig.MatchJoiningPadMapVotingDurationSeconds = 5
 DefaultConfig.MatchJoiningPadStateChangePollRateSeconds = 0.2
+DefaultConfig.MatchJoiningPadCountdownTimerPollRateSeconds = 0.1
 
 -- lobby characters interacting with match joining pads, ... etc "LobbyDevices"
 DefaultConfig.CharacterTeleportVerticalOffset = 3
-DefaultConfig.CharacterTouchSensorSizeVector3 = Vector3.new(2, 7, 2) -- Z is in forward direction of player
+DefaultConfig.CharacterTouchSensorSizeVector3 = Vector3.new(2, 2, 2) -- Z is in forward direction of player
 DefaultConfig.CharacterTouchSensorDebounceRateSeconds = 0.1
 DefaultConfig.CharacterTouchSensorPartName = "TouchSensor"
 DefaultConfig.LobbyDeviceCollisionGroup = "LobbyDevice"

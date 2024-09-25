@@ -110,9 +110,11 @@ local function initializeClients()
 		OnLobbyCharacterTouchedMatchPadConnect = ClientMatchPad.onLobbyCharacterTouchedMatchPadConnect,
 		OnPlayerMatchPadChangedConnect = ClientMatchPad.onAnyPlayerMatchPadChangedConnect,
 		TeleportToMatchPadAsync = ClientMatchPad.clientTeleportToMatchPadAsync,
+		GetMatchPadState = ClientMatchPad.getAnyMatchPadState,
+
+		GetConnectedMatchPadStateChangeTimestamp = ClientMatchPad.getClientConnectedMatchPadStateChangeTimestamp, -- TODO untested
 		GetConnectedMatchPadName = ClientMatchPad.getClientConnectedMatchPadName,
 		GetConnectedMatchPadTeam = ClientMatchPad.getClientConnectedMatchPadTeam,
-		GetMatchPadState = ClientMatchPad.getAnyMatchPadState,
 
 		-- client input
 		OnControllerTypeChangedConnect = ClientInput.onClientControllerTypeChangedConnect,

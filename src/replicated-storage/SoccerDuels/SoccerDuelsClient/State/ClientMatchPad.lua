@@ -142,6 +142,14 @@ local function onAnyPlayerMatchPadChangedConnect(self, callback)
 		end,
 	}
 end
+local function getClientConnectedMatchPadStateChangeTimestamp(self) -- TODO this is untested
+	local matchPadEnum = self._PlayerConnectedMatchPadEnum[self.Player]
+	if matchPadEnum == nil then
+		return
+	end
+
+	return self._MatchJoiningPadStateChangeTimestamp[matchPadEnum]
+end
 local function getClientConnectedMatchPadName(self)
 	local matchPadEnum = self._PlayerConnectedMatchPadEnum[self.Player]
 	return Enums.enumToName("MatchJoiningPad", matchPadEnum)
@@ -239,6 +247,7 @@ return {
 	onLobbyCharacterTouchedMatchPadConnect = onLobbyCharacterTouchedMatchPadConnect,
 	onAnyPlayerMatchPadChangedConnect = onAnyPlayerMatchPadChangedConnect,
 
+	getClientConnectedMatchPadStateChangeTimestamp = getClientConnectedMatchPadStateChangeTimestamp,
 	getClientConnectedMatchPadName = getClientConnectedMatchPadName,
 	getClientConnectedMatchPadTeam = getClientConnectedMatchPadTeam,
 
