@@ -99,6 +99,11 @@ DefaultConfig.PopupStartSizeRatio = 0.6 -- 1 for same size as normal, 0.5 for ha
 DefaultConfig.FlashingPartTweenInfo = TweenInfo.new(0.2)
 DefaultConfig.FlashingPartTransparency = 0.5
 
+-- avatar headshots
+DefaultConfig.AvatarHeadshotImageThumbnailType = Enum.ThumbnailType.AvatarBust
+DefaultConfig.AvatarHeadshotImageThumbnailResolution = Enum.ThumbnailSize.Size100x100
+DefaultConfig.AvatarHeadshotPlaceholderImage = "rbxassetid://0"
+
 -- user input
 DefaultConfig.DefaultControllerType = "Touch"
 DefaultConfig.UserInputTypeToControllerType = {
@@ -133,7 +138,7 @@ DefaultConfig.MatchJoiningPadMapVotingDurationSeconds = 5
 DefaultConfig.MatchJoiningPadStateChangePollRateSeconds = 0.2
 DefaultConfig.MatchJoiningPadCountdownTimerPollRateSeconds = 0.1
 
--- lobby characters interacting with match joining pads, ... etc "LobbyDevices"
+-- lobby characters interacting with match joining pads & etc ("LobbyDevices")
 DefaultConfig.CharacterTeleportVerticalOffset = 3
 DefaultConfig.CharacterTouchSensorSizeVector3 = Vector3.new(2, 2, 2) -- Z is in forward direction of player
 DefaultConfig.CharacterTouchSensorDebounceRateSeconds = 0.1
@@ -141,9 +146,9 @@ DefaultConfig.CharacterTouchSensorPartName = "TouchSensor"
 DefaultConfig.LobbyDeviceCollisionGroup = "LobbyDevice"
 DefaultConfig.LobbyDeviceTransparency = if DefaultConfig.TestingMode then 0.9 else 1
 
--- avatar headshots
-DefaultConfig.AvatarHeadshotImageThumbnailType = Enum.ThumbnailType.AvatarBust
-DefaultConfig.AvatarHeadshotImageThumbnailResolution = Enum.ThumbnailSize.Size100x100
-DefaultConfig.AvatarHeadshotPlaceholderImage = "rbxassetid://0"
+-- maps
+DefaultConfig.MapThumbnailImages = {
+	["Stadium"] = "rbxassetid://113929796493700"
+}
 
 return DefaultConfig
