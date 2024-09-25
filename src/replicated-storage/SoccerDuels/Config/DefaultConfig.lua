@@ -148,7 +148,8 @@ DefaultConfig.LobbyDeviceTransparency = if DefaultConfig.TestingMode then 0.9 el
 
 -- maps
 DefaultConfig.MapThumbnailImages = {
-	["Stadium"] = "rbxassetid://113929796493700"
+	["Stadium"] = "rbxassetid://113929796493700",
+	["Map2"] = "rbxassetid://113929796493700",
 }
 
 return DefaultConfig

@@ -908,4 +908,113 @@ return function()
 			end)
 		end)
 	end)
+	describe("Map voting", function()
+		describe("Client:VoteForMap()", function()
+			it(
+				"Clients can vote for a map if they're connected to a MatchJoiningPad and it is in a 'MapVoting' state",
+				function()
+					SoccerDuels.disconnectAllPlayers()
+					SoccerDuels.resetTestingVariables()
+
+					local countdownDuration = SoccerDuels.getConstant("MatchJoiningPadCountdownDurationSeconds")
+					local mapVotingDuration = SoccerDuels.getConstant("MatchJoiningPadMapVotingDurationSeconds")
+					local maxError = 0.010
+
+					local TestMapVotes = {}
+					local EmptyMapVotes = {} -- (just never set the values of this so it stays at 0)
+					for mapEnum, mapName in SoccerDuels.iterateEnumsOfType("Map") do
+						TestMapVotes[mapName] = 0
+						EmptyMapVotes[mapName] = 0
+					end
+
+					local Player1 = MockInstance.new("Player")
+					local Player2 = MockInstance.new("Player")
+
+					local Client1 = SoccerDuels.newClient(Player1)
+					local Client2 = SoccerDuels.newClient(Player2)
+
+					-- players can only vote if they're connected to a match joining pad in a 'MapVoting' state
+					local s = pcall(Client1.VoteForMap, Client1, "Stadium")
+					assert(not s)
+
+					Client1:LoadPlayerDataAsync()
+					Client2:LoadPlayerDataAsync()
+
+					assert(Utility.tableDeepEqual(EmptyMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #1")))
+					assert(Utility.tableDeepEqual(EmptyMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #2")))
+
+					SoccerDuels.teleportPlayerToMatchPad(Player1, "1v1 #1", 1)
+					Client1:VoteForMap("Stadium")
+
+					assert(Utility.tableDeepEqual(EmptyMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #1")))
+					assert(Utility.tableDeepEqual(EmptyMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #2")))
+
+					SoccerDuels.teleportPlayerToMatchPad(Player2, "1v1 #1", 2)
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "Countdown")
+
+					Client1:VoteForMap("Stadium")
+					Client2:VoteForMap("Stadium")
+
+					assert(Utility.tableDeepEqual(EmptyMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #1")))
+					assert(Utility.tableDeepEqual(EmptyMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #2")))
+
+					SoccerDuels.addExtraSecondsForTesting(countdownDuration + maxError)
+					SoccerDuels.matchPadTimerTick()
+					Client1:VoteForMap("Stadium")
+					Client2:VoteForMap("Stadium")
+					TestMapVotes.Stadium = 2
+
+					assert(Utility.tableDeepEqual(TestMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #1")))
+					assert(Utility.tableDeepEqual(EmptyMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #2")))
+
+					-- players can vote for nothing
+					Client1:VoteForMap(nil)
+					TestMapVotes.Stadium = 1
+
+					assert(Utility.tableDeepEqual(TestMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #1")))
+					assert(Utility.tableDeepEqual(EmptyMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #2")))
+
+					-- players only get one vote
+					Client2:VoteForMap("Map2") -- TODO will need to change this map name later
+					TestMapVotes.Stadium = 0
+					TestMapVotes.Map2 = 1
+
+					assert(Utility.tableDeepEqual(TestMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #1")))
+					assert(Utility.tableDeepEqual(EmptyMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #2")))
+
+					-- if a player disconnects from the match joining pad, the votes all return to 0
+					SoccerDuels.teleportPlayerToLobbySpawnLocation(Player2)
+					TestMapVotes.Map2 = 0
+
+					assert(Utility.tableDeepEqual(TestMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #1")))
+					assert(Utility.tableDeepEqual(EmptyMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #2")))
+
+					-- when a match pad ends the map voting state, all votes return to 0
+					SoccerDuels.teleportPlayerToMatchPad(Player2, "1v1 #1", 2)
+					SoccerDuels.addExtraSecondsForTesting(countdownDuration + maxError)
+					SoccerDuels.matchPadTimerTick()
+					Client1:VoteForMap("Map2")
+					Client2:VoteForMap("Stadium")
+					TestMapVotes.Map2 = 1
+					TestMapVotes.Stadium = 1
+
+					assert(Utility.tableDeepEqual(TestMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #1")))
+					assert(Utility.tableDeepEqual(EmptyMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #2")))
+
+					SoccerDuels.addExtraSecondsForTesting(mapVotingDuration + maxError)
+					SoccerDuels.matchPadTimerTick()
+					TestMapVotes.Map2 = 0
+					TestMapVotes.Stadium = 0
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "WaitingForPlayers")
+					assert(Utility.tableDeepEqual(TestMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #1")))
+					assert(Utility.tableDeepEqual(EmptyMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #2")))
+
+					Client1:Destroy()
+					Client2:Destroy()
+				end
+			)
+		end)
+	end)
 end

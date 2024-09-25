@@ -150,6 +150,14 @@ local function onAnyPlayerMatchPadChangedConnect(self, callback)
 		end,
 	}
 end
+local function getClientConnectedMatchPadState(self) -- TODO this might be untested
+	local matchPadEnum = self._PlayerConnectedMatchPadEnum[self.Player]
+	if matchPadEnum == nil then
+		return
+	end
+
+	return Enums.enumToName("MatchJoiningPadState", self._MatchJoiningPadStateEnum[matchPadEnum])
+end
 local function getClientConnectedMatchPadStateChangeTimestamp(self) -- TODO this is untested
 	local matchPadEnum = self._PlayerConnectedMatchPadEnum[self.Player]
 	if matchPadEnum == nil then
@@ -164,6 +172,31 @@ local function getClientConnectedMatchPadName(self)
 end
 local function getClientConnectedMatchPadTeam(self)
 	return self._PlayerConnectedMatchPadTeam[self.Player] or 1
+end
+local function clientVoteForMap(self, mapName)
+	if self._PlayerSaveData[self.Player] == nil then
+		error(`Client data isn't loaded!`)
+	end
+
+	if getClientConnectedMatchPadState(self) ~= "MapVoting" then
+		return
+	end
+
+	if mapName == nil then
+		Network.fireServer("PlayerVoteForMap", self.Player, nil)
+		return
+	end
+
+	if not (typeof(mapName) == "string") then
+		error(`{mapName} is not a string!`)
+	end
+
+	local mapEnum = Enums.getEnum("Map", mapName)
+	if mapEnum == nil then
+		error(`"{mapName}" is not the name of a map!`)
+	end
+
+	Network.fireServer("PlayerVoteForMap", self.Player, mapEnum)
 end
 local function clientTeleportToMatchPadAsync(self, matchPadName, teamIndex)
 	if self._PlayerSaveData[self.Player] == nil then
@@ -249,6 +282,7 @@ local function initializeClientMatchPad(self)
 end
 
 return {
+	clientVoteForMap = clientVoteForMap,
 	disconnectClientFromMatchPadIfCharacterSteppedOffAsync = disconnectClientFromMatchPadIfCharacterSteppedOffAsync,
 
 	onPlayerConnectedMatchPadStateChangedConnect = onPlayerConnectedMatchPadStateChangedConnect,

@@ -218,32 +218,35 @@ local function initializeServer()
 end
 
 return {
-	-- match joining pads
-	teleportPlayerToLobbySpawnLocation = MatchJoiningPadsServer.teleportPlayerToLobbySpawnLocation,
-	teleportPlayerToMatchPad = MatchJoiningPadsServer.teleportPlayerToMatchPad,
-
-	getPlayerConnectedMatchPadName = MatchJoiningPadsServer.getPlayerConnectedMatchPadName,
-	getPlayerConnectedMatchPadTeam = MatchJoiningPadsServer.getPlayerConnectedMatchPadTeam,
-	getMatchPadTeamPlayers = MatchJoiningPadsServer.getMatchPadTeamPlayers,
-	getMatchJoiningPads = MatchJoiningPadsServer.getMatchJoiningPads,
-	matchPadTimerTick = MatchJoiningPadsServer.matchPadTimerTick,
-	getMatchPadState = MatchJoiningPadsServer.getMatchPadState,
-
-	-- toast notifications
-	notifyPlayer = NotifyPlayerServer.notifyPlayer,
-
 	-- database
 	getAvailableDataStoreRequests = Database.getAvailableDataStoreRequests,
 	getPlayerSaveDataAsync = Database.getPlayerSaveDataAsync,
 	savePlayerDataAsync = Database.savePlayerDataAsync,
 
-	-- testing API
+	-- map voting
+	getMatchPadMapVotes = MatchJoiningPadsServer.getMatchPadMapVotes,
+
+	-- match joining pads
+	teleportPlayerToLobbySpawnLocation = MatchJoiningPadsServer.teleportPlayerToLobbySpawnLocation,
+	teleportPlayerToMatchPad = MatchJoiningPadsServer.teleportPlayerToMatchPad,
+	matchPadTimerTick = MatchJoiningPadsServer.matchPadTimerTick,
+
+	getPlayerConnectedMatchPadName = MatchJoiningPadsServer.getPlayerConnectedMatchPadName,
+	getPlayerConnectedMatchPadTeam = MatchJoiningPadsServer.getPlayerConnectedMatchPadTeam,
+	getMatchPadTeamPlayers = MatchJoiningPadsServer.getMatchPadTeamPlayers,
+	getMatchJoiningPads = MatchJoiningPadsServer.getMatchJoiningPads,
+	getMatchPadState = MatchJoiningPadsServer.getMatchPadState,
+
+	-- testing
 	resetAvailableDataStoreRequestsTestingMode = TestingVariables.resetAvailableDataStoreRequestsTestingMode,
 	addExtraSecondsForTesting = TestingVariables.addExtraSecondsForTesting,
 	resetTestingVariables = TestingVariables.resetVariables,
 	getTestingVariable = TestingVariables.getVariable,
 	setTestingVariable = TestingVariables.setVariable,
 	wait = TestingVariables.wait,
+
+	-- toast notifications
+	notifyPlayer = NotifyPlayerServer.notifyPlayer,
 
 	-- SoccerDuels server
 	updateCachedPlayerSaveData = updateCachedPlayerSaveData,

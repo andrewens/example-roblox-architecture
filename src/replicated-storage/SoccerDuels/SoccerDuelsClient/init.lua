@@ -104,6 +104,9 @@ local function initializeClients()
 		OnUserInterfaceModeChangedConnect = ClientUserInterfaceMode.onClientUserInterfaceModeChangedConnect,
 		GetUserInterfaceMode = ClientUserInterfaceMode.getClientUserInterfaceMode,
 
+		-- map voting
+		VoteForMap = ClientMatchPad.clientVoteForMap,
+
 		-- client match pad
 		DisconnectFromMatchJoiningPadIfCharacterSteppedOffAsync = ClientMatchPad.disconnectClientFromMatchPadIfCharacterSteppedOffAsync,
 		OnPlayerMatchPadStateChangedConnect = ClientMatchPad.onPlayerConnectedMatchPadStateChangedConnect,

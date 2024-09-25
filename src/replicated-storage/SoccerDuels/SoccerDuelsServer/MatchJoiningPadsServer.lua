@@ -37,14 +37,15 @@ local MaxPlayersPerTeam = {} -- int matchPadEnum --> int
 local MatchPadTeamPlayers = {} -- int matchPadEnum --> int teamIndex --> Player --> true | nil
 local PlayerConnectedMatchPad = {} -- Player --> [ int matchPadEnum, int teamIndex ]
 local MatchPadState = {} -- int matchPadEnum --> int matchPadStateEnum
-local extraSecondsForTesting = 0
 local MatchPadStateChangeTimestamp = {} -- int matchPadEnum --> float timestampWhenStateChanges
+local MatchPadMapVotes = {} -- int matchPadEnum --> Player --> mapEnum
 
 -- private
 local disconnectPlayerFromAllMatchPads
 local function setMatchPadState(matchPadEnum, matchPadStateEnum, stateChangeTimestamp)
 	MatchPadState[matchPadEnum] = matchPadStateEnum
 	MatchPadStateChangeTimestamp[matchPadEnum] = stateChangeTimestamp
+	MatchPadMapVotes[matchPadEnum] = {} -- votes need to get wiped when we leave the 'MapVoting' state
 
 	Network.fireAllClients("MatchPadStateChanged", matchPadEnum, matchPadStateEnum, stateChangeTimestamp)
 end
@@ -190,9 +191,26 @@ local function initializeMatchJoinPad(Folder)
 	MatchPadTeamPlayers[matchPadEnum] = {}
 	MatchPadTeamPlayers[matchPadEnum][1] = {}
 	MatchPadTeamPlayers[matchPadEnum][2] = {}
+	MatchPadMapVotes[matchPadEnum] = {}
 end
 
 -- protected / Network methods
+local function clientVoteOnMap(Player, mapEnum)
+	if PlayerConnectedMatchPad[Player] == nil then
+		return
+	end
+
+	local matchPadEnum = table.unpack(PlayerConnectedMatchPad[Player])
+	if MatchPadState[matchPadEnum] ~= MAP_VOTING_STATE_ENUM then
+		return
+	end
+
+	if not (mapEnum == nil or Enums.enumToName("Map", mapEnum)) then
+		error(`{mapEnum} is not a Map Enum!`)
+	end
+
+	MatchPadMapVotes[matchPadEnum][Player] = mapEnum
+end
 local function clientJoinMatchPad(Player, matchPadEnum, teamIndex)
 	if Player.Character == nil or Player.Character.Parent == nil then
 		disconnectPlayerFromAllMatchPads(Player)
@@ -204,13 +222,16 @@ local function clientJoinMatchPad(Player, matchPadEnum, teamIndex)
 		return
 	end
 
+	if Enums.enumToName("MatchJoiningPad", matchPadEnum) == nil then
+		error(`{matchPadEnum} is not a MatchJoiningPad Enum!`)
+	end
+	if not (teamIndex == 1 or teamIndex == 2) then
+		error(`{teamIndex} is not a valid TeamIndex!`)
+	end
+
 	connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
 end
 local function clientDisconnectFromMatchPad(Player, matchPadEnum, teamIndex)
-	if not Utility.isA(Player, "Player") then
-		error(`{Player} is not a Player!`)
-	end
-
 	if PlayerConnectedMatchPad[Player] == nil then
 		return
 	end
@@ -224,6 +245,33 @@ local function clientDisconnectFromMatchPad(Player, matchPadEnum, teamIndex)
 end
 
 -- public
+local function getMatchPadMapVotes(matchPadName)
+	if not (typeof(matchPadName) == "string") then
+		error(`{matchPadName} is not a string!`)
+	end
+
+	local matchPadEnum = Enums.getEnum("MatchJoiningPad", matchPadName)
+	if matchPadEnum == nil then
+		error(`"{matchPadName}" is not the name of a match joining pad!`)
+	end
+
+	-- tally votes
+	local MapEnumVotes = {}
+	for Player, mapEnum in MatchPadMapVotes[matchPadEnum] do
+		if MapEnumVotes[mapEnum] == nil then
+			MapEnumVotes[mapEnum] = 0
+		end
+		MapEnumVotes[mapEnum] += 1
+	end
+
+	-- format by map name
+	local MapNameVotes = {}
+	for mapEnum, mapName in Enums.iterateEnumsOfType("Map") do
+		MapNameVotes[mapName] = MapEnumVotes[mapEnum] or 0
+	end
+
+	return MapNameVotes
+end
 local function matchPadTimerTick()
 	for matchPadEnum, _ in MatchPadStateChangeTimestamp do
 		updateMatchPadState(matchPadEnum)
@@ -390,18 +438,22 @@ local function initializeMatchJoiningPads()
 
 	Utility.onCharacterLoadedConnect(playerCharacterLoaded)
 	Utility.runServiceSteppedConnect(MATCH_JOINING_PAD_STATE_CHANGE_POLL_RATE_SECONDS, matchPadTimerTick)
+
+	Network.onServerEventConnect("PlayerVoteForMap", clientVoteOnMap)
 end
 
 return {
+	getMatchPadMapVotes = getMatchPadMapVotes,
+
+	teleportPlayerToLobbySpawnLocation = teleportPlayerToLobbySpawnLocation,
+	teleportPlayerToMatchPad = teleportPlayerToMatchPad,
+	matchPadTimerTick = matchPadTimerTick,
+
 	getPlayerConnectedMatchPadTeam = getPlayerConnectedMatchPadTeamIndex,
 	getPlayerConnectedMatchPadName = getPlayerConnectedMatchPadName,
 	getMatchPadTeamPlayers = getMatchPadTeamPlayers,
 	getMatchJoiningPads = getMatchJoiningPads,
-	matchPadTimerTick = matchPadTimerTick,
 	getMatchPadState = getMatchPadState,
-
-	teleportPlayerToLobbySpawnLocation = teleportPlayerToLobbySpawnLocation,
-	teleportPlayerToMatchPad = teleportPlayerToMatchPad,
 
 	playerCharacterLoaded = playerCharacterLoaded,
 	initialize = initializeMatchJoiningPads,

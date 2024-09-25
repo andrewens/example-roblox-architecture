@@ -28,12 +28,13 @@ end
 --[[ SERVER ]]
 local Config = require(script.Config) -- needs to be required first!
 local AssetDependencies = require(script.AssetDependencies)
+local Enums = require(script.Enums)
 local PlayerDocument = require(script.PlayerDocument)
 local SoccerDuelsClient = require(script.SoccerDuelsClient)
 local SoccerDuelsServer = require(script.SoccerDuelsServer)
-local Time = require(script.Time)
 local Utility = require(script.Utility)
 local Network = require(script.Network)
+local Time = require(script.Time)
 
 -- public
 local function initializeSoccerDuels()
@@ -44,16 +45,13 @@ local function initializeSoccerDuels()
 end
 
 return {
-	-- config
-	getConstant = Config.getConstant,
-
 	-- assets
 	getExpectedAssets = AssetDependencies.getExpectedAssets,
 	getExpectedAsset = AssetDependencies.getExpectedAsset,
 	getAsset = AssetDependencies.getAsset,
 
-	-- SoccerDuels client
-	newClient = SoccerDuelsClient.new,
+	-- config
+	getConstant = Config.getConstant,
 
 	-- database
 	getAvailableDataStoreRequests = SoccerDuelsServer.getAvailableDataStoreRequests,
@@ -61,19 +59,28 @@ return {
 	savePlayerDataAsync = SoccerDuelsServer.savePlayerDataAsync,
 	newPlayerDocument = PlayerDocument.new,
 
+	-- enums
+	iterateEnumsOfType = Enums.iterateEnumsOfType,
+
+	-- map voting
+	getMatchPadMapVotes = SoccerDuelsServer.getMatchPadMapVotes,
+
 	-- match joining pads
 	teleportPlayerToLobbySpawnLocation = SoccerDuelsServer.teleportPlayerToLobbySpawnLocation,
 	teleportPlayerToMatchPad = SoccerDuelsServer.teleportPlayerToMatchPad,
+	matchPadTimerTick = SoccerDuelsServer.matchPadTimerTick,
 
 	getPlayerConnectedMatchPadName = SoccerDuelsServer.getPlayerConnectedMatchPadName,
 	getPlayerConnectedMatchPadTeam = SoccerDuelsServer.getPlayerConnectedMatchPadTeam,
 	getMatchPadTeamPlayers = SoccerDuelsServer.getMatchPadTeamPlayers,
 	getMatchJoiningPads = SoccerDuelsServer.getMatchJoiningPads,
-	matchPadTimerTick = SoccerDuelsServer.matchPadTimerTick,
 	getMatchPadState = SoccerDuelsServer.getMatchPadState,
 
 	-- notify players
 	notifyPlayer = SoccerDuelsServer.notifyPlayer,
+
+	-- SoccerDuels client
+	newClient = SoccerDuelsClient.new,
 
 	-- SoccerDuels server
 	updateCachedPlayerSaveData = SoccerDuelsServer.updateCachedPlayerSaveData,
@@ -86,14 +93,14 @@ return {
 
 	initialize = initializeSoccerDuels,
 
-	-- time
-	getUnixTimestampMilliseconds = Time.getUnixTimestampMilliseconds,
-	getUnixTimestamp = Time.getUnixTimestamp,
-
 	-- testing API
 	addExtraSecondsForTesting = SoccerDuelsServer.addExtraSecondsForTesting,
 	resetTestingVariables = SoccerDuelsServer.resetTestingVariables,
 	setTestingVariable = SoccerDuelsServer.setTestingVariable,
 	getTestingVariable = SoccerDuelsServer.getTestingVariable,
 	wait = SoccerDuelsServer.wait,
+
+	-- time
+	getUnixTimestampMilliseconds = Time.getUnixTimestampMilliseconds,
+	getUnixTimestamp = Time.getUnixTimestamp,
 }

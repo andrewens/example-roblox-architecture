@@ -56,6 +56,10 @@
     {
       "Name": "PlayerConnected",
       "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "PlayerVoteForMap",
+      "ClassName": "RemoteEvent"
     }
   ]
 }
