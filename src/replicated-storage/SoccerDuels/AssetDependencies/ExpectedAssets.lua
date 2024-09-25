@@ -204,4 +204,25 @@ do
 	}
 end
 
+-- map voting gui
+do
+	ExpectedAssets.MapVotingModal = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/MapVoting",
+	}
+	ExpectedAssets.MapVotingMapContainer = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/MapVoting/Tabs",
+	}
+	ExpectedAssets.MapVotingMapButton = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/MapVoting/Tabs/Map",
+		ClassName = "ImageButton",
+	}
+	ExpectedAssets.MapVotingPlayerIcon = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/MapVoting/Tabs/Map/Tabs/Player",
+	}
+	ExpectedAssets.MapVotingPlayerIconProfilePicture = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/MapVoting/Tabs/Map/Tabs/Player/Pfp",
+		ClassName = "ImageLabel",
+	}
+end
+
 return ExpectedAssets
