@@ -35,9 +35,11 @@ local function destroyClient(self) -- TODO this isn't really tested
 	self._SettingChangedCallbacks = nil
 	self._ToastCallbacks = nil
 
-	self._CharactersInLobby = nil
-	self._CachedPlayerAvatarImages = nil
+	self._MatchJoiningPadStateChangeTimestamp = nil
 	self._ImageLabelsWaitingForAvatarImages = nil
+	self._MatchJoiningPadStateEnum = nil
+	self._CachedPlayerAvatarImages = nil
+	self._CharactersInLobby = nil
 
 	Gui.destroy(self)
 
@@ -75,10 +77,13 @@ local function newClient(Player)
 	self._UserInterfaceModeEnum = Enums.getEnum("UserInterfaceMode", "None") -- int
 	self._UserInterfaceModeChangedCallbacks = {} -- function callback(string userInterfaceMode)
 
+	self._MatchJoiningPadStateEnum = {} -- int matchPadEnum --> int matchPadStateEnum
+	self._MatchJoiningPadStateChangeTimestamp = {} -- int matchPadEnum --> int | nil stateChangeTimestamp
 	self._PlayerConnectedMatchPadEnum = {} -- Player --> int matchPadEnum
 	self._PlayerConnectedMatchPadTeam = {} -- Player --> int teamIndex
 	self._PlayerMatchPadChangedCallbacks = {} -- function callback(Player AnyPlayer, string | nil matchPadName, int teamIndex)
 	self._CharacterTouchedMatchPadCallbacks = {} -- function callback(string matchPadName, int teamIndex) --> true
+	self._PlayerConnectedMatchPadStateChangedCallbacks = {} -- function callback(string matchPadStateName, int | nil matchStateChangeTimestamp) --> true
 
 	self._MainGui = nil -- ScreenGui
 
@@ -101,11 +106,13 @@ local function initializeClients()
 
 		-- client match pad
 		DisconnectFromMatchJoiningPadIfCharacterSteppedOffAsync = ClientMatchPad.disconnectClientFromMatchPadIfCharacterSteppedOffAsync,
+		OnPlayerMatchPadStateChangedConnect = ClientMatchPad.onPlayerConnectedMatchPadStateChangedConnect,
 		OnLobbyCharacterTouchedMatchPadConnect = ClientMatchPad.onLobbyCharacterTouchedMatchPadConnect,
 		OnPlayerMatchPadChangedConnect = ClientMatchPad.onAnyPlayerMatchPadChangedConnect,
 		TeleportToMatchPadAsync = ClientMatchPad.clientTeleportToMatchPadAsync,
 		GetConnectedMatchPadName = ClientMatchPad.getClientConnectedMatchPadName,
 		GetConnectedMatchPadTeam = ClientMatchPad.getClientConnectedMatchPadTeam,
+		GetMatchPadState = ClientMatchPad.getAnyMatchPadState,
 
 		-- client input
 		OnControllerTypeChangedConnect = ClientInput.onClientControllerTypeChangedConnect,

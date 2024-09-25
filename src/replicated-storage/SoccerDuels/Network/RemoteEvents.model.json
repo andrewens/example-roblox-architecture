@@ -42,6 +42,10 @@
       "ClassName": "RemoteEvent"
     },
     {
+      "Name": "MatchPadStateChanged",
+      "ClassName": "RemoteEvent"
+    },
+    {
       "Name": "ClientDestroyed",
       "ClassName": "RemoteEvent"
     },

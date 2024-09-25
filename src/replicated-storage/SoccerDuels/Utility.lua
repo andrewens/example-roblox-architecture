@@ -74,12 +74,6 @@ local function runServiceSteppedConnect(rate, callback)
 		deltaTime = 0
 	end)
 end
-local function getUnixTimestamp()
-	return DateTime.now().UnixTimestamp
-end
-local function getUnixTimestampMilliseconds()
-	return DateTime.now().UnixTimestampMillis
-end
 local function dictionaryToArray(Dictionary)
 	local Array = {}
 	for k, v in Dictionary do
@@ -208,9 +202,6 @@ local function organizeDependenciesServerOnly()
 end
 
 return {
-	getUnixTimestamp = getUnixTimestamp,
-	getUnixTimestampMilliseconds = getUnixTimestampMilliseconds,
-
 	isA = isA,
 	isInteger = isInteger,
 	tableCount = tableCount,

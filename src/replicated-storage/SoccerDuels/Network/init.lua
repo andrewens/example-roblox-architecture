@@ -19,6 +19,7 @@ local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 local RemoteEvents = script.RemoteEvents
 
 local Config = require(SoccerDuelsModule.Config)
+local Time = require(SoccerDuelsModule.Time)
 local Utility = require(SoccerDuelsModule.Utility)
 local RemoteEventSandwiches = require(script.RemoteEventSandwiches)
 
@@ -118,12 +119,12 @@ if not TESTING_MODE then
 		local RemoteFunction = RemoteEvents[remoteName]
 
 		if IsRemoteEventSandwich[remoteName] then
-			local timestamp = Utility.getUnixTimestampMilliseconds()
+			local timestamp = Time.getUnixTimestampMilliseconds()
 
 			RemoteFunction:FireServer(timestamp, ...)
 
 			-- while loop
-			while Utility.getUnixTimestampMilliseconds() - timestamp < REMOTE_EVENT_SANDWICH_TIMEOUT_MILLISECONDS do
+			while Time.getUnixTimestampMilliseconds() - timestamp < REMOTE_EVENT_SANDWICH_TIMEOUT_MILLISECONDS do
 				local ReturnValues = RemoteEventSandwichReturnValues[RemoteFunction][timestamp]
 				if ReturnValues then
 					RemoteEventSandwichReturnValues[RemoteFunction][timestamp] = nil
@@ -364,12 +365,12 @@ local function invokeServerTestingMode(remoteName, Player, ...)
 	end
 
 	if IsRemoteEventSandwich[remoteName] then
-		local timestamp = Utility.getUnixTimestampMilliseconds()
+		local timestamp = Time.getUnixTimestampMilliseconds()
 
 		RemoteFunction:FireServer(timestamp, ...)
 
 		-- while loop
-		while Utility.getUnixTimestampMilliseconds() - timestamp < REMOTE_EVENT_SANDWICH_TIMEOUT_MILLISECONDS do
+		while Time.getUnixTimestampMilliseconds() - timestamp < REMOTE_EVENT_SANDWICH_TIMEOUT_MILLISECONDS do
 			local ReturnValues = RemoteEventSandwichReturnValues[RemoteFunction][timestamp]
 			if ReturnValues then
 				RemoteEventSandwichReturnValues[RemoteFunction][timestamp] = nil

@@ -31,6 +31,7 @@ local AssetDependencies = require(script.AssetDependencies)
 local PlayerDocument = require(script.PlayerDocument)
 local SoccerDuelsClient = require(script.SoccerDuelsClient)
 local SoccerDuelsServer = require(script.SoccerDuelsServer)
+local Time = require(script.Time)
 local Utility = require(script.Utility)
 local Network = require(script.Network)
 
@@ -47,46 +48,52 @@ return {
 	getConstant = Config.getConstant,
 
 	-- assets
-	getAsset = AssetDependencies.getAsset,
-	getExpectedAsset = AssetDependencies.getExpectedAsset,
 	getExpectedAssets = AssetDependencies.getExpectedAssets,
+	getExpectedAsset = AssetDependencies.getExpectedAsset,
+	getAsset = AssetDependencies.getAsset,
 
 	-- SoccerDuels client
 	newClient = SoccerDuelsClient.new,
 
 	-- database
-	newPlayerDocument = PlayerDocument.new,
 	getAvailableDataStoreRequests = SoccerDuelsServer.getAvailableDataStoreRequests,
 	getPlayerSaveDataAsync = SoccerDuelsServer.getPlayerSaveDataAsync,
 	savePlayerDataAsync = SoccerDuelsServer.savePlayerDataAsync,
+	newPlayerDocument = PlayerDocument.new,
 
 	-- match joining pads
-	advanceMatchPadTimer = SoccerDuelsServer.advanceMatchPadTimer,
-	getMatchPadState = SoccerDuelsServer.getMatchPadState,
-	getMatchPadTeamPlayers = SoccerDuelsServer.getMatchPadTeamPlayers,
-	getMatchJoiningPads = SoccerDuelsServer.getMatchJoiningPads,
+	teleportPlayerToLobbySpawnLocation = SoccerDuelsServer.teleportPlayerToLobbySpawnLocation,
+	teleportPlayerToMatchPad = SoccerDuelsServer.teleportPlayerToMatchPad,
+
 	getPlayerConnectedMatchPadName = SoccerDuelsServer.getPlayerConnectedMatchPadName,
 	getPlayerConnectedMatchPadTeam = SoccerDuelsServer.getPlayerConnectedMatchPadTeam,
-	teleportPlayerToMatchPad = SoccerDuelsServer.teleportPlayerToMatchPad,
-	teleportPlayerToLobbySpawnLocation = SoccerDuelsServer.teleportPlayerToLobbySpawnLocation,
+	getMatchPadTeamPlayers = SoccerDuelsServer.getMatchPadTeamPlayers,
+	getMatchJoiningPads = SoccerDuelsServer.getMatchJoiningPads,
+	matchPadTimerTick = SoccerDuelsServer.matchPadTimerTick,
+	getMatchPadState = SoccerDuelsServer.getMatchPadState,
 
 	-- notify players
 	notifyPlayer = SoccerDuelsServer.notifyPlayer,
 
 	-- SoccerDuels server
-	getLoadedPlayers = SoccerDuelsServer.getLoadedPlayers,
-	disconnectPlayer = SoccerDuelsServer.disconnectPlayer,
-	disconnectAllPlayers = SoccerDuelsServer.disconnectAllPlayers,
-	saveAllPlayerData = SoccerDuelsServer.saveAllPlayerData,
-	playerDataIsSaved = SoccerDuelsServer.playerDataIsSaved,
 	updateCachedPlayerSaveData = SoccerDuelsServer.updateCachedPlayerSaveData,
 	getCachedPlayerSaveData = SoccerDuelsServer.getCachedPlayerSaveData,
+	disconnectAllPlayers = SoccerDuelsServer.disconnectAllPlayers,
+	playerDataIsSaved = SoccerDuelsServer.playerDataIsSaved,
+	saveAllPlayerData = SoccerDuelsServer.saveAllPlayerData,
+	getLoadedPlayers = SoccerDuelsServer.getLoadedPlayers,
+	disconnectPlayer = SoccerDuelsServer.disconnectPlayer,
 
 	initialize = initializeSoccerDuels,
 
+	-- time
+	getUnixTimestampMilliseconds = Time.getUnixTimestampMilliseconds,
+	getUnixTimestamp = Time.getUnixTimestamp,
+
 	-- testing API
-	wait = SoccerDuelsServer.wait,
+	addExtraSecondsForTesting = SoccerDuelsServer.addExtraSecondsForTesting,
+	resetTestingVariables = SoccerDuelsServer.resetTestingVariables,
 	setTestingVariable = SoccerDuelsServer.setTestingVariable,
 	getTestingVariable = SoccerDuelsServer.getTestingVariable,
-	resetTestingVariables = SoccerDuelsServer.resetTestingVariables,
+	wait = SoccerDuelsServer.wait,
 }

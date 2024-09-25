@@ -104,6 +104,13 @@ local function getPlayerSaveData(Player)
 end
 
 -- public
+local function playerDataIsLoaded(Player)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+
+	return CachedPlayerSaveData[Player] ~= nil
+end
 local function getLoadedPlayers()
 	local LoadedPlayers = {}
 
@@ -212,15 +219,15 @@ end
 
 return {
 	-- match joining pads
-	advanceMatchPadTimer = MatchJoiningPadsServer.advanceMatchPadTimer,
-	getMatchPadState = MatchJoiningPadsServer.getMatchPadState,
-	getMatchPadTeamPlayers = MatchJoiningPadsServer.getMatchPadTeamPlayers,
-	getMatchJoiningPads = MatchJoiningPadsServer.getMatchJoiningPads,
+	teleportPlayerToLobbySpawnLocation = MatchJoiningPadsServer.teleportPlayerToLobbySpawnLocation,
+	teleportPlayerToMatchPad = MatchJoiningPadsServer.teleportPlayerToMatchPad,
+
 	getPlayerConnectedMatchPadName = MatchJoiningPadsServer.getPlayerConnectedMatchPadName,
 	getPlayerConnectedMatchPadTeam = MatchJoiningPadsServer.getPlayerConnectedMatchPadTeam,
-
-	teleportPlayerToMatchPad = MatchJoiningPadsServer.teleportPlayerToMatchPad,
-	teleportPlayerToLobbySpawnLocation = MatchJoiningPadsServer.teleportPlayerToLobbySpawnLocation,
+	getMatchPadTeamPlayers = MatchJoiningPadsServer.getMatchPadTeamPlayers,
+	getMatchJoiningPads = MatchJoiningPadsServer.getMatchJoiningPads,
+	matchPadTimerTick = MatchJoiningPadsServer.matchPadTimerTick,
+	getMatchPadState = MatchJoiningPadsServer.getMatchPadState,
 
 	-- toast notifications
 	notifyPlayer = NotifyPlayerServer.notifyPlayer,
@@ -231,19 +238,21 @@ return {
 	savePlayerDataAsync = Database.savePlayerDataAsync,
 
 	-- testing API
-	wait = TestingVariables.wait,
+	resetAvailableDataStoreRequestsTestingMode = TestingVariables.resetAvailableDataStoreRequestsTestingMode,
+	addExtraSecondsForTesting = TestingVariables.addExtraSecondsForTesting,
+	resetTestingVariables = TestingVariables.resetVariables,
 	getTestingVariable = TestingVariables.getVariable,
 	setTestingVariable = TestingVariables.setVariable,
-	resetTestingVariables = TestingVariables.resetVariables,
-	resetAvailableDataStoreRequestsTestingMode = TestingVariables.resetAvailableDataStoreRequestsTestingMode,
+	wait = TestingVariables.wait,
 
 	-- SoccerDuels server
-	getLoadedPlayers = getLoadedPlayers,
-	disconnectPlayer = disconnectPlayer,
-	disconnectAllPlayers = disconnectAllPlayers,
-	saveAllPlayerData = saveAllPlayerData,
-	playerDataIsSaved = playerDataIsSaved,
 	updateCachedPlayerSaveData = updateCachedPlayerSaveData,
 	getCachedPlayerSaveData = getCachedPlayerSaveData,
+	disconnectAllPlayers = disconnectAllPlayers,
+	playerDataIsLoaded = playerDataIsLoaded,
+	playerDataIsSaved = playerDataIsSaved,
+	saveAllPlayerData = saveAllPlayerData,
+	getLoadedPlayers = getLoadedPlayers,
+	disconnectPlayer = disconnectPlayer,
 	initialize = initializeServer,
 }

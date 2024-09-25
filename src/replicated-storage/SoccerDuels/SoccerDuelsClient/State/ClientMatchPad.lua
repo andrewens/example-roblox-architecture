@@ -23,6 +23,19 @@ local function getMatchPadPart(matchPadEnum, teamIndex)
 end
 
 -- protected / Network methods
+local function matchPadStateChanged(self, matchPadEnum, matchPadStateEnum, stateChangeTimestamp)
+	self._MatchJoiningPadStateEnum[matchPadEnum] = matchPadStateEnum
+	self._MatchJoiningPadStateChangeTimestamp[matchPadEnum] = stateChangeTimestamp
+
+	if self._PlayerConnectedMatchPadEnum[self.Player] ~= matchPadEnum then
+		return
+	end
+
+	local matchPadStateName = Enums.enumToName("MatchJoiningPadState", matchPadStateEnum)
+	for callback, _ in self._PlayerConnectedMatchPadStateChangedCallbacks do
+		callback(matchPadStateName, stateChangeTimestamp)
+	end
+end
 local function clientConnectedMatchPadChanged(self, Player, newMatchPadEnum, teamIndex)
 	if Utility.shouldIgnoreMockPlayerFromServerTests(Player) then
 		return
@@ -31,11 +44,12 @@ local function clientConnectedMatchPadChanged(self, Player, newMatchPadEnum, tea
 	self._PlayerConnectedMatchPadEnum[Player] = newMatchPadEnum
 	self._PlayerConnectedMatchPadTeam[Player] = teamIndex
 
+	-- update user interface mode
 	if Player == self.Player then
 		ClientUserInterfaceMode.setClientUserInterfaceMode(self, if newMatchPadEnum then "MatchJoiningPad" else "Lobby")
 	end
 
-	-- invoke callbacks
+	-- player match pad changed callback
 	local matchPadName
 	if newMatchPadEnum then
 		matchPadName = Enums.enumToName("MatchJoiningPad", newMatchPadEnum)
@@ -46,9 +60,55 @@ local function clientConnectedMatchPadChanged(self, Player, newMatchPadEnum, tea
 	for callback, _ in self._PlayerMatchPadChangedCallbacks do
 		callback(Player, matchPadName, teamIndex)
 	end
+
+	-- this player's connected match pad state changed callback
+	if Player == self.Player then
+		local matchPadStateEnum = self._MatchJoiningPadStateEnum[newMatchPadEnum]
+		local stateChangeTimestamp = self._MatchJoiningPadStateChangeTimestamp[newMatchPadEnum]
+		local matchPadStateName = Enums.enumToName("MatchJoiningPadState", matchPadStateEnum)
+
+		for callback, _ in self._PlayerConnectedMatchPadStateChangedCallbacks do
+			callback(matchPadStateName, stateChangeTimestamp)
+		end
+	end
 end
 
 -- public / Client class methods
+local function getAnyMatchPadState(self, matchPadName)
+	if not (typeof(matchPadName) == "string") then
+		error(`{matchPadName} is not a string!`)
+	end
+
+	local matchPadEnum = Enums.getEnum("MatchJoiningPad", matchPadName)
+	if matchPadEnum == nil then
+		error(`"{matchPadName}" is not the name of a MatchJoiningPad!`)
+	end
+
+	local matchPadStateEnum = self._MatchJoiningPadStateEnum[matchPadEnum]
+	return Enums.enumToName("MatchJoiningPadState", matchPadStateEnum)
+end
+local function onPlayerConnectedMatchPadStateChangedConnect(self, callback)
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	local matchPadEnum = self._PlayerConnectedMatchPadEnum[self.Player]
+	if matchPadEnum then
+		local matchPadStateEnum = self._MatchJoiningPadStateEnum[matchPadEnum]
+		local stateChangeTimestamp = self._MatchJoiningPadStateChangeTimestamp[matchPadEnum]
+		local matchPadStateName = Enums.enumToName("MatchJoiningPadState", matchPadStateEnum)
+
+		callback(matchPadStateName, stateChangeTimestamp)
+	end
+
+	self._PlayerConnectedMatchPadStateChangedCallbacks[callback] = true
+
+	return {
+		Disconnect = function()
+			self._PlayerConnectedMatchPadStateChangedCallbacks[callback] = nil
+		end,
+	}
+end
 local function onLobbyCharacterTouchedMatchPadConnect(self, callback)
 	if not (typeof(callback) == "function") then
 		error(`{callback} is not a function!`)
@@ -163,6 +223,10 @@ local function initializeClientMatchPad(self)
 		clientConnectedMatchPadChanged(self, ...)
 	end))
 
+	self._Maid:GiveTask(Network.onClientEventConnect("MatchPadStateChanged", self.Player, function(...)
+		matchPadStateChanged(self, ...)
+	end))
+
 	self._Maid:GiveTask(Utility.runServiceSteppedConnect(PLAYER_STEPPED_OFF_MATCH_PAD_POLL_RATE_SECONDS, function(t, dt)
 		task.spawn(disconnectClientFromMatchPadIfCharacterSteppedOffAsync, self)
 	end))
@@ -170,6 +234,8 @@ end
 
 return {
 	disconnectClientFromMatchPadIfCharacterSteppedOffAsync = disconnectClientFromMatchPadIfCharacterSteppedOffAsync,
+
+	onPlayerConnectedMatchPadStateChangedConnect = onPlayerConnectedMatchPadStateChangedConnect,
 	onLobbyCharacterTouchedMatchPadConnect = onLobbyCharacterTouchedMatchPadConnect,
 	onAnyPlayerMatchPadChangedConnect = onAnyPlayerMatchPadChangedConnect,
 
@@ -179,5 +245,6 @@ return {
 	touchedMatchJoiningPadPartAsync = touchedMatchJoiningPadPartAsync,
 	clientTeleportToMatchPadAsync = clientTeleportToMatchPadAsync,
 
+	getAnyMatchPadState = getAnyMatchPadState,
 	initialize = initializeClientMatchPad,
 }

@@ -33,6 +33,7 @@ DefaultConfig.TestingVariables = {
 		Load = 0,
 	},
 	DisableAutoSave = false,
+	ExtraSecondsInTimestamp = 0,
 }
 
 -- client notifications

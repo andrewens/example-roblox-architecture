@@ -6,6 +6,9 @@ local MockInstanceModule = script:FindFirstAncestor("MockInstance")
 local Event = require(MockInstanceModule.Event)
 local MockCharacter = require(MockInstanceModule.Character)
 
+-- var
+local userIdCounter = 0
+
 -- public / MockPlayer class methods
 local function playerLoadCharacter(self)
 	if self.Character then
@@ -34,10 +37,12 @@ return function()
 	local PlayerGuiFolder = Instance.new("Folder")
 	PlayerGuiFolder.Name = "PlayerGui"
 
+	userIdCounter += 1
+
 	return {
 		-- properties
-		Name = "MockPlayer",
-		UserId = 0,
+		Name = `Player{userIdCounter}`,
+		UserId = userIdCounter,
 		Character = nil,
 
 		-- methods

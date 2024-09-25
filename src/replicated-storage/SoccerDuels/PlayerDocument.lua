@@ -8,6 +8,7 @@ local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 local Config = require(SoccerDuelsModule.Config)
 local Utility = require(SoccerDuelsModule.Utility)
+local Time = require(SoccerDuelsModule.Time)
 
 -- const
 local DEFAULT_PLAYER_SAVE_DATA = Config.getConstant("DefaultPlayerSaveData")
@@ -28,7 +29,7 @@ local function changeNestedTableValue(self, tableName, key2, value)
 	end
 
 	self._Data[tableName][key2] = value
-	self._LastEditTimestamp = Utility.getUnixTimestampMilliseconds()
+	self._LastEditTimestamp = Time.getUnixTimestampMilliseconds()
 
 	for callback, _ in self._DataChangedCallbacks do
 		callback(tableName, self._Data[tableName])
@@ -66,7 +67,7 @@ local function onPlayerDocumentValueChangedConnect(self, callback)
 	}
 end
 local function playerDocumentUpdateLastSavedTimestamp(self)
-	self._LastSaveTimestamp = Utility.getUnixTimestampMilliseconds()
+	self._LastSaveTimestamp = Time.getUnixTimestampMilliseconds()
 end
 local function playerDocumentSaveTimestampIsGreaterThanLastEditTimestamp(self)
 	return self._LastSaveTimestamp >= self._LastEditTimestamp
@@ -92,7 +93,7 @@ local function changePlayerDocumentValue(self, key, value)
 	end
 
 	self._Data[key] = value
-	self._LastEditTimestamp = Utility.getUnixTimestampMilliseconds()
+	self._LastEditTimestamp = Time.getUnixTimestampMilliseconds()
 
 	for callback, _ in self._DataChangedCallbacks do
 		callback(key, value)

@@ -11,6 +11,16 @@ local DEFAULT_TESTING_VARIABLES = Config.getConstant("TestingVariables")
 local TestingVariables = if TESTING_MODE then table.clone(DEFAULT_TESTING_VARIABLES) else {}
 
 -- public
+local function addExtraSecondsForTesting(extraSeconds)
+	if not TESTING_MODE then
+		error(`SoccerDuels API can't set test mode variables when not in TestingMode`)
+	end
+	if not (typeof(extraSeconds) == "number") then
+		error(`{extraSeconds} is not a number!`)
+	end
+
+	TestingVariables.ExtraSecondsInTimestamp += extraSeconds
+end
 local function testingModeWait(seconds)
 	seconds = seconds or 0
 	if not (typeof(seconds) == "number") then
@@ -94,9 +104,10 @@ local function resetTestingModeVariables()
 end
 
 return {
-	wait = testingModeWait,
+	addExtraSecondsForTesting = addExtraSecondsForTesting,
 	decrementVariable = decrementTestingModeVariable,
+	resetVariables = resetTestingModeVariables,
 	setVariable = setTestingModeVariable,
 	getVariable = getTestingModeVariable,
-	resetVariables = resetTestingModeVariables,
+	wait = testingModeWait,
 }
