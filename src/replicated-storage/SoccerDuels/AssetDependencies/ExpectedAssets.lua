@@ -226,6 +226,14 @@ do
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/MapVoting/Tabs/Map/Tabs/Player/Pfp",
 		ClassName = "ImageLabel",
 	}
+	ExpectedAssets.MapVotingPlayerIconTeam1Gradient = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/MapVoting/Tabs/Map/Tabs/Player/Red",
+		ClassName = "UIGradient",
+	}
+	ExpectedAssets.MapVotingPlayerIconTeam2Gradient = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/MapVoting/Tabs/Map/Tabs/Player/Blue",
+		ClassName = "UIGradient",
+	}
 end
 
 return ExpectedAssets

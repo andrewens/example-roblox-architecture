@@ -110,6 +110,7 @@ local function initializeClients()
 		-- map voting
 		VoteForMap = ClientMatchPad.clientVoteForMap,
 		OnConnectedMatchPadVoteChangedConnect = ClientMatchPad.onClientConnectedMatchPadVoteChangedConnect,
+		GetPlayerTeamIndex = ClientMatchPad.getAnyPlayerTeamIndex,
 
 		-- client match pad
 		DisconnectFromMatchJoiningPadIfCharacterSteppedOffAsync = ClientMatchPad.disconnectClientFromMatchPadIfCharacterSteppedOffAsync,

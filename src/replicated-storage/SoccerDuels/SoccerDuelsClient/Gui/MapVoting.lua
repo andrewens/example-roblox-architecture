@@ -42,7 +42,17 @@ local function newMapVotingGui(self)
 
 				local ProfilePicture =
 					Assets.getExpectedAsset("MapVotingPlayerIconProfilePicture", "MapVotingPlayerIcon", PlayerIcon)
+				local Team1Gradient =
+					Assets.getExpectedAsset("MapVotingPlayerIconTeam1Gradient", "MapVotingPlayerIcon", PlayerIcon)
+				local Team2Gradient =
+					Assets.getExpectedAsset("MapVotingPlayerIconTeam2Gradient", "MapVotingPlayerIcon", PlayerIcon)
+
 				AvatarHeadshotImages.setImageLabelImageToAvatarHeadshot(self, ProfilePicture, Player)
+
+				local teamIndex = self:GetPlayerTeamIndex(Player)
+
+				Team1Gradient.Enabled = (teamIndex == 1)
+				Team2Gradient.Enabled = (teamIndex == 2)
 
 				PlayerIcons[Player] = PlayerIcon
 			end
@@ -91,7 +101,7 @@ local function newMapVotingGui(self)
 		MapButton.Parent = MapContainer
 
 		MapButton.Activated:Connect(function()
-            self:VoteForMap(MapButton.Name)
+			self:VoteForMap(MapButton.Name)
 		end)
 	end
 end

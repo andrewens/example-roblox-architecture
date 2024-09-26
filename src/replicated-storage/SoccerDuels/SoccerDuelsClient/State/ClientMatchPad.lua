@@ -18,6 +18,9 @@ local PLAYER_STEPPED_OFF_MATCH_PAD_POLL_RATE_SECONDS =
 
 local MAP_VOTING_STATE_ENUM = Enums.getEnum("MatchJoiningPadState", "MapVoting")
 
+local TEAM1_COLOR = Config.getConstant("Team1Color")
+local TEAM2_COLOR = Config.getConstant("Team2Color")
+
 -- private
 local function getMatchPadPart(matchPadEnum, teamIndex)
 	local matchPadName = Enums.enumToName("MatchJoiningPad", matchPadEnum)
@@ -206,8 +209,8 @@ local function getClientConnectedMatchPadName(self)
 	local matchPadEnum = self._PlayerConnectedMatchPadEnum[self.Player]
 	return Enums.enumToName("MatchJoiningPad", matchPadEnum)
 end
-local function getClientConnectedMatchPadTeam(self)
-	return self._PlayerConnectedMatchPadTeam[self.Player] or 1
+local function getClientConnectedMatchPadTeam(self, Player)
+	return self._PlayerConnectedMatchPadTeam[Player or self.Player] or 1
 end
 local function clientVoteForMap(self, mapName)
 	if self._PlayerSaveData[self.Player] == nil then
@@ -323,6 +326,7 @@ end
 
 return {
 	onClientConnectedMatchPadVoteChangedConnect = onClientConnectedMatchPadVoteChangedConnect,
+	getAnyPlayerTeamIndex = getClientConnectedMatchPadTeam,
 	clientVoteForMap = clientVoteForMap,
 
 	onPlayerConnectedMatchPadStateChangedConnect = onPlayerConnectedMatchPadStateChangedConnect,
