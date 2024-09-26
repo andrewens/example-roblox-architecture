@@ -14,6 +14,13 @@ local THUMBNAIL_SIZE = Config.getConstant("AvatarHeadshotImageThumbnailResolutio
 local PLACEHOLDER_IMAGE = Config.getConstant("AvatarHeadshotPlaceholderImage")
 
 -- private
+local function getUserIdFromPlayer(Player)
+	if Player.UserId >= 0 then
+		return Player.UserId
+	end
+
+	return 9792010
+end
 local function getUserThumbnailAsync(userId)
 	if RunService:IsServer() then -- don't use async calls in tests to avoid slowing them down
 		return PLACEHOLDER_IMAGE, true
@@ -28,7 +35,7 @@ local function clearCachedAvatarPlayerImage(self, Player)
 		return
 	end
 
-	local userId = Player.UserId
+	local userId = getUserIdFromPlayer(Player)
 
 	self._CachedPlayerAvatarImages[userId] = nil
 	if self._ImageLabelsWaitingForAvatarImages[userId] then
@@ -40,7 +47,7 @@ local function cachePlayerAvatarImage(self, Player)
 		return
 	end
 
-	local userId = Player.UserId
+	local userId = getUserIdFromPlayer(Player)
 	if self._CachedPlayerAvatarImages[userId] then
 		return
 	end
@@ -82,7 +89,7 @@ local function setImageLabelImageToAvatarHeadshot(self, ImageLabel, Player)
 		return
 	end
 
-	local userId = Player.UserId
+	local userId = getUserIdFromPlayer(Player)
 	local imageContent = self._CachedPlayerAvatarImages[userId]
 
 	if imageContent then
