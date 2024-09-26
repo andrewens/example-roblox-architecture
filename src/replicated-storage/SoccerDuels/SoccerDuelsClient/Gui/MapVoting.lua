@@ -10,6 +10,7 @@ local Enums = require(SoccerDuelsModule.Enums)
 local Maid = require(SoccerDuelsModule.Maid)
 
 local AvatarHeadshotImages = require(SoccerDuelsClientModule.AvatarHeadshotImages)
+local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 
 -- public
 local function destroyMapVotingGui(self) end
@@ -89,6 +90,7 @@ local function newMapVotingGui(self)
 		UIMaid:GiveTask(Blur)
 	end)
 
+	-- clear templates
 	MapVotingModal.Visible = false
 
 	MapButtonTemplate.Parent = nil
@@ -102,6 +104,7 @@ local function newMapVotingGui(self)
 		MapVotingMapButton:Destroy()
 	end
 
+	-- create map buttons
 	for mapEnum, mapName in Enums.iterateEnumsOfType("Map") do
 		local MapButton = MapButtonTemplate:Clone()
 		MapButton.LayoutOrder = mapEnum
@@ -112,7 +115,11 @@ local function newMapVotingGui(self)
 		MapButton.Activated:Connect(function()
 			self:VoteForMap(MapButton.Name)
 		end)
+
+		UIAnimations.initializeButton(self, MapButton)
 	end
+
+	UIAnimations.initializePopup(self, MapVotingModal)
 end
 
 return {

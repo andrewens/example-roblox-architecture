@@ -28,6 +28,15 @@ local function ignoreWrapperInstanceInPath(WrapperInstance, RealInstance)
 	WrapperInstance:SetAttribute(PATH_IGNORE_ATTRIBUTE_NAME, true)
 end
 local function getAssetByPath(assetPath, RootInstance)
+	if RootInstance and RootInstance:GetAttribute(PATH_IGNORE_ATTRIBUTE_NAME) then
+		repeat
+			RootInstance = RootInstance:FindFirstChild(RootInstance.Name)
+			if RootInstance == nil then
+				return nil
+			end
+		until not RootInstance:GetAttribute(PATH_IGNORE_ATTRIBUTE_NAME)
+	end
+
 	local ChildNames = string.split(assetPath, "/")
 	local Child = RootInstance or game
 
