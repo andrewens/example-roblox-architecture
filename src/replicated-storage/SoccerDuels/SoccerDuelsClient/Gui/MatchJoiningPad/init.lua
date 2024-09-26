@@ -9,6 +9,7 @@ local Time = require(SoccerDuelsModule.Time)
 local Utility = require(SoccerDuelsModule.Utility)
 
 local AvatarHeadshotImages = require(SoccerDuelsClientModule.AvatarHeadshotImages)
+local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 
 local TouchSensorLights = require(script.TouchSensorLights)
 
@@ -116,6 +117,9 @@ local function newMatchJoiningPadGui(self)
 	CountdownTimerLabel.Visible = false
 	PlayerIconTemplate.Parent = nil
 	clearMatchJoiningGui()
+
+	-- animations
+	UIAnimations.initializePopup(self, MatchJoiningPadGui)
 
 	-- modules
 	TouchSensorLights.new(self)
