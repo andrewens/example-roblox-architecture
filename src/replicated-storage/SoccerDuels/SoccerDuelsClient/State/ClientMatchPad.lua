@@ -25,6 +25,22 @@ local function getMatchPadPart(matchPadEnum, teamIndex)
 end
 
 -- protected / Network methods
+local function playerVotedForMap(self, matchPadEnum, Player, mapEnum)
+	if matchPadEnum ~= self._PlayerConnectedMatchPadEnum[self.Player] then
+		return
+	end
+
+	if self._PlayerMapVotes[Player] == mapEnum then
+		return
+	end
+
+	self._PlayerMapVotes[Player] = mapEnum
+
+	local mapName = Enums.enumToName("Map", mapEnum)
+	for callback, _ in self._PlayerVotedOnMapCallbacks do
+		callback(Player, mapName)
+	end
+end
 local function matchPadStateChanged(self, matchPadEnum, matchPadStateEnum, stateChangeTimestamp)
 	self._MatchJoiningPadStateEnum[matchPadEnum] = matchPadStateEnum
 	self._MatchJoiningPadStateChangeTimestamp[matchPadEnum] = stateChangeTimestamp
@@ -33,6 +49,8 @@ local function matchPadStateChanged(self, matchPadEnum, matchPadStateEnum, state
 	if self._PlayerConnectedMatchPadEnum[self.Player] ~= matchPadEnum then
 		return
 	end
+
+	self._PlayerMapVotes = {}
 
 	ClientUserInterfaceMode.setClientUserInterfaceMode(
 		self,
@@ -82,6 +100,24 @@ local function clientConnectedMatchPadChanged(self, Player, newMatchPadEnum, tea
 end
 
 -- public / Client class methods
+local function onClientConnectedMatchPadVoteChangedConnect(self, callback)
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	for Player, mapEnum in self._PlayerMapVotes do
+		local mapName = Enums.enumToName("Map", mapEnum)
+		callback(Player, mapName)
+	end
+
+	self._PlayerVotedOnMapCallbacks[callback] = true
+
+	return {
+		Disconnect = function()
+			self._PlayerVotedOnMapCallbacks[callback] = nil
+		end,
+	}
+end
 local function getAnyMatchPadState(self, matchPadName)
 	if not (typeof(matchPadName) == "string") then
 		error(`{matchPadName} is not a string!`)
@@ -276,14 +312,18 @@ local function initializeClientMatchPad(self)
 		matchPadStateChanged(self, ...)
 	end))
 
+	self._Maid:GiveTask(Network.onClientEventConnect("PlayerVoteForMap", self.Player, function(...)
+		playerVotedForMap(self, ...)
+	end))
+
 	self._Maid:GiveTask(Utility.runServiceSteppedConnect(PLAYER_STEPPED_OFF_MATCH_PAD_POLL_RATE_SECONDS, function(t, dt)
 		task.spawn(disconnectClientFromMatchPadIfCharacterSteppedOffAsync, self)
 	end))
 end
 
 return {
+	onClientConnectedMatchPadVoteChangedConnect = onClientConnectedMatchPadVoteChangedConnect,
 	clientVoteForMap = clientVoteForMap,
-	disconnectClientFromMatchPadIfCharacterSteppedOffAsync = disconnectClientFromMatchPadIfCharacterSteppedOffAsync,
 
 	onPlayerConnectedMatchPadStateChangedConnect = onPlayerConnectedMatchPadStateChangedConnect,
 	onLobbyCharacterTouchedMatchPadConnect = onLobbyCharacterTouchedMatchPadConnect,
@@ -293,6 +333,7 @@ return {
 	getClientConnectedMatchPadName = getClientConnectedMatchPadName,
 	getClientConnectedMatchPadTeam = getClientConnectedMatchPadTeam,
 
+	disconnectClientFromMatchPadIfCharacterSteppedOffAsync = disconnectClientFromMatchPadIfCharacterSteppedOffAsync,
 	touchedMatchJoiningPadPartAsync = touchedMatchJoiningPadPartAsync,
 	clientTeleportToMatchPadAsync = clientTeleportToMatchPadAsync,
 

@@ -85,6 +85,9 @@ local function newClient(Player)
 	self._CharacterTouchedMatchPadCallbacks = {} -- function callback(string matchPadName, int teamIndex) --> true
 	self._PlayerConnectedMatchPadStateChangedCallbacks = {} -- function callback(string matchPadStateName, int | nil matchStateChangeTimestamp) --> true
 
+	self._PlayerMapVotes = {} -- Player --> mapEnum | nil (only players in client's connected match joining pad!)
+	self._PlayerVotedOnMapCallbacks = {} -- function callback(Player AnyPlayer, string | nil mapName) --> true
+
 	self._MainGui = nil -- ScreenGui
 
 	self._CachedPlayerAvatarImages = {} -- int userId --> string imageContent
@@ -106,6 +109,7 @@ local function initializeClients()
 
 		-- map voting
 		VoteForMap = ClientMatchPad.clientVoteForMap,
+		OnConnectedMatchPadVoteChangedConnect = ClientMatchPad.onClientConnectedMatchPadVoteChangedConnect,
 
 		-- client match pad
 		DisconnectFromMatchJoiningPadIfCharacterSteppedOffAsync = ClientMatchPad.disconnectClientFromMatchPadIfCharacterSteppedOffAsync,

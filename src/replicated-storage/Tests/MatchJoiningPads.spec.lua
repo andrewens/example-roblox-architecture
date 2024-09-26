@@ -573,6 +573,7 @@ return function()
 				"Client's UserInterfaceMode changes to 'MapVoting' when the client's match joining pad state is set to 'MapVoting'",
 				function()
 					local countdownDuration = SoccerDuels.getConstant("MatchJoiningPadCountdownDurationSeconds")
+					local mapVotingDuration = SoccerDuels.getConstant("MatchJoiningPadMapVotingDurationSeconds")
 					local maxError = 0.010
 
 					SoccerDuels.disconnectAllPlayers()
@@ -611,6 +612,26 @@ return function()
 					SoccerDuels.teleportPlayerToLobbySpawnLocation(Player2)
 
 					assert(Client1:GetUserInterfaceMode() == "MatchJoiningPad")
+					assert(Client2:GetUserInterfaceMode() == "Lobby")
+
+					SoccerDuels.teleportPlayerToMatchPad(Player2, "1v1 #1", 2)
+					SoccerDuels.addExtraSecondsForTesting(countdownDuration + maxError)
+					SoccerDuels.matchPadTimerTick()
+
+					assert(Client1:GetUserInterfaceMode() == "MapVoting")
+					assert(Client2:GetUserInterfaceMode() == "MapVoting")
+
+					SoccerDuels.addExtraSecondsForTesting(mapVotingDuration - maxError)
+					SoccerDuels.matchPadTimerTick()
+
+					assert(Client1:GetUserInterfaceMode() == "MapVoting")
+					assert(Client2:GetUserInterfaceMode() == "MapVoting")
+
+					Client1:VoteForMap("Stadium")
+					SoccerDuels.addExtraSecondsForTesting(2 * maxError)
+					SoccerDuels.matchPadTimerTick()
+
+					assert(Client1:GetUserInterfaceMode() == "Lobby") -- TODO
 					assert(Client2:GetUserInterfaceMode() == "Lobby")
 
 					Client1:Destroy()
@@ -1011,6 +1032,88 @@ return function()
 					assert(Utility.tableDeepEqual(TestMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #1")))
 					assert(Utility.tableDeepEqual(EmptyMapVotes, SoccerDuels.getMatchPadMapVotes("1v1 #2")))
 
+					Client1:Destroy()
+					Client2:Destroy()
+				end
+			)
+		end)
+		describe("Client:OnConnectedMatchPadVoteChangedConnect()", function()
+			it(
+				"Invokes callback whenever a player changes their vote in the match joining pad the client is connected to",
+				function()
+					local countdownDuration = SoccerDuels.getConstant("MatchJoiningPadCountdownDurationSeconds")
+					local maxError = 0.010
+
+					SoccerDuels.disconnectAllPlayers()
+					SoccerDuels.resetTestingVariables()
+
+					local Player1 = MockInstance.new("Player")
+					local Player2 = MockInstance.new("Player")
+
+					local Client1 = SoccerDuels.newClient(Player1)
+					local Client2 = SoccerDuels.newClient(Player2)
+
+					Client1:LoadPlayerDataAsync()
+					Client2:LoadPlayerDataAsync()
+
+					SoccerDuels.teleportPlayerToMatchPad(Player1, "1v1 #1", 1)
+					SoccerDuels.teleportPlayerToMatchPad(Player2, "1v1 #1", 2)
+
+					SoccerDuels.addExtraSecondsForTesting(countdownDuration + maxError)
+					SoccerDuels.matchPadTimerTick()
+
+					assert(SoccerDuels.getMatchPadState("1v1 #1") == "MapVoting")
+
+					Client2:VoteForMap("Stadium")
+
+					local changeCount = 0
+					local LastPlayer, lastMapName
+					local callback = function(...)
+						changeCount += 1
+						LastPlayer, lastMapName = ...
+					end
+					local conn = Client1:OnConnectedMatchPadVoteChangedConnect(callback)
+
+					if not (changeCount == 1) then
+						error(`{changeCount} != 1`)
+					end
+					assert(LastPlayer == Player2)
+					assert(lastMapName == "Stadium")
+
+					Client1:VoteForMap("Map2")
+
+					assert(changeCount == 2)
+					assert(LastPlayer == Player1)
+					assert(lastMapName == "Map2")
+
+					Client2:VoteForMap(nil)
+
+					assert(changeCount == 3)
+					assert(LastPlayer == Player2)
+					assert(lastMapName == nil)
+
+					conn:Disconnect()
+
+					changeCount = 0
+					LastPlayer, lastMapName = nil, nil
+
+					Client2:VoteForMap("Map2")
+
+					assert(changeCount == 0)
+
+					conn = Client1:OnConnectedMatchPadVoteChangedConnect(callback)
+
+					assert(changeCount == 2)
+					assert(LastPlayer == Player1 or LastPlayer == Player2)
+					assert(lastMapName == "Map2")
+
+					Client1:VoteForMap("Map2") -- this isn't a different vote so it shouldn't invoke a callback
+
+					assert(changeCount == 2)
+					assert(LastPlayer == Player1 or LastPlayer == Player2)
+					assert(lastMapName == "Map2")
+
+					conn:Disconnect()
 					Client1:Destroy()
 					Client2:Destroy()
 				end

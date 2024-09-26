@@ -210,6 +210,7 @@ local function clientVoteOnMap(Player, mapEnum)
 	end
 
 	MatchPadMapVotes[matchPadEnum][Player] = mapEnum
+	Network.fireAllClients("PlayerVoteForMap", matchPadEnum, Player, mapEnum)
 end
 local function clientJoinMatchPad(Player, matchPadEnum, teamIndex)
 	if Player.Character == nil or Player.Character.Parent == nil then

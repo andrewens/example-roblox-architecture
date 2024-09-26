@@ -216,6 +216,9 @@ do
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/MapVoting/Tabs/Map",
 		ClassName = "ImageButton",
 	}
+	ExpectedAssets.MapVotingMapButtonPlayerContainer = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/MapVoting/Tabs/Map/Tabs",
+	}
 	ExpectedAssets.MapVotingPlayerIcon = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/MapVoting/Tabs/Map/Tabs/Player",
 	}
