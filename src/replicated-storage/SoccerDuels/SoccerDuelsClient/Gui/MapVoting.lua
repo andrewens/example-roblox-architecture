@@ -1,4 +1,6 @@
 -- dependency
+local Lighting = game:GetService("Lighting")
+
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
 
@@ -31,6 +33,7 @@ local function newMapVotingGui(self)
 			return
 		end
 
+		-- render player icon for players' map votes
 		PlayerIcons = {}
 
 		UIMaid:GiveTask(self:OnConnectedMatchPadVoteChangedConnect(function(Player, mapName)
@@ -78,6 +81,12 @@ local function newMapVotingGui(self)
 			end
 			PlayerIcons = nil
 		end)
+
+		-- blur effect
+		local Blur = Instance.new("BlurEffect")
+		Blur.Parent = Lighting
+
+		UIMaid:GiveTask(Blur)
 	end)
 
 	MapVotingModal.Visible = false
