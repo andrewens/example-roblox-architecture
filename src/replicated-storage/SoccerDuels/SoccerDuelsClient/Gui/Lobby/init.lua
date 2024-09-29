@@ -7,6 +7,7 @@ local Assets = require(SoccerDuelsModule.AssetDependencies)
 local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 
 local SettingsModalGui = require(ModalGuiFolder.Settings)
+local AvailableMatchJoiningPadsGui = require(script.AvailableMatchJoiningPads)
 
 -- public / Client class methods
 local function destroyLobbyGui(self)
@@ -16,7 +17,7 @@ local function newLobbyGui(self)
 	local LobbyGui = Assets.getExpectedAsset("LobbyGui", "MainGui", self._MainGui)
 	local LobbyButtons = Assets.getExpectedAsset("LobbyButtons", "LobbyGui", LobbyGui)
 
-    for _, LobbyButton in LobbyButtons:GetChildren() do
+	for _, LobbyButton in LobbyButtons:GetChildren() do
 		if not (LobbyButton:IsA("GuiButton")) then
 			continue
 		end
@@ -37,6 +38,7 @@ local function newLobbyGui(self)
 	UIAnimations.initializePopup(self, LobbyButtons)
 
 	SettingsModalGui.new(self)
+	AvailableMatchJoiningPadsGui.new(self)
 
 	LobbyGui.Visible = true
 end

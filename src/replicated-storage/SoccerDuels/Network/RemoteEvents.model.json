@@ -34,6 +34,10 @@
       "ClassName": "RemoteEvent"
     },
     {
+      "Name": "TeleportPlayerToMatchPad",
+      "ClassName": "RemoteEvent"
+    },
+    {
       "Name": "PlayerJoinedMatchPad",
       "ClassName": "RemoteEvent"
     },

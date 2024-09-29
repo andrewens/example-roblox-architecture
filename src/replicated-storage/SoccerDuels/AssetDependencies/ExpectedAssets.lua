@@ -236,4 +236,39 @@ do
 	}
 end
 
+-- joining match pads from lobby gui
+do
+	ExpectedAssets.MatchJoiningPadLobbyList = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Right/Player Searches",
+	}
+	ExpectedAssets.MatchJoiningPadLobbyCard = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Right/Player Searches/Search",
+	} -- TODO this stuff below is the same as the main match joining pad gui
+	ExpectedAssets.MatchJoiningPadLobbyCardTeam1Container = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Right/Player Searches/Search/Team1",
+	}
+	ExpectedAssets.MatchJoiningPadLobbyCardTeam2Container = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Right/Player Searches/Search/Team2",
+	}
+	ExpectedAssets.MatchJoiningPadLobbyPlayerIcon = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Right/Player Searches/Search/Team1/Player",
+	}
+	ExpectedAssets.MatchJoiningPadLobbyPlayerLevelLabel = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Right/Player Searches/Search/Team1/Player/Level/Value",
+		ClassName = "TextLabel",
+	}
+	ExpectedAssets.MatchJoiningPadLobbyPlayerWinStreakLabel = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Right/Player Searches/Search/Team1/Player/Winstreak/Value",
+		ClassName = "TextLabel",
+	}
+	ExpectedAssets.MatchJoiningPadLobbyPlayerProfilePicture = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Right/Player Searches/Search/Team1/Player/Pfp",
+		ClassName = "ImageLabel",
+	}
+	ExpectedAssets.MatchJoiningPadLobbyCardJoinButton = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Right/Player Searches/Search/vs/Join",
+		ClassName = "ImageButton",
+	}
+end
+
 return ExpectedAssets

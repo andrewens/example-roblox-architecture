@@ -418,6 +418,7 @@ return function()
 				assert(Client:GetConnectedMatchPadTeam() == 1)
 
 				Client:LobbyCharacterTouchedPart(Pad2)
+				Client:LobbyCharacterTouchedPart(Pad2) -- touching the same part twice shouldn't change what the player is connected to
 
 				assert(Client:GetConnectedMatchPadName() == "1v1 #1")
 				assert(Client:GetConnectedMatchPadTeam() == 2)

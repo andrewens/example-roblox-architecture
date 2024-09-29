@@ -17,6 +17,7 @@ local PLAYER_STEPPED_OFF_MATCH_PAD_POLL_RATE_SECONDS =
 	Config.getConstant("SecondsBetweenCheckingIfPlayerSteppedOffMatchJoiningPad")
 
 local MAP_VOTING_STATE_ENUM = Enums.getEnum("MatchJoiningPadState", "MapVoting")
+local WAITING_FOR_PLAYERS_STATE_ENUM = Enums.getEnum("MatchJoiningPadState", "WaitingForPlayers")
 
 local TEAM1_COLOR = Config.getConstant("Team1Color")
 local TEAM2_COLOR = Config.getConstant("Team2Color")
@@ -103,6 +104,50 @@ local function clientConnectedMatchPadChanged(self, Player, newMatchPadEnum, tea
 end
 
 -- public / Client class methods
+local function anyMatchPadIsFull(self, matchPadName) -- TODO untested
+	if not (typeof(matchPadName) == "string") then
+		error(`{matchPadName} is not a string!`)
+	end
+
+	local matchPadEnum = Enums.getEnum("MatchJoiningPad", matchPadName)
+	if matchPadEnum == nil then
+		error(`"{matchPadName}" is not the name of a MatchJoiningPad!`)
+	end
+
+	local maxPlayersPerTeam = tonumber(string.sub(matchPadName, 1, 1))
+	local playersOnMatchPad = 0
+
+	for Player, otherMatchPadEnum in self._PlayerConnectedMatchPadEnum do
+		if otherMatchPadEnum ~= matchPadEnum then
+			continue
+		end
+
+		playersOnMatchPad += 1
+		if playersOnMatchPad >= 2 * maxPlayersPerTeam then
+			return true
+		end
+	end
+
+	return false
+end
+local function anyMatchPadIsEmpty(self, matchPadName) -- TODO untested
+	if not (typeof(matchPadName) == "string") then
+		error(`{matchPadName} is not a string!`)
+	end
+
+	local matchPadEnum = Enums.getEnum("MatchJoiningPad", matchPadName)
+	if matchPadEnum == nil then
+		error(`"{matchPadName}" is not the name of a MatchJoiningPad!`)
+	end
+
+	for Player, otherMatchPadEnum in self._PlayerConnectedMatchPadEnum do
+		if otherMatchPadEnum == matchPadEnum then
+			return false
+		end
+	end
+
+	return true
+end
 local function onClientConnectedMatchPadVoteChangedConnect(self, callback)
 	if not (typeof(callback) == "function") then
 		error(`{callback} is not a function!`)
@@ -244,7 +289,8 @@ local function clientTeleportToMatchPadAsync(self, matchPadName, teamIndex)
 	if not (typeof(matchPadName) == "string") then
 		error(`{matchPadName} is not a string!`)
 	end
-	if not (teamIndex == 1 or teamIndex == 2) then
+	if not (teamIndex == nil or teamIndex == 1 or teamIndex == 2) then
+		-- if `teamIndex` is nil, then server will automatically assign player a teamIndex
 		error(`{teamIndex} is not 1 or 2!`)
 	end
 
@@ -253,19 +299,7 @@ local function clientTeleportToMatchPadAsync(self, matchPadName, teamIndex)
 		error(`{matchPadName} is not the name of a match joining pad!`)
 	end
 
-	local Char = self.Player.Character
-	if Char == nil then
-		return
-	end
-
-	Network.invokeServer("PlayerJoinMatchPad", self.Player, matchPadEnum, teamIndex)
-
-	local MatchPadPart = getMatchPadPart(matchPadEnum, teamIndex)
-	if
-		not Utility.playerCharacterIsInsideSpherePart(self.Player, MatchPadPart, MATCH_JOINING_PAD_RADIUS_PADDING_STUDS)
-	then
-		Char:MoveTo(MatchPadPart.Position + Vector3.new(0, 3, 0))
-	end
+	Network.invokeServer("TeleportPlayerToMatchPad", self.Player, matchPadEnum, teamIndex)
 end
 local function disconnectClientFromMatchPadIfCharacterSteppedOffAsync(self)
 	local matchPadEnum = self._PlayerConnectedMatchPadEnum[self.Player]
@@ -298,6 +332,13 @@ local function touchedMatchJoiningPadPartAsync(self, MatchPadPart)
 	local teamIndex = tonumber(string.match(MatchPadPart.Name, "%d+")) -- extract the digit out of the pad name
 	if teamIndex == nil then
 		error(`{MatchPadPart.Name} has no team index!`)
+	end
+
+	local currentMatchPadEnum = self._PlayerConnectedMatchPadEnum[self.Player]
+	local currentTeamIndex = self._PlayerConnectedMatchPadTeam[self.Player]
+
+	if matchPadEnum == currentMatchPadEnum and teamIndex == currentTeamIndex then
+		return
 	end
 
 	for callback, _ in self._CharacterTouchedMatchPadCallbacks do
@@ -342,5 +383,7 @@ return {
 	clientTeleportToMatchPadAsync = clientTeleportToMatchPadAsync,
 
 	getAnyMatchPadState = getAnyMatchPadState,
+	anyMatchPadIsEmpty = anyMatchPadIsEmpty,
+	anyMatchPadIsFull = anyMatchPadIsFull,
 	initialize = initializeClientMatchPad,
 }

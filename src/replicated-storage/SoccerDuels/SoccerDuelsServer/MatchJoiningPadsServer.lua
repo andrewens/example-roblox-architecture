@@ -123,10 +123,20 @@ local function connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
 		error(`{matchPadEnum} is not a match pad enum!`)
 	end
 
-	local TeamPlayers = MatchPadTeamPlayers[matchPadEnum][teamIndex]
-	local maxPlayersPerTeam = MaxPlayersPerTeam[matchPadEnum]
+	local Team1Players = MatchPadTeamPlayers[matchPadEnum][1]
+	local Team2Players = MatchPadTeamPlayers[matchPadEnum][2]
 
-	if Utility.tableCount(TeamPlayers) >= maxPlayersPerTeam then
+	local team1PlayerCount = Utility.tableCount(Team1Players)
+	local team2PlayerCount = Utility.tableCount(Team2Players)
+
+	if teamIndex == nil then
+		teamIndex = if team1PlayerCount <= team2PlayerCount then 1 else 2
+	end
+
+	local maxPlayersPerTeam = MaxPlayersPerTeam[matchPadEnum]
+	local teamPlayerCount = if teamIndex == 1 then team1PlayerCount else team2PlayerCount
+
+	if teamPlayerCount >= maxPlayersPerTeam then
 		disconnectPlayerFromAllMatchPads(Player)
 		return false
 	end
@@ -135,7 +145,7 @@ local function connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
 
 	Network.fireAllClients("PlayerJoinedMatchPad", Player, matchPadEnum, teamIndex)
 
-	return true
+	return true, teamIndex
 end
 local function getMatchPadPart(matchPadEnum, teamIndex)
 	local matchPadName = Enums.enumToName("MatchJoiningPad", matchPadEnum)
@@ -212,6 +222,38 @@ local function clientVoteOnMap(Player, mapEnum)
 	MatchPadMapVotes[matchPadEnum][Player] = mapEnum
 	Network.fireAllClients("PlayerVoteForMap", matchPadEnum, Player, mapEnum)
 end
+local function clientTeleportToMatchPad(Player, matchPadEnum, teamIndex)
+	local Char = Player.Character
+	if Char == nil or Char.Parent == nil then
+		disconnectPlayerFromAllMatchPads(Player)
+		return
+	end
+
+	if matchPadEnum == nil then
+		disconnectPlayerFromAllMatchPads(Player)
+		return
+	end
+
+	if Enums.enumToName("MatchJoiningPad", matchPadEnum) == nil then
+		error(`{matchPadEnum} is not a MatchJoiningPad Enum!`)
+	end
+	if not (teamIndex == nil or teamIndex == 1 or teamIndex == 2) then
+		-- if `teamIndex` is nil, then connectPlayerToMatchPad() will automatically assign player a teamIndex
+		error(`{teamIndex} is not a valid TeamIndex!`)
+	end
+
+	local success
+	success, teamIndex = connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
+
+	if not success then
+		return false
+	end
+
+	local MatchPadPart = getMatchPadPart(matchPadEnum, teamIndex)
+	Char:MoveTo(MatchPadPart.Position + Vector3.new(0, 3, 0))
+
+	return true, teamIndex
+end
 local function clientJoinMatchPad(Player, matchPadEnum, teamIndex)
 	if Player.Character == nil or Player.Character.Parent == nil then
 		disconnectPlayerFromAllMatchPads(Player)
@@ -226,11 +268,12 @@ local function clientJoinMatchPad(Player, matchPadEnum, teamIndex)
 	if Enums.enumToName("MatchJoiningPad", matchPadEnum) == nil then
 		error(`{matchPadEnum} is not a MatchJoiningPad Enum!`)
 	end
-	if not (teamIndex == 1 or teamIndex == 2) then
+	if not (teamIndex == nil or teamIndex == 1 or teamIndex == 2) then
+		-- if `teamIndex` is nil, then connectPlayerToMatchPad() will automatically assign player a teamIndex
 		error(`{teamIndex} is not a valid TeamIndex!`)
 	end
 
-	connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
+	return connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
 end
 local function clientDisconnectFromMatchPad(Player, matchPadEnum, teamIndex)
 	if PlayerConnectedMatchPad[Player] == nil then
@@ -380,7 +423,8 @@ local function teleportPlayerToMatchPad(Player, matchPadName, teamIndex)
 	if not (typeof(matchPadName) == "string") then
 		error(`{matchPadName} is not a string!`)
 	end
-	if not (teamIndex == 1 or teamIndex == 2) then
+	if not (teamIndex == nil or teamIndex == 1 or teamIndex == 2) then
+		-- if `teamIndex` is nil, then connectPlayerToMatchPad() will automatically assign player a teamIndex
 		error(`{teamIndex} is not 1 or 2!`)
 	end
 
@@ -394,10 +438,17 @@ local function teleportPlayerToMatchPad(Player, matchPadName, teamIndex)
 		return
 	end
 
+	local success
+	success, teamIndex = connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
+
+	if not success then
+		return false
+	end
+
 	local MatchPadPart = getMatchPadPart(matchPadEnum, teamIndex)
 	Char:MoveTo(MatchPadPart.Position + Vector3.new(0, CHARACTER_TELEPORT_VERTICAL_OFFSET, 0))
 
-	connectPlayerToMatchPad(Player, matchPadEnum, teamIndex)
+	return true
 end
 local function getMatchJoiningPads()
 	local Pads = {}
@@ -432,6 +483,7 @@ local function initializeMatchJoiningPads()
 
 	Network.onServerInvokeConnect("PlayerJoinMatchPad", clientJoinMatchPad)
 	Network.onServerInvokeConnect("PlayerDisconnectFromMatchPad", clientDisconnectFromMatchPad)
+	Network.onServerInvokeConnect("TeleportPlayerToMatchPad", clientTeleportToMatchPad)
 
 	-- workspace.TouchesUseCollisionGroups needs to be set to true for this optimization to work
 	PhysicsService:RegisterCollisionGroup(LOBBY_DEVICE_COLLISION_GROUP)
