@@ -1037,6 +1037,61 @@ return function()
 					Client2:Destroy()
 				end
 			)
+			it(
+				"The player who voted last breaks ties", function()
+					SoccerDuels.disconnectAllPlayers()
+					SoccerDuels.resetTestingVariables()
+
+					local countdownDuration = SoccerDuels.getConstant("MatchJoiningPadCountdownDurationSeconds")
+					local mapVotingDuration = SoccerDuels.getConstant("MatchJoiningPadMapVotingDurationSeconds")
+					local maxError = 0.010
+
+					local Player1 = MockInstance.new("Player")
+					local Player2 = MockInstance.new("Player")
+
+					local Client1 = SoccerDuels.newClient(Player1)
+					local Client2 = SoccerDuels.newClient(Player2)
+
+					Client1:LoadPlayerDataAsync()
+					Client2:LoadPlayerDataAsync()
+
+					Client1:TeleportToMatchPadAsync("1v1 #1", 1)
+					Client2:TeleportToMatchPadAsync("1v1 #1", 2)
+
+					SoccerDuels.addExtraSecondsForTesting(countdownDuration + maxError)
+					SoccerDuels.matchPadTimerTick()
+
+					assert(SoccerDuels.getMatchPadWinningMapVote("1v1 #1") == nil)
+
+					Client1:VoteForMap("Stadium")
+
+					assert(SoccerDuels.getMatchPadWinningMapVote("1v1 #1") == "Stadium")
+
+					Client2:VoteForMap("Map2")
+
+					assert(SoccerDuels.getMatchPadWinningMapVote("1v1 #1") == "Map2")
+
+					Client1:VoteForMap("Map2")
+
+					assert(SoccerDuels.getMatchPadWinningMapVote("1v1 #1") == "Map2")
+
+					Client1:VoteForMap("Stadium")
+
+					assert(SoccerDuels.getMatchPadWinningMapVote("1v1 #1") == "Stadium")
+
+					Client2:VoteForMap("Map2")
+
+					assert(SoccerDuels.getMatchPadWinningMapVote("1v1 #1") == "Map2")
+
+					SoccerDuels.addExtraSecondsForTesting(mapVotingDuration + maxError)
+					SoccerDuels.matchPadTimerTick()
+
+					assert(SoccerDuels.getMatchPadWinningMapVote("1v1 #1") == nil)
+
+					Client1:Destroy()
+					Client2:Destroy()
+				end
+			)
 		end)
 		describe("Client:OnConnectedMatchPadVoteChangedConnect()", function()
 			it(

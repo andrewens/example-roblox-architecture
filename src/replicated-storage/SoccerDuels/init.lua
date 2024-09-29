@@ -63,6 +63,7 @@ return {
 	iterateEnumsOfType = Enums.iterateEnumsOfType,
 
 	-- map voting
+	getMatchPadWinningMapVote = SoccerDuelsServer.getMatchPadWinningMapVote,
 	getMatchPadMapVotes = SoccerDuelsServer.getMatchPadMapVotes,
 
 	-- match joining pads

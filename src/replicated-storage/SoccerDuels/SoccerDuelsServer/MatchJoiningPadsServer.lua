@@ -39,13 +39,16 @@ local PlayerConnectedMatchPad = {} -- Player --> [ int matchPadEnum, int teamInd
 local MatchPadState = {} -- int matchPadEnum --> int matchPadStateEnum
 local MatchPadStateChangeTimestamp = {} -- int matchPadEnum --> float timestampWhenStateChanges
 local MatchPadMapVotes = {} -- int matchPadEnum --> Player --> mapEnum
+local MatchPadLastPlayerWhoVoted = {} -- int matchPadEnum --> Player
 
 -- private
 local disconnectPlayerFromAllMatchPads
 local function setMatchPadState(matchPadEnum, matchPadStateEnum, stateChangeTimestamp)
 	MatchPadState[matchPadEnum] = matchPadStateEnum
 	MatchPadStateChangeTimestamp[matchPadEnum] = stateChangeTimestamp
+
 	MatchPadMapVotes[matchPadEnum] = {} -- votes need to get wiped when we leave the 'MapVoting' state
+	MatchPadLastPlayerWhoVoted[matchPadEnum] = nil
 
 	Network.fireAllClients("MatchPadStateChanged", matchPadEnum, matchPadStateEnum, stateChangeTimestamp)
 end
@@ -220,6 +223,8 @@ local function clientVoteOnMap(Player, mapEnum)
 	end
 
 	MatchPadMapVotes[matchPadEnum][Player] = mapEnum
+	MatchPadLastPlayerWhoVoted[matchPadEnum] = Player
+
 	Network.fireAllClients("PlayerVoteForMap", matchPadEnum, Player, mapEnum)
 end
 local function clientTeleportToMatchPad(Player, matchPadEnum, teamIndex)
@@ -289,6 +294,44 @@ local function clientDisconnectFromMatchPad(Player, matchPadEnum, teamIndex)
 end
 
 -- public
+local function getMatchPadWinningMapVote(matchPadName)
+	if not (typeof(matchPadName) == "string") then
+		error(`{matchPadName} is not a string!`)
+	end
+
+	local matchPadEnum = Enums.getEnum("MatchJoiningPad", matchPadName)
+	if matchPadEnum == nil then
+		error(`"{matchPadName}" is not the name of a match joining pad!`)
+	end
+
+	-- tally votes
+	local MapEnumVotes = {}
+	local mostVotes = 0
+	local winningMapEnum
+	for Player, mapEnum in MatchPadMapVotes[matchPadEnum] do
+		if MapEnumVotes[mapEnum] == nil then
+			MapEnumVotes[mapEnum] = 0
+		end
+		MapEnumVotes[mapEnum] += 1
+
+		-- last player who voted gets to break ties
+		if MatchPadLastPlayerWhoVoted[matchPadEnum] == Player then
+			MapEnumVotes[mapEnum] += 0.1
+		end
+
+		if MapEnumVotes[mapEnum] > mostVotes then
+			mostVotes = MapEnumVotes[mapEnum]
+			winningMapEnum = mapEnum
+		end
+	end
+
+	if winningMapEnum then
+		local winningMapName = Enums.enumToName("Map", winningMapEnum)
+		return winningMapName
+	end
+
+	return nil
+end
 local function getMatchPadMapVotes(matchPadName)
 	if not (typeof(matchPadName) == "string") then
 		error(`{matchPadName} is not a string!`)
@@ -496,6 +539,7 @@ local function initializeMatchJoiningPads()
 end
 
 return {
+	getMatchPadWinningMapVote = getMatchPadWinningMapVote,
 	getMatchPadMapVotes = getMatchPadMapVotes,
 
 	teleportPlayerToLobbySpawnLocation = teleportPlayerToLobbySpawnLocation,

@@ -224,6 +224,7 @@ return {
 	savePlayerDataAsync = Database.savePlayerDataAsync,
 
 	-- map voting
+	getMatchPadWinningMapVote = MatchJoiningPadsServer.getMatchPadWinningMapVote,
 	getMatchPadMapVotes = MatchJoiningPadsServer.getMatchPadMapVotes,
 
 	-- match joining pads
