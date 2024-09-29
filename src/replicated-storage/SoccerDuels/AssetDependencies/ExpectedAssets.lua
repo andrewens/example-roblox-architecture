@@ -234,6 +234,10 @@ do
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/MapVoting/Tabs/Map/Tabs/Player/Blue",
 		ClassName = "UIGradient",
 	}
+	ExpectedAssets.MapVotingTimerLabel = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/MapVoting/Timer",
+		ClassName = "TextLabel",
+	}
 end
 
 -- joining match pads from lobby gui

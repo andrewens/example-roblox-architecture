@@ -8,9 +8,14 @@ local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Config = require(SoccerDuelsModule.Config)
 local Enums = require(SoccerDuelsModule.Enums)
 local Maid = require(SoccerDuelsModule.Maid)
+local Time = require(SoccerDuelsModule.Time)
+local Utility = require(SoccerDuelsModule.Utility)
 
 local AvatarHeadshotImages = require(SoccerDuelsClientModule.AvatarHeadshotImages)
 local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
+
+-- const
+local COUNTDOWN_TIMER_POLL_RATE_SECONDS = Config.getConstant("MatchJoiningPadCountdownTimerPollRateSeconds")
 
 -- public
 local function destroyMapVotingGui(self) end
@@ -19,9 +24,23 @@ local function newMapVotingGui(self)
 	local MapContainer = Assets.getExpectedAsset("MapVotingMapContainer", "MapVotingModal", MapVotingModal)
 	local MapButtonTemplate = Assets.getExpectedAsset("MapVotingMapButton", "MapVotingMapContainer", MapContainer)
 	local PlayerIconTemplate = Assets.getExpectedAsset("MapVotingPlayerIcon", "MapVotingMapButton", MapButtonTemplate)
+	local CountdownTimerLabel = Assets.getExpectedAsset("MapVotingTimerLabel", "MapVotingModal", MapVotingModal)
 
 	local UIMaid = Maid.new()
 	local PlayerIcons -- Player --> ImageLabel
+
+	local function updateMapVotingTimer(dt)
+		local mapVotingEndsTimestamp = self:GetConnectedMatchPadStateChangeTimestamp()
+
+		if mapVotingEndsTimestamp then
+			local now = Time.getUnixTimestampMilliseconds()
+			local deltaTime = math.ceil(math.max((mapVotingEndsTimestamp - now) * 0.001, 0))
+
+			CountdownTimerLabel.Text = deltaTime
+		end
+
+		CountdownTimerLabel.Visible = (mapVotingEndsTimestamp ~= nil)
+	end
 
 	self._Maid:GiveTask(UIMaid)
 
@@ -88,6 +107,9 @@ local function newMapVotingGui(self)
 		Blur.Parent = Lighting
 
 		UIMaid:GiveTask(Blur)
+
+		-- countdown timer
+		UIMaid:GiveTask(Utility.runServiceRenderSteppedConnect(COUNTDOWN_TIMER_POLL_RATE_SECONDS, updateMapVotingTimer))
 	end)
 
 	-- clear templates
