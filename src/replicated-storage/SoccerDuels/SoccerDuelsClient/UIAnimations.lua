@@ -27,8 +27,34 @@ local POPUP_VISIBLE_TWEEN_INFO = Config.getConstant("PopupVisibleTweenInfo")
 local POPUP_START_POSITION_OFFSET = Config.getConstant("PopupStartPositionOffset")
 local POPUP_START_SIZE_RATIO = Config.getConstant("PopupStartSizeRatio")
 
+local COUNTDOWN_TIMER_TEXT_SIZE_GOAL = Config.getConstant("CountdownTimerTextSizeGoal")
+local COUNTDOWN_TIMER_LAST_TWEEN_INFO = Config.getConstant("CountdownTimerLastTweenInfo")
+local COUNTDOWN_TIMER_FIRST_TWEEN_INFO = Config.getConstant("CountdownTimerFirstTweenInfo")
+local COUNTDOWN_TIMER_DURATION_BETWEEN_TWEENS = Config.getConstant("CountdownTimerDurationBetweenTweensSeconds")
+
 local PART_FLASH_TRANSPARENCY = Config.getConstant("FlashingPartTransparency")
 local PART_FLASHING_TWEEN_INFO = Config.getConstant("FlashingPartTweenInfo")
+
+-- private
+local function wrapGuiObjectInFrame(GuiObject)
+	local ContainerFrame = Instance.new("Frame")
+	ContainerFrame.AnchorPoint = GuiObject.AnchorPoint
+	ContainerFrame.Position = GuiObject.Position
+	ContainerFrame.Size = GuiObject.Size
+	ContainerFrame.ZIndex = GuiObject.ZIndex
+	ContainerFrame.LayoutOrder = GuiObject.LayoutOrder
+	ContainerFrame.Parent = GuiObject.Parent
+	ContainerFrame.BackgroundTransparency = 1
+
+	GuiObject.AnchorPoint = BUTTON_ANCHOR_POINT
+	GuiObject.Position = BUTTON_DEFAULT_POSITION
+	GuiObject.Size = UDim2.new(1, 0, 1, 0)
+	GuiObject.Parent = ContainerFrame
+
+	Assets.ignoreWrapperInstanceInPath(ContainerFrame, GuiObject)
+
+	return ContainerFrame
+end
 
 -- public / Client class methods
 local function flashNeonPart(self, Part)
@@ -41,6 +67,28 @@ local function flashNeonPart(self, Part)
 	TweenService:Create(Part, PART_FLASHING_TWEEN_INFO, {
 		Transparency = 1,
 	}):Play()
+end
+local function initializeCountdownTimerAnimations(self, TextLabel)
+	if not (typeof(TextLabel) == "Instance") then
+		error(`{TextLabel} is not an Instance!`)
+	end
+	if not (TextLabel:IsA("TextLabel")) then
+		error(`{TextLabel} is not a TextLabel!`)
+	end
+
+	local ContainerFrame = wrapGuiObjectInFrame(TextLabel)
+
+	TextLabel:GetPropertyChangedSignal("Text"):Connect(function()
+		TweenService:Create(TextLabel, COUNTDOWN_TIMER_FIRST_TWEEN_INFO, {
+			Size = UDim2.new(1, 0, 1, 0)
+		}):Play()
+
+		task.wait(COUNTDOWN_TIMER_DURATION_BETWEEN_TWEENS)
+
+		TweenService:Create(TextLabel, COUNTDOWN_TIMER_LAST_TWEEN_INFO, {
+			Size = COUNTDOWN_TIMER_TEXT_SIZE_GOAL,
+		}):Play()
+	end)
 end
 local function initializePopupVisibilityAnimations(self, Frame)
 	if not (typeof(Frame) == "Instance") then
@@ -89,21 +137,7 @@ local function initializeButtonAnimations(self, GuiButton, Options)
 		error(`{Options} is not a table!`)
 	end
 
-	local ContainerFrame = Instance.new("Frame")
-	ContainerFrame.AnchorPoint = GuiButton.AnchorPoint
-	ContainerFrame.Position = GuiButton.Position
-	ContainerFrame.Size = GuiButton.Size
-	ContainerFrame.ZIndex = GuiButton.ZIndex
-	ContainerFrame.LayoutOrder = GuiButton.LayoutOrder
-	ContainerFrame.Parent = GuiButton.Parent
-	ContainerFrame.BackgroundTransparency = 1
-
-	GuiButton.AnchorPoint = BUTTON_ANCHOR_POINT
-	GuiButton.Position = BUTTON_DEFAULT_POSITION
-	GuiButton.Size = UDim2.new(1, 0, 1, 0)
-	GuiButton.Parent = ContainerFrame
-
-	Assets.ignoreWrapperInstanceInPath(ContainerFrame, GuiButton)
+	local ContainerFrame = wrapGuiObjectInFrame(GuiButton)
 
 	GuiButton.MouseButton1Down:Connect(function()
 		Sounds.playSound(self, "ButtonClickSound")
@@ -153,7 +187,9 @@ local function initializeButtonAnimations(self, GuiButton, Options)
 end
 
 return {
+	initializeTimer = initializeCountdownTimerAnimations,
 	initializePopup = initializePopupVisibilityAnimations,
 	initializeButton = initializeButtonAnimations,
+
 	flashNeonPart = flashNeonPart,
 }

@@ -103,6 +103,8 @@ local function newMatchJoiningPadGui(self)
 		MatchJoiningPadGui.Visible = (userInterfaceMode == "MatchJoiningPad")
 
 		if MatchJoiningPadGui.Visible then
+			CountdownTimerLabel.Text = 0
+
 			UIModeMaid:GiveTask(self:OnPlayerMatchPadChangedConnect(playerConnectedMatchPadChanged))
 			UIModeMaid:GiveTask(
 				Utility.runServiceRenderSteppedConnect(COUNTDOWN_TIMER_POLL_RATE_SECONDS, updateCountdownTimer)
@@ -120,6 +122,7 @@ local function newMatchJoiningPadGui(self)
 
 	-- animations
 	UIAnimations.initializePopup(self, MatchJoiningPadGui)
+	UIAnimations.initializeTimer(self, CountdownTimerLabel)
 
 	-- modules
 	TouchSensorLights.new(self)
