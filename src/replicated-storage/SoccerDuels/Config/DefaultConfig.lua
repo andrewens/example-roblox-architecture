@@ -99,10 +99,16 @@ DefaultConfig.PopupStartSizeRatio = 0.6 -- 1 for same size as normal, 0.5 for ha
 DefaultConfig.CountdownTimerFirstTweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Back)
 DefaultConfig.CountdownTimerDurationBetweenTweensSeconds = 0.75
 DefaultConfig.CountdownTimerLastTweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Linear)
-DefaultConfig.CountdownTimerTextSizeGoal = UDim2.new(0.15, 0, 0.15, 0)
+DefaultConfig.CountdownTimerTextSizeGoal = UDim2.new(0, 0, 0, 0)
 
 DefaultConfig.FlashingPartTweenInfo = TweenInfo.new(0.2)
 DefaultConfig.FlashingPartTransparency = 0.5
+
+DefaultConfig.MatchJoiningPadGuiXScalePerTeamPlayer = 0.3
+DefaultConfig.MatchJoiningPadGuiBaseXScale = 0.16 -- (width of the 'vs' element)
+
+DefaultConfig.LobbyMatchJoiningPadXScalePerTeamPlayer = 0.15
+DefaultConfig.LobbyMatchJoiningPadBaseXScale = 0.1 -- (width of the 'vs' element)
 
 -- avatar headshots
 DefaultConfig.AvatarHeadshotImageThumbnailType = Enum.ThumbnailType.AvatarBust

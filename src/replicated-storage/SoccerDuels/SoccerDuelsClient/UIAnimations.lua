@@ -55,6 +55,22 @@ local function wrapGuiObjectInFrame(GuiObject)
 
 	return ContainerFrame
 end
+local function wrapGuiObjectInFramePreservingOriginalSizeValue(GuiObject)
+	local ContainerFrame = Instance.new("Frame")
+	ContainerFrame.AnchorPoint = Vector2.new(0.5, 1)
+	ContainerFrame.Position = UDim2.new(0.5, 0, 1, 0)
+	ContainerFrame.Size = UDim2.new(1, 0, 1, 0)
+	ContainerFrame.ZIndex = GuiObject.ZIndex
+	ContainerFrame.LayoutOrder = GuiObject.LayoutOrder
+	ContainerFrame.Parent = GuiObject.Parent
+	ContainerFrame.BackgroundTransparency = 1
+
+	GuiObject.Parent = ContainerFrame
+
+	Assets.ignoreWrapperInstanceInPath(ContainerFrame, GuiObject)
+
+	return ContainerFrame
+end
 
 -- public / Client class methods
 local function flashNeonPart(self, Part)
@@ -80,7 +96,7 @@ local function initializeCountdownTimerAnimations(self, TextLabel)
 
 	TextLabel:GetPropertyChangedSignal("Text"):Connect(function()
 		TweenService:Create(TextLabel, COUNTDOWN_TIMER_FIRST_TWEEN_INFO, {
-			Size = UDim2.new(1, 0, 1, 0)
+			Size = UDim2.new(1, 0, 1, 0),
 		}):Play()
 
 		task.wait(COUNTDOWN_TIMER_DURATION_BETWEEN_TWEENS)
@@ -90,16 +106,18 @@ local function initializeCountdownTimerAnimations(self, TextLabel)
 		}):Play()
 	end)
 end
-local function initializePopupVisibilityAnimations(self, Frame)
-	if not (typeof(Frame) == "Instance") then
-		error(`{Frame} is not an Instance!`)
+local function initializePopupVisibilityAnimations(self, GuiObject)
+	if not (typeof(GuiObject) == "Instance") then
+		error(`{GuiObject} is not an Instance!`)
 	end
-	if not (Frame:IsA("GuiObject")) then
-		error(`{Frame} is not a GuiObject!`)
+	if not (GuiObject:IsA("GuiObject")) then
+		error(`{GuiObject} is not a GuiObject!`)
 	end
 
-	local defaultSize = Frame.Size
-	local defaultPosition = Frame.Position
+	local ContainerFrame = wrapGuiObjectInFramePreservingOriginalSizeValue(GuiObject)
+
+	local defaultSize = ContainerFrame.Size
+	local defaultPosition = ContainerFrame.Position
 
 	local startPosition = defaultPosition + POPUP_START_POSITION_OFFSET
 	local startSize = UDim2.new(
@@ -109,15 +127,15 @@ local function initializePopupVisibilityAnimations(self, Frame)
 		POPUP_START_SIZE_RATIO * defaultSize.Y.Offset
 	)
 
-	Frame:GetPropertyChangedSignal("Visible"):Connect(function()
-		if not Frame.Visible then
+	GuiObject:GetPropertyChangedSignal("Visible"):Connect(function()
+		if not GuiObject.Visible then
 			return
 		end
 
-		Frame.Size = startSize
-		Frame.Position = startPosition
+		ContainerFrame.Size = startSize
+		ContainerFrame.Position = startPosition
 
-		TweenService:Create(Frame, POPUP_VISIBLE_TWEEN_INFO, {
+		TweenService:Create(ContainerFrame, POPUP_VISIBLE_TWEEN_INFO, {
 			Size = defaultSize,
 			Position = defaultPosition,
 		}):Play()

@@ -118,11 +118,14 @@ local function initializeClients()
 		OnLobbyCharacterTouchedMatchPadConnect = ClientMatchPad.onLobbyCharacterTouchedMatchPadConnect,
 		OnPlayerMatchPadChangedConnect = ClientMatchPad.onAnyPlayerMatchPadChangedConnect,
 		TeleportToMatchPadAsync = ClientMatchPad.clientTeleportToMatchPadAsync,
+
+		GetMatchPadMaxPlayersPerTeam = ClientMatchPad.getAnyMatchPadMaxTeamPlayers,
 		GetMatchPadState = ClientMatchPad.getAnyMatchPadState,
 		MatchPadIsFull = ClientMatchPad.anyMatchPadIsFull,
 		MatchPadIsEmpty = ClientMatchPad.anyMatchPadIsEmpty,
 
 		GetConnectedMatchPadStateChangeTimestamp = ClientMatchPad.getClientConnectedMatchPadStateChangeTimestamp, -- TODO untested
+		GetConnectedMatchPadMaxPlayersPerTeam = ClientMatchPad.getClientConnectedMatchPadMaxPlayers, -- TODO untested
 		GetConnectedMatchPadName = ClientMatchPad.getClientConnectedMatchPadName,
 		GetConnectedMatchPadTeam = ClientMatchPad.getClientConnectedMatchPadTeam,
 

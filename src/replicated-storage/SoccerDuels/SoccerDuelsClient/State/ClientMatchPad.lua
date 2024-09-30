@@ -104,6 +104,18 @@ local function clientConnectedMatchPadChanged(self, Player, newMatchPadEnum, tea
 end
 
 -- public / Client class methods
+local function getAnyMatchPadMaxTeamPlayers(self, matchPadName)
+	if not (typeof(matchPadName) == "string") then
+		error(`{matchPadName} is not a string!`)
+	end
+
+	local matchPadEnum = Enums.getEnum("MatchJoiningPad", matchPadName)
+	if matchPadEnum == nil then
+		error(`"{matchPadName}" is not the name of a MatchJoiningPad!`)
+	end
+
+	return tonumber(string.sub(matchPadName, 1, 1))
+end
 local function anyMatchPadIsFull(self, matchPadName) -- TODO untested
 	if not (typeof(matchPadName) == "string") then
 		error(`{matchPadName} is not a string!`)
@@ -233,6 +245,15 @@ local function onAnyPlayerMatchPadChangedConnect(self, callback)
 			self._PlayerMatchPadChangedCallbacks[callback] = nil
 		end,
 	}
+end
+local function getClientConnectedMatchPadMaxPlayers(self) -- TODO this is untested
+	local matchPadEnum = self._PlayerConnectedMatchPadEnum[self.Player]
+	if matchPadEnum == nil then
+		return 1
+	end
+
+	local matchPadName = Enums.enumToName("MatchJoiningPad", matchPadEnum)
+	return tonumber(string.sub(matchPadName, 1, 1))
 end
 local function getClientConnectedMatchPadState(self) -- TODO this might be untested
 	local matchPadEnum = self._PlayerConnectedMatchPadEnum[self.Player]
@@ -375,6 +396,7 @@ return {
 	onAnyPlayerMatchPadChangedConnect = onAnyPlayerMatchPadChangedConnect,
 
 	getClientConnectedMatchPadStateChangeTimestamp = getClientConnectedMatchPadStateChangeTimestamp,
+	getClientConnectedMatchPadMaxPlayers = getClientConnectedMatchPadMaxPlayers,
 	getClientConnectedMatchPadName = getClientConnectedMatchPadName,
 	getClientConnectedMatchPadTeam = getClientConnectedMatchPadTeam,
 
@@ -382,6 +404,7 @@ return {
 	touchedMatchJoiningPadPartAsync = touchedMatchJoiningPadPartAsync,
 	clientTeleportToMatchPadAsync = clientTeleportToMatchPadAsync,
 
+	getAnyMatchPadMaxTeamPlayers = getAnyMatchPadMaxTeamPlayers,
 	getAnyMatchPadState = getAnyMatchPadState,
 	anyMatchPadIsEmpty = anyMatchPadIsEmpty,
 	anyMatchPadIsFull = anyMatchPadIsFull,

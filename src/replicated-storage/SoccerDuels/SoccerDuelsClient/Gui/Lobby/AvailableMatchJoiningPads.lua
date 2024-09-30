@@ -3,10 +3,15 @@ local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
 
 local Assets = require(SoccerDuelsModule.AssetDependencies)
+local Config = require(SoccerDuelsModule.Config)
 local Maid = require(SoccerDuelsModule.Maid)
 
 local AvatarHeadshotImages = require(SoccerDuelsClientModule.AvatarHeadshotImages)
 local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
+
+-- const
+local MATCH_JOINING_PAD_GUI_X_SCALE_PER_TEAM_PLAYER = Config.getConstant("LobbyMatchJoiningPadXScalePerTeamPlayer")
+local MATCH_JOINING_PAD_GUI_BASE_X_SCALE = Config.getConstant("LobbyMatchJoiningPadBaseXScale")
 
 -- public / Client class methods
 local function newAvailableMatchJoiningPadsGui(self)
@@ -97,8 +102,16 @@ local function newAvailableMatchJoiningPadsGui(self)
 			-- create lobby card if it doesn't exist
 			local MatchPadLobbyCard = MatchPadsListContainer:FindFirstChild(matchPadName)
 			if MatchPadLobbyCard == nil then
+				local maxPlayersPerTeam = self:GetMatchPadMaxPlayersPerTeam(matchPadName)
+
 				MatchPadLobbyCard = MatchPadCardTemplate:Clone()
 				MatchPadLobbyCard.Name = matchPadName
+				MatchPadLobbyCard.Size = UDim2.new(
+					MATCH_JOINING_PAD_GUI_BASE_X_SCALE + maxPlayersPerTeam * MATCH_JOINING_PAD_GUI_X_SCALE_PER_TEAM_PLAYER,
+					MatchPadLobbyCard.Size.X.Offset,
+					MatchPadLobbyCard.Size.Y.Scale,
+					MatchPadLobbyCard.Size.Y.Offset
+				)
 				MatchPadLobbyCard.Parent = MatchPadsListContainer
 
 				local JoinButton = Assets.getExpectedAsset(
