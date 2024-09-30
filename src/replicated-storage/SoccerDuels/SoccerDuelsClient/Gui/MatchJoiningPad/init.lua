@@ -32,12 +32,20 @@ local function newMatchJoiningPadGui(self)
 		Assets.getExpectedAsset("MatchJoiningPadPlayerIcon", "MatchJoiningPadGui", MatchJoiningPadGui)
 	local CountdownTimerLabel =
 		Assets.getExpectedAsset("MatchJoiningPadCountdownTimer", "MatchJoiningPadGui", MatchJoiningPadGui)
+	local BufferingImageTemplate =
+		Assets.getExpectedAsset("MatchJoiningPadBufferingImage", "MatchJoiningPadGui", MatchJoiningPadGui)
 
 	local UIModeMaid = Maid.new()
+	local maxPlayersPerTeam
 
 	local function clearMatchJoiningGui()
 		for _, PlayerIcon in Team1Container:GetChildren() do
-			if not (PlayerIcon.ClassName == PlayerIconTemplate.ClassName) then
+			if
+				not (
+					PlayerIcon.ClassName == PlayerIconTemplate.ClassName
+					or PlayerIcon.ClassName == BufferingImageTemplate.ClassName
+				)
+			then
 				continue
 			end
 
@@ -45,12 +53,36 @@ local function newMatchJoiningPadGui(self)
 		end
 
 		for _, PlayerIcon in Team2Container:GetChildren() do
-			if not (PlayerIcon.ClassName == PlayerIconTemplate.ClassName) then
+			if
+				not (
+					PlayerIcon.ClassName == PlayerIconTemplate.ClassName
+					or PlayerIcon.ClassName == BufferingImageTemplate.ClassName
+				)
+			then
 				continue
 			end
 
 			PlayerIcon:Destroy()
 		end
+	end
+	local function newBufferingAnimation(Frame)
+		local layoutOrder = -100
+		local UIListLayout = Frame:FindFirstChildWhichIsA("UIListLayout")
+		if UIListLayout and UIListLayout.HorizontalAlignment == Enum.HorizontalAlignment.Left then
+			layoutOrder = 100
+		end
+
+		local BufferingImageLabel = BufferingImageTemplate:Clone()
+		BufferingImageLabel.LayoutOrder = layoutOrder
+		BufferingImageLabel.Parent = Frame
+	end
+	local function destroyBufferingAnimation(Frame)
+		local BufferingImageLabel = Frame:FindFirstChild(BufferingImageTemplate.Name)
+		if BufferingImageLabel == nil then
+			return
+		end
+
+		BufferingImageLabel:Destroy()
 	end
 	local function playerConnectedMatchPadChanged(Player, matchPadName, teamIndex)
 		-- TODO idk why but this fires twice when a player steps on a match pad after being in lobby mode
@@ -59,11 +91,13 @@ local function newMatchJoiningPadGui(self)
 		local PlayerIcon = Team1Container:FindFirstChild(Player.Name)
 		if PlayerIcon then
 			PlayerIcon:Destroy()
+			newBufferingAnimation(Team1Container)
 		end
 
 		PlayerIcon = Team2Container:FindFirstChild(Player.Name)
 		if PlayerIcon then
 			PlayerIcon:Destroy()
+			newBufferingAnimation(Team2Container)
 		end
 
 		-- make a player icon if they're connected to the same match joining pad as our client
@@ -74,6 +108,7 @@ local function newMatchJoiningPadGui(self)
 		PlayerIcon = PlayerIconTemplate:Clone()
 		PlayerIcon.Name = Player.Name
 		PlayerIcon.Parent = if teamIndex == 1 then Team1Container else Team2Container
+		destroyBufferingAnimation(PlayerIcon.Parent)
 
 		local LevelLabel =
 			Assets.getExpectedAsset("MatchJoiningPadPlayerLevelLabel", "MatchJoiningPadPlayerIcon", PlayerIcon)
@@ -108,13 +143,19 @@ local function newMatchJoiningPadGui(self)
 			return
 		end
 
-		local maxPlayersPerTeam = self:GetConnectedMatchPadMaxPlayersPerTeam()
+		maxPlayersPerTeam = self:GetConnectedMatchPadMaxPlayersPerTeam()
+
 		MatchJoiningPadGui.Size = UDim2.new(
 			MATCH_JOINING_PAD_GUI_BASE_X_SCALE + maxPlayersPerTeam * MATCH_JOINING_PAD_GUI_X_SCALE_PER_TEAM_PLAYER,
 			0,
 			MatchJoiningPadGui.Size.Y.Scale,
 			MatchJoiningPadGui.Size.Y.Offset
 		)
+
+		for i = 1, maxPlayersPerTeam do
+			newBufferingAnimation(Team1Container)
+			newBufferingAnimation(Team2Container)
+		end
 
 		CountdownTimerLabel.Text = 0
 
@@ -130,6 +171,8 @@ local function newMatchJoiningPadGui(self)
 	-- clear out templates
 	CountdownTimerLabel.Visible = false
 	PlayerIconTemplate.Parent = nil
+	BufferingImageTemplate.Visible = true
+	BufferingImageTemplate.Parent = nil
 	clearMatchJoiningGui()
 
 	-- animations

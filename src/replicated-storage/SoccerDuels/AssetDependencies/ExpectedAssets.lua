@@ -202,6 +202,10 @@ do
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Searching/vs/Countdown",
 		ClassName = "TextLabel",
 	}
+	ExpectedAssets.MatchJoiningPadBufferingImage = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Searching/Team1/Buffering",
+		ClassName = "ImageLabel"
+	}
 end
 
 -- map voting gui
@@ -272,6 +276,10 @@ do
 	ExpectedAssets.MatchJoiningPadLobbyCardJoinButton = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Right/Player Searches/Search/vs/Join",
 		ClassName = "ImageButton",
+	}
+	ExpectedAssets.MatchJoiningPadLobbyBufferingImage = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Right/Player Searches/Search/Team1/Buffering",
+		ClassName = "ImageLabel"
 	}
 end
 
