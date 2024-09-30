@@ -222,6 +222,11 @@ local function clientVoteOnMap(Player, mapEnum)
 		error(`{mapEnum} is not a Map Enum!`)
 	end
 
+	-- prevent spam-clicking the same map to keep tie-breaker status
+	if MatchPadMapVotes[matchPadEnum][Player] == mapEnum then
+		return
+	end
+
 	MatchPadMapVotes[matchPadEnum][Player] = mapEnum
 	MatchPadLastPlayerWhoVoted[matchPadEnum] = Player
 

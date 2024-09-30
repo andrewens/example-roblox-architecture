@@ -1038,7 +1038,7 @@ return function()
 				end
 			)
 			it(
-				"The player who voted last breaks ties", function()
+				"The player who voted last breaks ties, but you can't spam the same vote to maintain tie-breaker status", function()
 					SoccerDuels.disconnectAllPlayers()
 					SoccerDuels.resetTestingVariables()
 
@@ -1079,9 +1079,9 @@ return function()
 
 					assert(SoccerDuels.getMatchPadWinningMapVote("1v1 #1") == "Stadium")
 
-					Client2:VoteForMap("Map2")
+					Client2:VoteForMap("Map2") -- since Client2 already voted for Map2, this doesn't give them the tie-breaker status
 
-					assert(SoccerDuels.getMatchPadWinningMapVote("1v1 #1") == "Map2")
+					assert(SoccerDuels.getMatchPadWinningMapVote("1v1 #1") == "Stadium")
 
 					SoccerDuels.addExtraSecondsForTesting(mapVotingDuration + maxError)
 					SoccerDuels.matchPadTimerTick()
