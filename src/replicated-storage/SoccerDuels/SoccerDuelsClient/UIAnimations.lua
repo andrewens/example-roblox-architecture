@@ -6,6 +6,8 @@ local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
 
 local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Config = require(SoccerDuelsModule.Config)
+local Utility = require(SoccerDuelsModule.Utility)
+
 local Sounds = require(SoccerDuelsClientModule.Sounds)
 
 -- const
@@ -38,11 +40,35 @@ local PART_FLASHING_TWEEN_INFO = Config.getConstant("FlashingPartTweenInfo")
 local BUFFERING_ANIMATION_SOCCER_BALL_IMAGE = Config.getConstant("BufferingAnimationSoccerBallImage")
 local BUFFERING_ANIMATION_MIN_SOCCER_BALL_SIZE = Config.getConstant("BufferingAnimationSoccerBallMinSize")
 local BUFFERING_ANIMATION_MAX_SOCCER_BALL_SIZE = Config.getConstant("BufferingAnimationSoccerBallMaxSize")
-local BUFFERING_ANIMATION_SECONDS_BETWEEN_EACH_SOCCER_BALL_ANIMATION =
-	Config.getConstant("BufferingAnimationSecondsBetweenEachSoccerBallAnimation")
-local BUFFERING_ANIMATION_REST_DURATION_SECONDS = Config.getConstant("BufferingAnimationRestDurationSeconds")
 local BUFFERING_ANIMATION_FIRST_TWEEN_INFO = Config.getConstant("BufferingAnimationFirstTweenInfo")
 local BUFFERING_ANIMATION_LAST_TWEEN_INFO = Config.getConstant("BufferingAnimationLastTweenInfo")
+
+local FRAMES_PER_SECOND = 60
+local FRAMES_BETWEEN_EACH_SOCCER_BALL_ANIMATION =
+	math.ceil(FRAMES_PER_SECOND * Config.getConstant("BufferingAnimationSecondsBetweenEachSoccerBallAnimation"))
+local BUFFERING_ANIMATION_FRAMES_RESTING =
+	math.ceil(FRAMES_PER_SECOND * Config.getConstant("BufferingAnimationRestDurationSeconds"))
+local FRAMES_PER_BUFFERING_ANIMATION_FIRST_TWEEN =
+	math.ceil(FRAMES_PER_SECOND * BUFFERING_ANIMATION_FIRST_TWEEN_INFO.Time)
+local FRAMES_PER_BUFFERING_ANIMATION_LAST_TWEEN =
+	math.ceil(FRAMES_PER_SECOND * BUFFERING_ANIMATION_LAST_TWEEN_INFO.Time)
+
+local MAX_FRAME_INDEX = BUFFERING_ANIMATION_FRAMES_RESTING
+	+ FRAMES_PER_BUFFERING_ANIMATION_FIRST_TWEEN
+	+ FRAMES_PER_BUFFERING_ANIMATION_LAST_TWEEN
+local TWEEN_1_FRAME_INDEX = 0
+local TWEEN_2_FRAME_INDEX = FRAMES_BETWEEN_EACH_SOCCER_BALL_ANIMATION
+local TWEEN_3_FRAME_INDEX = 2 * FRAMES_BETWEEN_EACH_SOCCER_BALL_ANIMATION
+local TWEEN_4_FRAME_INDEX = FRAMES_PER_BUFFERING_ANIMATION_FIRST_TWEEN
+local TWEEN_5_FRAME_INDEX = FRAMES_PER_BUFFERING_ANIMATION_FIRST_TWEEN + FRAMES_BETWEEN_EACH_SOCCER_BALL_ANIMATION
+local TWEEN_6_FRAME_INDEX = FRAMES_PER_BUFFERING_ANIMATION_FIRST_TWEEN + 2 * FRAMES_BETWEEN_EACH_SOCCER_BALL_ANIMATION
+
+local MAX_SIZE_TWEEN_GOAL = { Size = BUFFERING_ANIMATION_MAX_SOCCER_BALL_SIZE }
+local MIN_SIZE_TWEEN_GOAL = { Size = BUFFERING_ANIMATION_MIN_SOCCER_BALL_SIZE }
+
+-- var
+local BufferingImageLabels = {} -- BufferingImage --> true
+local frameIndex = 0
 
 -- private
 local function wrapGuiObjectInFrame(GuiObject)
@@ -80,6 +106,37 @@ local function wrapGuiObjectInFramePreservingOriginalSizeValue(GuiObject)
 
 	return ContainerFrame
 end
+local function playSoccerBallAnimationTween(imageName, tweenInfo, TweenGoal)
+	for BufferingImage, _ in BufferingImageLabels do
+		if BufferingImage.Parent == nil then
+			BufferingImageLabels[BufferingImage] = nil
+			continue
+		end
+
+		TweenService:Create(BufferingImage[imageName], tweenInfo, TweenGoal):Play()
+	end
+end
+local function runBufferingAnimations(dt)
+	frameIndex = (frameIndex + 1) % MAX_FRAME_INDEX
+
+	if next(BufferingImageLabels) == nil then
+		return
+	end
+
+	if frameIndex == TWEEN_1_FRAME_INDEX then
+		playSoccerBallAnimationTween("SoccerBall1", BUFFERING_ANIMATION_FIRST_TWEEN_INFO, MAX_SIZE_TWEEN_GOAL)
+	elseif frameIndex == TWEEN_2_FRAME_INDEX then
+		playSoccerBallAnimationTween("SoccerBall2", BUFFERING_ANIMATION_FIRST_TWEEN_INFO, MAX_SIZE_TWEEN_GOAL)
+	elseif frameIndex == TWEEN_3_FRAME_INDEX then
+		playSoccerBallAnimationTween("SoccerBall3", BUFFERING_ANIMATION_FIRST_TWEEN_INFO, MAX_SIZE_TWEEN_GOAL)
+	elseif frameIndex == TWEEN_4_FRAME_INDEX then
+		playSoccerBallAnimationTween("SoccerBall1", BUFFERING_ANIMATION_LAST_TWEEN_INFO, MIN_SIZE_TWEEN_GOAL)
+	elseif frameIndex == TWEEN_5_FRAME_INDEX then
+		playSoccerBallAnimationTween("SoccerBall2", BUFFERING_ANIMATION_LAST_TWEEN_INFO, MIN_SIZE_TWEEN_GOAL)
+	elseif frameIndex == TWEEN_6_FRAME_INDEX then
+		playSoccerBallAnimationTween("SoccerBall3", BUFFERING_ANIMATION_LAST_TWEEN_INFO, MIN_SIZE_TWEEN_GOAL)
+	end
+end
 
 -- public / Client class methods
 local function flashNeonPart(self, Part)
@@ -116,71 +173,27 @@ local function initializeBufferingAnimation(self, BufferingImage)
 	SoccerBall1.Image = BUFFERING_ANIMATION_SOCCER_BALL_IMAGE
 	SoccerBall1.Size = BUFFERING_ANIMATION_MIN_SOCCER_BALL_SIZE
 	SoccerBall1.BackgroundTransparency = 1
-	SoccerBall1.LayoutOrder = 1
 
 	local UIAspectRatio = Instance.new("UIAspectRatioConstraint")
 	UIAspectRatio.AspectRatio = 1
 	UIAspectRatio.Parent = SoccerBall1
 
 	local SoccerBall2 = SoccerBall1:Clone()
-	SoccerBall2.LayoutOrder = 2
-
 	local SoccerBall3 = SoccerBall1:Clone()
+
+	SoccerBall1.LayoutOrder = 1
+	SoccerBall2.LayoutOrder = 2
 	SoccerBall3.LayoutOrder = 3
 
-	local Tween1 = TweenService:Create(SoccerBall1, BUFFERING_ANIMATION_FIRST_TWEEN_INFO, {
-		Size = BUFFERING_ANIMATION_MAX_SOCCER_BALL_SIZE,
-	})
-	local Tween2 = TweenService:Create(SoccerBall2, BUFFERING_ANIMATION_FIRST_TWEEN_INFO, {
-		Size = BUFFERING_ANIMATION_MAX_SOCCER_BALL_SIZE,
-	})
-	local Tween3 = TweenService:Create(SoccerBall3, BUFFERING_ANIMATION_FIRST_TWEEN_INFO, {
-		Size = BUFFERING_ANIMATION_MAX_SOCCER_BALL_SIZE,
-	})
-	local Tween4 = TweenService:Create(SoccerBall1, BUFFERING_ANIMATION_LAST_TWEEN_INFO, {
-		Size = BUFFERING_ANIMATION_MIN_SOCCER_BALL_SIZE,
-	})
-	local Tween5 = TweenService:Create(SoccerBall2, BUFFERING_ANIMATION_LAST_TWEEN_INFO, {
-		Size = BUFFERING_ANIMATION_MIN_SOCCER_BALL_SIZE,
-	})
-	local Tween6 = TweenService:Create(SoccerBall3, BUFFERING_ANIMATION_LAST_TWEEN_INFO, {
-		Size = BUFFERING_ANIMATION_MIN_SOCCER_BALL_SIZE,
-	})
-
-	Tween1.Completed:Connect(function()
-		Tween4:Play()
-	end)
-	Tween2.Completed:Connect(function()
-		Tween5:Play()
-	end)
-	Tween3.Completed:Connect(function()
-		Tween6:Play()
-	end)
-
-	Tween4.Completed:Connect(function()
-		task.wait(BUFFERING_ANIMATION_REST_DURATION_SECONDS)
-		Tween1:Play()
-	end)
-	Tween5.Completed:Connect(function()
-		task.wait(BUFFERING_ANIMATION_REST_DURATION_SECONDS)
-		Tween2:Play()
-	end)
-	Tween6.Completed:Connect(function()
-		task.wait(BUFFERING_ANIMATION_REST_DURATION_SECONDS)
-		Tween3:Play()
-	end)
+	SoccerBall1.Name = "SoccerBall1"
+	SoccerBall2.Name = "SoccerBall2"
+	SoccerBall3.Name = "SoccerBall3"
 
 	SoccerBall1.Parent = BufferingImage
 	SoccerBall2.Parent = BufferingImage
 	SoccerBall3.Parent = BufferingImage
 
-	task.spawn(function()
-		Tween1:Play()
-		task.wait(BUFFERING_ANIMATION_SECONDS_BETWEEN_EACH_SOCCER_BALL_ANIMATION)
-		Tween2:Play()
-		task.wait(BUFFERING_ANIMATION_SECONDS_BETWEEN_EACH_SOCCER_BALL_ANIMATION)
-		Tween3:Play()
-	end)
+	BufferingImageLabels[BufferingImage] = true
 end
 local function initializeCountdownTimerAnimations(self, TextLabel)
 	if not (typeof(TextLabel) == "Instance") then
@@ -301,12 +314,17 @@ local function initializeButtonAnimations(self, GuiButton, Options)
 
 	-- TODO also MouseLeave is not very reliable on xbox and the xbox virtual cursor is really fat
 end
+local function initializeUIAnimationsModule(self)
+	self._Maid:GiveTask(Utility.runServiceRenderSteppedConnect(runBufferingAnimations))
+end
 
 return {
+	flashNeonPart = flashNeonPart,
+
 	initializeBufferingAnimation = initializeBufferingAnimation,
 	initializeTimer = initializeCountdownTimerAnimations,
 	initializePopup = initializePopupVisibilityAnimations,
 	initializeButton = initializeButtonAnimations,
 
-	flashNeonPart = flashNeonPart,
+	initialize = initializeUIAnimationsModule,
 }

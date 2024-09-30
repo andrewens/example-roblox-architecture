@@ -11,6 +11,7 @@ local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserI
 local LobbyCharacters = require(SoccerDuelsClientStateFolder.LobbyCharacters)
 
 local AvatarHeadshotImages = require(SoccerDuelsClientModule.AvatarHeadshotImages)
+local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 
 local Config = require(SoccerDuelsModule.Config)
 local Network = require(SoccerDuelsModule.Network)
@@ -93,6 +94,7 @@ local function loadClientPlayerDataAsync(self)
 
 	ClientMatchPad.initialize(self) -- must be before GetPlayerSaveData b/c it listens to a remote event that fires afterward
 	AvatarHeadshotImages.initialize(self)
+	UIAnimations.initialize(self)
 
 	local s, playerSaveDataJson = Network.invokeServer("GetPlayerSaveData", self.Player)
 	if not s then
