@@ -110,6 +110,14 @@ DefaultConfig.MatchJoiningPadGuiBaseXScale = 0.16 -- (width of the 'vs' element)
 DefaultConfig.LobbyMatchJoiningPadXScalePerTeamPlayer = 0.15
 DefaultConfig.LobbyMatchJoiningPadBaseXScale = 0.1 -- (width of the 'vs' element)
 
+DefaultConfig.BufferingAnimationSoccerBallImage = 'rbxassetid://5761550996' --'rbxassetid://6631155345'-- this is a white circle
+DefaultConfig.BufferingAnimationSoccerBallMinSize = UDim2.new(0.2, 0, 0.2, 0)
+DefaultConfig.BufferingAnimationSoccerBallMaxSize = UDim2.new(0.35, 0, 0.35, 0)
+DefaultConfig.BufferingAnimationSecondsBetweenEachSoccerBallAnimation = 0.1
+DefaultConfig.BufferingAnimationRestDurationSeconds = 0.5
+DefaultConfig.BufferingAnimationFirstTweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+DefaultConfig.BufferingAnimationLastTweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+
 -- avatar headshots
 DefaultConfig.AvatarHeadshotImageThumbnailType = Enum.ThumbnailType.AvatarBust
 DefaultConfig.AvatarHeadshotImageThumbnailResolution = Enum.ThumbnailSize.Size100x100

@@ -75,6 +75,8 @@ local function newMatchJoiningPadGui(self)
 		local BufferingImageLabel = BufferingImageTemplate:Clone()
 		BufferingImageLabel.LayoutOrder = layoutOrder
 		BufferingImageLabel.Parent = Frame
+
+		UIAnimations.initializeBufferingAnimation(self, BufferingImageLabel)
 	end
 	local function destroyBufferingAnimation(Frame)
 		local BufferingImageLabel = Frame:FindFirstChild(BufferingImageTemplate.Name)

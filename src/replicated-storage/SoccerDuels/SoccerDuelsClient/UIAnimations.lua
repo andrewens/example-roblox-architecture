@@ -35,6 +35,15 @@ local COUNTDOWN_TIMER_DURATION_BETWEEN_TWEENS = Config.getConstant("CountdownTim
 local PART_FLASH_TRANSPARENCY = Config.getConstant("FlashingPartTransparency")
 local PART_FLASHING_TWEEN_INFO = Config.getConstant("FlashingPartTweenInfo")
 
+local BUFFERING_ANIMATION_SOCCER_BALL_IMAGE = Config.getConstant("BufferingAnimationSoccerBallImage")
+local BUFFERING_ANIMATION_MIN_SOCCER_BALL_SIZE = Config.getConstant("BufferingAnimationSoccerBallMinSize")
+local BUFFERING_ANIMATION_MAX_SOCCER_BALL_SIZE = Config.getConstant("BufferingAnimationSoccerBallMaxSize")
+local BUFFERING_ANIMATION_SECONDS_BETWEEN_EACH_SOCCER_BALL_ANIMATION =
+	Config.getConstant("BufferingAnimationSecondsBetweenEachSoccerBallAnimation")
+local BUFFERING_ANIMATION_REST_DURATION_SECONDS = Config.getConstant("BufferingAnimationRestDurationSeconds")
+local BUFFERING_ANIMATION_FIRST_TWEEN_INFO = Config.getConstant("BufferingAnimationFirstTweenInfo")
+local BUFFERING_ANIMATION_LAST_TWEEN_INFO = Config.getConstant("BufferingAnimationLastTweenInfo")
+
 -- private
 local function wrapGuiObjectInFrame(GuiObject)
 	local ContainerFrame = Instance.new("Frame")
@@ -83,6 +92,95 @@ local function flashNeonPart(self, Part)
 	TweenService:Create(Part, PART_FLASHING_TWEEN_INFO, {
 		Transparency = 1,
 	}):Play()
+end
+local function initializeBufferingAnimation(self, BufferingImage)
+	if not (typeof(BufferingImage) == "Instance") then
+		error(`{BufferingImage} is not an Instance!`)
+	end
+	if not (BufferingImage:IsA("GuiObject")) then
+		error(`{BufferingImage} is not a GuiObject!`)
+	end
+
+	if BufferingImage:IsA("ImageLabel") or BufferingImage:IsA("ImageButton") then
+		BufferingImage.ImageTransparency = 1
+	end
+
+	local UIListLayout = Instance.new("UIListLayout")
+	UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	UIListLayout.FillDirection = Enum.FillDirection.Horizontal
+	UIListLayout.Padding = UDim.new(0.01, 0)
+	UIListLayout.Parent = BufferingImage
+
+	local SoccerBall1 = Instance.new("ImageLabel")
+	SoccerBall1.Image = BUFFERING_ANIMATION_SOCCER_BALL_IMAGE
+	SoccerBall1.Size = BUFFERING_ANIMATION_MIN_SOCCER_BALL_SIZE
+	SoccerBall1.BackgroundTransparency = 1
+	SoccerBall1.LayoutOrder = 1
+
+	local UIAspectRatio = Instance.new("UIAspectRatioConstraint")
+	UIAspectRatio.AspectRatio = 1
+	UIAspectRatio.Parent = SoccerBall1
+
+	local SoccerBall2 = SoccerBall1:Clone()
+	SoccerBall2.LayoutOrder = 2
+
+	local SoccerBall3 = SoccerBall1:Clone()
+	SoccerBall3.LayoutOrder = 3
+
+	local Tween1 = TweenService:Create(SoccerBall1, BUFFERING_ANIMATION_FIRST_TWEEN_INFO, {
+		Size = BUFFERING_ANIMATION_MAX_SOCCER_BALL_SIZE,
+	})
+	local Tween2 = TweenService:Create(SoccerBall2, BUFFERING_ANIMATION_FIRST_TWEEN_INFO, {
+		Size = BUFFERING_ANIMATION_MAX_SOCCER_BALL_SIZE,
+	})
+	local Tween3 = TweenService:Create(SoccerBall3, BUFFERING_ANIMATION_FIRST_TWEEN_INFO, {
+		Size = BUFFERING_ANIMATION_MAX_SOCCER_BALL_SIZE,
+	})
+	local Tween4 = TweenService:Create(SoccerBall1, BUFFERING_ANIMATION_LAST_TWEEN_INFO, {
+		Size = BUFFERING_ANIMATION_MIN_SOCCER_BALL_SIZE,
+	})
+	local Tween5 = TweenService:Create(SoccerBall2, BUFFERING_ANIMATION_LAST_TWEEN_INFO, {
+		Size = BUFFERING_ANIMATION_MIN_SOCCER_BALL_SIZE,
+	})
+	local Tween6 = TweenService:Create(SoccerBall3, BUFFERING_ANIMATION_LAST_TWEEN_INFO, {
+		Size = BUFFERING_ANIMATION_MIN_SOCCER_BALL_SIZE,
+	})
+
+	Tween1.Completed:Connect(function()
+		Tween4:Play()
+	end)
+	Tween2.Completed:Connect(function()
+		Tween5:Play()
+	end)
+	Tween3.Completed:Connect(function()
+		Tween6:Play()
+	end)
+
+	Tween4.Completed:Connect(function()
+		task.wait(BUFFERING_ANIMATION_REST_DURATION_SECONDS)
+		Tween1:Play()
+	end)
+	Tween5.Completed:Connect(function()
+		task.wait(BUFFERING_ANIMATION_REST_DURATION_SECONDS)
+		Tween2:Play()
+	end)
+	Tween6.Completed:Connect(function()
+		task.wait(BUFFERING_ANIMATION_REST_DURATION_SECONDS)
+		Tween3:Play()
+	end)
+
+	SoccerBall1.Parent = BufferingImage
+	SoccerBall2.Parent = BufferingImage
+	SoccerBall3.Parent = BufferingImage
+
+	task.spawn(function()
+		Tween1:Play()
+		task.wait(BUFFERING_ANIMATION_SECONDS_BETWEEN_EACH_SOCCER_BALL_ANIMATION)
+		Tween2:Play()
+		task.wait(BUFFERING_ANIMATION_SECONDS_BETWEEN_EACH_SOCCER_BALL_ANIMATION)
+		Tween3:Play()
+	end)
 end
 local function initializeCountdownTimerAnimations(self, TextLabel)
 	if not (typeof(TextLabel) == "Instance") then
@@ -205,6 +303,7 @@ local function initializeButtonAnimations(self, GuiButton, Options)
 end
 
 return {
+	initializeBufferingAnimation = initializeBufferingAnimation,
 	initializeTimer = initializeCountdownTimerAnimations,
 	initializePopup = initializePopupVisibilityAnimations,
 	initializeButton = initializeButtonAnimations,
