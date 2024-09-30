@@ -26,6 +26,7 @@ return function()
 		-- properties
 		Name = "Part",
 		CFrame = CFrame.new(),
+		Anchored = false,
 
 		-- methods
 		IsA = isA,

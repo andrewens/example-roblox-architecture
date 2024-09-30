@@ -239,6 +239,53 @@ return function()
 					Client3:Destroy()
 				end
 			)
+			it("Players' HumanoidRootParts are anchored if match pad state is 'MapVoting'", function()
+				SoccerDuels.disconnectAllPlayers()
+				SoccerDuels.resetTestingVariables()
+
+				local maxError = 0.010 -- seconds
+				local countdownDuration = SoccerDuels.getConstant("MatchJoiningPadCountdownDurationSeconds")
+				local mapVotingDuration = SoccerDuels.getConstant("MatchJoiningPadMapVotingDurationSeconds")
+
+				local Player1 = MockInstance.new("Player")
+				local Player2 = MockInstance.new("Player")
+
+				Player1.Name = "Player1"
+				Player2.Name = "Player2"
+
+				local Client1 = SoccerDuels.newClient(Player1)
+				local Client2 = SoccerDuels.newClient(Player2)
+
+				Client1:LoadPlayerDataAsync()
+				Client2:LoadPlayerDataAsync()
+
+				assert(SoccerDuels.getMatchPadState("1v1 #1") == "WaitingForPlayers")
+				assert(Player1.Character.HumanoidRootPart.Anchored == false)
+				assert(Player2.Character.HumanoidRootPart.Anchored == false)
+
+				SoccerDuels.teleportPlayerToMatchPad(Player1, "1v1 #1", 2)
+				SoccerDuels.teleportPlayerToMatchPad(Player2, "1v1 #1", 1)
+
+				assert(SoccerDuels.getMatchPadState("1v1 #1") == "Countdown")
+				assert(Player1.Character.HumanoidRootPart.Anchored == false)
+				assert(Player2.Character.HumanoidRootPart.Anchored == false)
+
+				SoccerDuels.addExtraSecondsForTesting(countdownDuration + maxError)
+				SoccerDuels.matchPadTimerTick()
+
+				assert(SoccerDuels.getMatchPadState("1v1 #1") == "MapVoting")
+				assert(Player1.Character.HumanoidRootPart.Anchored == true)
+				assert(Player2.Character.HumanoidRootPart.Anchored == true)
+
+				SoccerDuels.teleportPlayerToLobbySpawnLocation(Player1)
+
+				assert(SoccerDuels.getMatchPadState("1v1 #1") == "WaitingForPlayers")
+				assert(Player1.Character.HumanoidRootPart.Anchored == false)
+				assert(Player2.Character.HumanoidRootPart.Anchored == false)
+
+				Client1:Destroy()
+				Client2:Destroy()
+			end)
 		end)
 		describe("Client:TeleportToMatchPadAsync()", function()
 			it(
@@ -1038,7 +1085,8 @@ return function()
 				end
 			)
 			it(
-				"The player who voted last breaks ties, but you can't spam the same vote to maintain tie-breaker status", function()
+				"The player who voted last breaks ties, but you can't spam the same vote to maintain tie-breaker status",
+				function()
 					SoccerDuels.disconnectAllPlayers()
 					SoccerDuels.resetTestingVariables()
 

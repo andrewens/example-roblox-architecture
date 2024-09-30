@@ -136,6 +136,25 @@ local function isA(value, className)
 		and (typeof(value.IsA) == "function")
 		and value:IsA(className)
 end
+local function setPlayerCharacterAnchored(Player, isAnchored)
+	if not isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+	if not (typeof(isAnchored) == "boolean") then
+		error(`{isAnchored} is not a boolean!`)
+	end
+
+	if Player.Character == nil then
+		return
+	end
+
+	local HumanoidRootPart = Player.Character:FindFirstChild("HumanoidRootPart")
+	if HumanoidRootPart == nil then
+		return
+	end
+
+	HumanoidRootPart.Anchored = isAnchored
+end
 local function getPlayerCharacterPosition(Player)
 	if not isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
@@ -237,6 +256,7 @@ return {
 
 	playerCharacterIsInsideSpherePart = playerCharacterIsInsideSpherePart,
 	getPlayerCharacterPosition = getPlayerCharacterPosition,
+	setPlayerCharacterAnchored = setPlayerCharacterAnchored,
 	weldPartToPart = weldPartToPart,
 
 	runServiceRenderSteppedConnect = runServiceRenderSteppedConnect,

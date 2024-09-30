@@ -50,6 +50,12 @@ local function setMatchPadState(matchPadEnum, matchPadStateEnum, stateChangeTime
 	MatchPadMapVotes[matchPadEnum] = {} -- votes need to get wiped when we leave the 'MapVoting' state
 	MatchPadLastPlayerWhoVoted[matchPadEnum] = nil
 
+	for teamIndex, TeamPlayers in MatchPadTeamPlayers[matchPadEnum] do
+		for Player, _ in TeamPlayers do
+			Utility.setPlayerCharacterAnchored(Player, matchPadStateEnum == MAP_VOTING_STATE_ENUM)
+		end
+	end
+
 	Network.fireAllClients("MatchPadStateChanged", matchPadEnum, matchPadStateEnum, stateChangeTimestamp)
 end
 local function updateMatchPadState(matchPadEnum)
@@ -96,6 +102,9 @@ local function removePlayerFromPreviousMatchPad(Player)
 	if PlayerConnectedMatchPad[Player] == nil then
 		return
 	end
+
+	-- in case they were in a 'MapVoting' state, unanchor their character
+	Utility.setPlayerCharacterAnchored(Player, false)
 
 	local matchPadEnum, teamIndex = table.unpack(PlayerConnectedMatchPad[Player])
 	MatchPadTeamPlayers[matchPadEnum][teamIndex][Player] = nil
