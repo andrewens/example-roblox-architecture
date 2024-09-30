@@ -1,4 +1,5 @@
 -- dependency
+local PhysicsService = game:GetService("PhysicsService")
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 local Config = require(SoccerDuelsModule.Config)
@@ -7,6 +8,7 @@ local Utility = require(SoccerDuelsModule.Utility)
 
 -- const
 local TESTING_MODE = Config.getConstant("TestingMode")
+local LOBBY_CHARACTER_COLLISION_GROUP = Config.getConstant("LobbyCharacterCollisionGroup")
 
 -- var
 local CharactersInLobby = {} -- Player --> Character
@@ -29,6 +31,14 @@ local function lobbyCharacterSpawned(Player, Character)
 		end
 		lobbyCharacterDespawned(Player)
 	end)
+
+	for _, BasePart in Character:GetDescendants() do
+		if not BasePart:IsA("BasePart") then
+			continue
+		end
+
+		BasePart.CollisionGroup = LOBBY_CHARACTER_COLLISION_GROUP
+	end
 
 	Network.fireAllClients("CharacterSpawnedInLobby", Player, Character)
 end
@@ -66,6 +76,9 @@ local function disconnectPlayer(Player)
 	lobbyCharacterDespawned(Player)
 end
 local function initializeLobbyCharacterServer()
+	PhysicsService:RegisterCollisionGroup(LOBBY_CHARACTER_COLLISION_GROUP)
+	PhysicsService:CollisionGroupSetCollidable(LOBBY_CHARACTER_COLLISION_GROUP, LOBBY_CHARACTER_COLLISION_GROUP, false)
+
 	Network.onServerEventConnect("CharacterSpawnedInLobby", onPlayerRequestCharactersInLobby)
 	Utility.onCharacterLoadedConnect(lobbyCharacterSpawned)
 end

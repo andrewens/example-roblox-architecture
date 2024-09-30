@@ -1,3 +1,4 @@
+-- public / metamethods
 local function indexMockPart(self, key)
 	if key == "Position" then
 		return self.CFrame.Position
@@ -14,11 +15,21 @@ local MockPartMetatable = {
 	__newindex = newindexMockPart,
 }
 
+-- public / MockPart class methods
+local function isA(self, className)
+	return className == "Part" or className == "BasePart"
+end
+
 -- MockPart constructor
 return function()
-	local self = {}
-	self.Name = "Part"
-	self.CFrame = CFrame.new()
+	local self = {
+		-- properties
+		Name = "Part",
+		CFrame = CFrame.new(),
+
+		-- methods
+		IsA = isA,
+	}
 
 	setmetatable(self, MockPartMetatable)
 

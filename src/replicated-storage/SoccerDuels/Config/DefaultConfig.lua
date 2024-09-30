@@ -157,6 +157,9 @@ DefaultConfig.CharacterTouchSensorPartName = "TouchSensor"
 DefaultConfig.LobbyDeviceCollisionGroup = "LobbyDevice"
 DefaultConfig.LobbyDeviceTransparency = if DefaultConfig.TestingMode then 0.9 else 1
 
+-- lobby characters
+DefaultConfig.LobbyCharacterCollisionGroup = "LobbyCharacter"
+
 -- maps
 DefaultConfig.MapThumbnailImages = {
 	["Stadium"] = "rbxassetid://113929796493700",

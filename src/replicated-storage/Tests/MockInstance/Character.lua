@@ -15,6 +15,12 @@ local function moveTo(self, position)
 
 	self.HumanoidRootPart.Position = position
 end
+local function getDescendants(self)
+	return {
+		self.Humanoid,
+		self.HumanoidRootPart,
+	}
+end
 local function findFirstChild(self, childName)
 	return self[childName]
 end
@@ -37,6 +43,7 @@ return function()
 		-- methods
 		Destroy = destroyCharacter,
 		FindFirstChild = findFirstChild,
+		GetDescendants = getDescendants,
 		MoveTo = moveTo,
 		GetPivot = getPivot,
 

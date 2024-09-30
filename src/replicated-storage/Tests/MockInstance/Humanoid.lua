@@ -4,6 +4,9 @@ local MockInstanceModule = script:FindFirstAncestor("MockInstance")
 local Event = require(MockInstanceModule.Event)
 
 -- public / MockHumanoid class methods
+local function isA(self, className)
+    return className == "Humanoid"
+end
 local function humanoidTakeDamage(self, damage)
     self.Health -= damage
 
@@ -31,5 +34,6 @@ return function()
         -- methods
         TakeDamage = humanoidTakeDamage,
         Destroy = destroyHumanoid,
+        IsA = isA,
     }
 end
