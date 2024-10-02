@@ -159,6 +159,7 @@ local function disconnectPlayer(Player, kickPlayer)
 	LobbyCharacterServer.disconnectPlayer(Player)
 	PlayerControllerTypeServer.disconnectPlayer(Player)
 	MatchJoiningPadsServer.disconnectPlayer(Player)
+	MapsServer.disconnectPlayer(Player)
 
 	Network.fireAllClients("PlayerDisconnected", Player) -- TODO this behavior is untested
 end
@@ -228,6 +229,12 @@ return {
 	savePlayerDataAsync = Database.savePlayerDataAsync,
 
 	-- maps
+	disconnectPlayerFromAllMapInstances = MapsServer.disconnectPlayerFromAllMapInstances,
+	getPlayersConnectedToMapInstance = MapsServer.getPlayersConnectedToMapInstance,
+	getPlayerConnectedMapInstance = MapsServer.getPlayerConnectedMapInstance,
+	connectPlayerToMapInstance = MapsServer.connectPlayerToMapInstance,
+	playerIsInLobby = MapsServer.playerIsInLobby,
+
 	destroyAllMapInstances = MapsServer.destroyAllMapInstances,
 	getMapInstanceFolder = MapsServer.getMapInstanceFolder,
 	getMapInstanceOrigin = MapsServer.getMapInstanceOrigin,

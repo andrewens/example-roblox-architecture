@@ -37,6 +37,13 @@ end
 local function isInteger(value)
 	return typeof(value) == "number" and math.floor(value) == value
 end
+local function tableCount(Table)
+	local count = 0
+	for k, v in Table do
+		count += 1
+	end
+	return count
+end
 local function tableContainsValue(Table, value)
 	for k, v in Table do
 		if v == value then
@@ -115,6 +122,7 @@ return {
 	tableContainsValue = tableContainsValue,
 	tableShallowEqual = tableShallowEqual,
 	tableDeepEqual = tableDeepEqual,
+	tableCount = tableCount,
 
 	-- temp fix
 	serverFinishedTests = serverFinishedTests,
