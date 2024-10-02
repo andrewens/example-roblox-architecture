@@ -1,13 +1,30 @@
 -- dependency
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local ServerScriptService = game:GetService("ServerScriptService")
-local StarterGui = game:GetService("StarterGui")
-
-local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 -- public
+local function convertInstanceIntoModel(RbxInstance)
+	if not (typeof(RbxInstance) == "Instance") then
+		error(`{RbxInstance} is not an Instance!`)
+	end
+
+	if RbxInstance:IsA("Model") then
+		return RbxInstance
+	end
+
+	local Model = Instance.new("Model")
+
+	for _, Child in RbxInstance:GetChildren() do
+		Child.Parent = Model
+	end
+
+	Model.Name = RbxInstance.Name
+	Model.Parent = RbxInstance.Parent
+
+	RbxInstance:Destroy()
+
+	return Model
+end
 local function onPartTouchedConnect(Part, debounceWaitSeconds, callback)
 	if callback == nil then -- support passing just a callback
 		callback = debounceWaitSeconds
@@ -47,7 +64,7 @@ local function weldPartToPart(WeldedPart, ParentPart)
 end
 local function shouldIgnoreMockPlayerFromServerTests(Player)
 	-- TODO this is a band-aid to a really annoying issue: previously fired RemoteEvents queue up and still get
-	-- consume by the client, despite connecting to the remote event after the tests finish.
+	-- consumed by the client, despite connecting to the remote event after the tests finish.
 	return RunService:IsClient() and typeof(Player) == "table"
 end
 local function runServiceRenderSteppedConnect(rate, callback)
@@ -233,21 +250,10 @@ local function onPlayerDiedConnect(Player, callback)
 
 	return conn
 end
-local function organizeDependenciesServerOnly()
-	for _, RbxInstance in StarterGui:GetChildren() do
-		RbxInstance.Parent = ReplicatedStorage.UserInterface
-	end
-
-	local CharacterGuiTemplate = workspace:FindFirstChild("CharacterGuiTemplate")
-	if CharacterGuiTemplate then
-		CharacterGuiTemplate.Parent = ReplicatedStorage.UserInterface
-	end
-
-	local SoccerDuelsServerModule = SoccerDuelsModule:FindFirstChild("SoccerDuelsServer")
-	SoccerDuelsServerModule.Parent = ServerScriptService
-end
 
 return {
+	convertInstanceIntoModel = convertInstanceIntoModel,
+
 	dictionaryToArray = dictionaryToArray,
 	tableDeepCopy = tableDeepCopy,
 	tableCount = tableCount,
@@ -266,5 +272,4 @@ return {
 	onPlayerDiedConnect = onPlayerDiedConnect,
 
 	shouldIgnoreMockPlayerFromServerTests = shouldIgnoreMockPlayerFromServerTests,
-	organizeDependencies = organizeDependenciesServerOnly,
 }

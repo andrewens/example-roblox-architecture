@@ -1,12 +1,11 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
-
 local Enums = require(SoccerDuelsModule.Enums)
 
 -- init
 local ExpectedAssets = {}
 
--- root
+-- root user interface
 ExpectedAssets.PlayerGui = {
 	Path = "ReplicatedStorage/UserInterface",
 	ClassName = "Folder",
@@ -204,7 +203,7 @@ do
 	}
 	ExpectedAssets.MatchJoiningPadBufferingImage = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Searching/Team1/Buffering",
-		ClassName = "ImageLabel"
+		ClassName = "ImageLabel",
 	}
 end
 
@@ -279,8 +278,28 @@ do
 	}
 	ExpectedAssets.MatchJoiningPadLobbyBufferingImage = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Right/Player Searches/Search/Team1/Buffering",
-		ClassName = "ImageLabel"
+		ClassName = "ImageLabel",
 	}
+end
+
+-- maps
+do
+	ExpectedAssets.MapGridOriginPart = {
+		Path = "Workspace/MapGridOriginPart",
+		ClassName = "BasePart",
+	}
+
+	-- the MapTemplates folder is automatically moved from Workspace to ServerStorage at runtime
+	for mapEnum, mapName in Enums.iterateEnumsOfType("Map") do
+		ExpectedAssets[`{mapName} MapFolder`] = {
+			Path = `ServerStorage/MapTemplates/{mapName}`,
+			ConvertToClass = "Model",
+		}
+		ExpectedAssets[`{mapName} MapOriginPart`] = {
+			Path = `ServerStorage/MapTemplates/{mapName}/Origin`,
+			ClassName = "BasePart",
+		}
+	end
 end
 
 return ExpectedAssets

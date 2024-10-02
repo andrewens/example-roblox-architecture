@@ -35,11 +35,11 @@ local MAP_VOTING_STATE_ENUM = Enums.getEnum("MatchJoiningPadState", "MapVoting")
 -- var
 local MaxPlayersPerTeam = {} -- int matchPadEnum --> int
 local MatchPadTeamPlayers = {} -- int matchPadEnum --> int teamIndex --> Player --> true | nil
-local PlayerConnectedMatchPad = {} -- Player --> [ int matchPadEnum, int teamIndex ]
 local MatchPadState = {} -- int matchPadEnum --> int matchPadStateEnum
-local MatchPadStateChangeTimestamp = {} -- int matchPadEnum --> float timestampWhenStateChanges
+local MatchPadStateChangeTimestamp = {} -- int matchPadEnum --> int timestampWhenStateChangesUnixMilliseconds
 local MatchPadMapVotes = {} -- int matchPadEnum --> Player --> mapEnum
 local MatchPadLastPlayerWhoVoted = {} -- int matchPadEnum --> Player
+local PlayerConnectedMatchPad = {} -- Player --> [ int matchPadEnum, int teamIndex ]
 
 -- private
 local disconnectPlayerFromAllMatchPads
@@ -111,8 +111,6 @@ local function removePlayerFromPreviousMatchPad(Player)
 
 	PlayerConnectedMatchPad[Player] = nil
 	updateMatchPadState(matchPadEnum)
-
-	return
 end
 local function addPlayerToMatchPad(Player, matchPadEnum, teamIndex)
 	removePlayerFromPreviousMatchPad(Player)

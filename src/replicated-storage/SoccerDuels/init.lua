@@ -38,7 +38,7 @@ local Time = require(script.Time)
 
 -- public
 local function initializeSoccerDuels()
-	Utility.organizeDependencies()
+	AssetDependencies.organizeDependencies()
 	Network.initialize()
 	SoccerDuelsServer.initialize()
 	SoccerDuelsClient.initialize()
@@ -61,6 +61,11 @@ return {
 
 	-- enums
 	iterateEnumsOfType = Enums.iterateEnumsOfType,
+
+	-- maps
+	getMapInstanceFolder = SoccerDuelsServer.getMapInstanceFolder,
+	getMapInstanceOrigin = SoccerDuelsServer.getMapInstanceOrigin,
+	newMapInstance = SoccerDuelsServer.newMapInstance,
 
 	-- map voting
 	getMatchPadWinningMapVote = SoccerDuelsServer.getMatchPadWinningMapVote,

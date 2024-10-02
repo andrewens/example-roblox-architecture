@@ -173,5 +173,7 @@ DefaultConfig.MapThumbnailImages = {
 	["Stadium"] = "rbxassetid://113929796493700",
 	["Map2"] = "rbxassetid://113929796493700",
 }
+DefaultConfig.MaxMapInstancesPerGridRow = 5
+DefaultConfig.DistanceBetweenMapInstancesStuds = 1E3
 
 return DefaultConfig

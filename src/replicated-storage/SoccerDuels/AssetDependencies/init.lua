@@ -1,4 +1,9 @@
 -- dependency
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
+local ServerStorage = game:GetService("ServerStorage")
+local StarterGui = game:GetService("StarterGui")
+
 local ExpectedAssets = require(script.ExpectedAssets)
 
 -- const
@@ -106,6 +111,21 @@ end
 local function getExpectedAssets()
 	return ExpectedAssets
 end
+local function organizeDependenciesServerOnly()
+	for _, RbxInstance in StarterGui:GetChildren() do
+		RbxInstance.Parent = ReplicatedStorage.UserInterface
+	end
+
+	local CharacterGuiTemplate = workspace:FindFirstChild("CharacterGuiTemplate")
+	if CharacterGuiTemplate then
+		CharacterGuiTemplate.Parent = ReplicatedStorage.UserInterface
+	end
+
+	local MapTemplatesFolder = workspace:FindFirstChild("MapTemplates")
+	if MapTemplatesFolder then
+		MapTemplatesFolder.Parent = ServerStorage
+	end
+end
 
 return {
 	ignoreWrapperInstanceInPath = ignoreWrapperInstanceInPath,
@@ -114,4 +134,6 @@ return {
 	getAsset = getAssetByPath,
 	getExpectedAsset = getExpectedAsset,
 	getExpectedAssets = getExpectedAssets,
+
+	organizeDependencies = organizeDependenciesServerOnly,
 }

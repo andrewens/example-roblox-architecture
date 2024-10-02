@@ -1,5 +1,6 @@
 -- dependency
 local Players = game:GetService("Players")
+local ServerScriptService = game:GetService("ServerScriptService")
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 
 local Config = require(SoccerDuelsModule.Config)
@@ -9,6 +10,7 @@ local Utility = require(SoccerDuelsModule.Utility)
 
 local Database = require(script.Database)
 local LobbyCharacterServer = require(script.LobbyCharacterServer)
+local MapsServer = require(script.MapsServer)
 local MatchJoiningPadsServer = require(script.MatchJoiningPadsServer)
 local NotifyPlayerServer = require(script.NotifyPlayerServer)
 local PlayerControllerTypeServer = require(script.PlayerControllerTypeServer)
@@ -205,6 +207,7 @@ local function initializeServer()
 	Network.onServerInvokeConnect("GetPlayerSaveData", getPlayerSaveData)
 	Network.onServerEventConnect("PlayerChangeSetting", playerChangedSetting)
 
+	Network.onServerEventConnect("ClientDestroyed", disconnectPlayer)
 	Players.PlayerRemoving:Connect(disconnectPlayer)
 
 	task.spawn(autoSaveAllPlayerData)
@@ -213,8 +216,9 @@ local function initializeServer()
 	LobbyCharacterServer.initialize()
 	PlayerControllerTypeServer.initialize()
 	MatchJoiningPadsServer.initialize()
+	MapsServer.initialize()
 
-	Network.onServerEventConnect("ClientDestroyed", disconnectPlayer)
+	script.Parent = ServerScriptService -- prevent exploiters from accessing server code
 end
 
 return {
@@ -222,6 +226,11 @@ return {
 	getAvailableDataStoreRequests = Database.getAvailableDataStoreRequests,
 	getPlayerSaveDataAsync = Database.getPlayerSaveDataAsync,
 	savePlayerDataAsync = Database.savePlayerDataAsync,
+
+	-- maps
+	getMapInstanceFolder = MapsServer.getMapInstanceFolder,
+	getMapInstanceOrigin = MapsServer.getMapInstanceOrigin,
+	newMapInstance = MapsServer.newMapInstance,
 
 	-- map voting
 	getMatchPadWinningMapVote = MatchJoiningPadsServer.getMatchPadWinningMapVote,
