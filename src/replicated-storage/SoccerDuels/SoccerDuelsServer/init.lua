@@ -230,6 +230,7 @@ return {
 	-- maps
 	getMapInstanceFolder = MapsServer.getMapInstanceFolder,
 	getMapInstanceOrigin = MapsServer.getMapInstanceOrigin,
+	destroyMapInstance = MapsServer.destroyMapInstance,
 	newMapInstance = MapsServer.newMapInstance,
 
 	-- map voting

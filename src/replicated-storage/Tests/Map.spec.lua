@@ -32,7 +32,7 @@ return function()
 
 				local i = 0
 				local j = 0
-				local MapIds = {} -- int mapId --> true
+				local MapIds = {} -- int mapInstanceId --> true
 
 				for mapEnum, mapName in SoccerDuels.iterateEnumsOfType("Map") do
 					-- must generate a unique id
@@ -69,6 +69,12 @@ return function()
 						i = 0
 						j += 1
 					end
+				end
+
+				for mapInstanceId, _ in MapIds do
+					SoccerDuels.destroyMapInstance(mapInstanceId)
+
+					assert(SoccerDuels.getMapInstanceFolder(mapInstanceId) == nil)
 				end
 			end)
 		end)

@@ -48,6 +48,19 @@ local function getMapInstanceOrigin(mapInstanceId)
 
 	return mapInstanceIdToOriginPosition(mapInstanceId)
 end
+local function destroyMapInstance(mapInstanceId)
+	if not Utility.isInteger(mapInstanceId) then
+		error(`{mapInstanceId} is not a map instance id!`)
+	end
+
+	local MapFolder = MapInstanceFolder[mapInstanceId]
+	if MapFolder == nil then
+		return
+	end
+
+	MapFolder:Destroy()
+	MapInstanceFolder[mapInstanceId] = nil
+end
 local function newMapInstance(mapName)
 	if not (typeof(mapName) == "string") then
 		error(`{mapName} is not a string!`)
@@ -86,6 +99,7 @@ end
 return {
 	getMapInstanceFolder = getMapInstanceFolder,
 	getMapInstanceOrigin = getMapInstanceOrigin,
+	destroyMapInstance = destroyMapInstance,
 	newMapInstance = newMapInstance,
 
 	initialize = initializeMapsServer,

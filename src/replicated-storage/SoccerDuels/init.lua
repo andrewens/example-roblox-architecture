@@ -65,6 +65,7 @@ return {
 	-- maps
 	getMapInstanceFolder = SoccerDuelsServer.getMapInstanceFolder,
 	getMapInstanceOrigin = SoccerDuelsServer.getMapInstanceOrigin,
+	destroyMapInstance = SoccerDuelsServer.destroyMapInstance,
 	newMapInstance = SoccerDuelsServer.newMapInstance,
 
 	-- map voting
