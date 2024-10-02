@@ -228,9 +228,11 @@ return {
 	savePlayerDataAsync = Database.savePlayerDataAsync,
 
 	-- maps
+	destroyAllMapInstances = MapsServer.destroyAllMapInstances,
 	getMapInstanceFolder = MapsServer.getMapInstanceFolder,
 	getMapInstanceOrigin = MapsServer.getMapInstanceOrigin,
 	destroyMapInstance = MapsServer.destroyMapInstance,
+	getAllMapInstances = MapsServer.getAllMapInstances,
 	newMapInstance = MapsServer.newMapInstance,
 
 	-- map voting

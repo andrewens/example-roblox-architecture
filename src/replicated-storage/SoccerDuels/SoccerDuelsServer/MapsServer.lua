@@ -86,6 +86,20 @@ local function newMapInstance(mapName)
 
 	return mapInstanceId
 end
+local function getAllMapInstances()
+	local MapInstanceIds = {}
+
+	for mapInstanceId, _ in MapInstanceFolder do
+		table.insert(MapInstanceIds, mapInstanceId)
+	end
+
+	return MapInstanceIds
+end
+local function destroyAllMapInstances()
+	for mapInstanceId, _ in MapInstanceFolder do
+		destroyMapInstance(mapInstanceId)
+	end
+end
 local function initializeMapsServer()
 	local MapGridOriginPart = Assets.getExpectedAsset("MapGridOriginPart")
 	mapGridOrigin = MapGridOriginPart.Position
@@ -97,9 +111,11 @@ local function initializeMapsServer()
 end
 
 return {
+	destroyAllMapInstances = destroyAllMapInstances,
 	getMapInstanceFolder = getMapInstanceFolder,
 	getMapInstanceOrigin = getMapInstanceOrigin,
 	destroyMapInstance = destroyMapInstance,
+	getAllMapInstances = getAllMapInstances,
 	newMapInstance = newMapInstance,
 
 	initialize = initializeMapsServer,

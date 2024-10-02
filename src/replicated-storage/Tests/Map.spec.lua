@@ -78,5 +78,32 @@ return function()
 				end
 			end)
 		end)
+		describe("SoccerDuels.getAllMapInstances()", function()
+			it("Returns a table of every active mapInstanceId", function()
+				SoccerDuels.destroyAllMapInstances()
+
+				local mapId1 = SoccerDuels.newMapInstance("Stadium")
+				local mapId2 = SoccerDuels.newMapInstance("Stadium")
+				local mapId3 = SoccerDuels.newMapInstance("Map2")
+
+				local AllMapIds = SoccerDuels.getAllMapInstances()
+				assert(#AllMapIds == 3)
+				assert(Utility.tableContainsValue(AllMapIds, mapId1))
+				assert(Utility.tableContainsValue(AllMapIds, mapId2))
+				assert(Utility.tableContainsValue(AllMapIds, mapId3))
+
+				SoccerDuels.destroyMapInstance(mapId2)
+
+				AllMapIds = SoccerDuels.getAllMapInstances()
+				assert(#AllMapIds == 2)
+				assert(Utility.tableContainsValue(AllMapIds, mapId1))
+				assert(Utility.tableContainsValue(AllMapIds, mapId3))
+
+				SoccerDuels.destroyAllMapInstances()
+
+				AllMapIds = SoccerDuels.getAllMapInstances()
+				assert(#AllMapIds == 0)
+			end)
+		end)
 	end)
 end

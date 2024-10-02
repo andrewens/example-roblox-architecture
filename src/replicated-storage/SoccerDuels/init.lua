@@ -63,9 +63,11 @@ return {
 	iterateEnumsOfType = Enums.iterateEnumsOfType,
 
 	-- maps
+	destroyAllMapInstances = SoccerDuelsServer.destroyAllMapInstances,
 	getMapInstanceFolder = SoccerDuelsServer.getMapInstanceFolder,
 	getMapInstanceOrigin = SoccerDuelsServer.getMapInstanceOrigin,
 	destroyMapInstance = SoccerDuelsServer.destroyMapInstance,
+	getAllMapInstances = SoccerDuelsServer.getAllMapInstances,
 	newMapInstance = SoccerDuelsServer.newMapInstance,
 
 	-- map voting
