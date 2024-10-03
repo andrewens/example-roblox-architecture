@@ -185,4 +185,8 @@ DefaultConfig.MatchGameplayDurationSeconds = 90
 DefaultConfig.MatchOverDurationSeconds = 5
 DefaultConfig.GameOverDurationSeconds = 5
 
+DefaultConfig.DefaultMapInstanceOptions = {
+	MatchCycleEnabled = true,
+}
+
 return DefaultConfig

@@ -421,6 +421,52 @@ return function()
 					Client2:Destroy()
 				end
 			)
+			it(
+				"When creating a map, you can specify to skip the match cycle and remain in a perpetual 'Gameplay' state",
+				function()
+					SoccerDuels.destroyAllMapInstances()
+					SoccerDuels.resetTestingVariables()
+
+					local mapLoadingDuration = SoccerDuels.getConstant("MapLoadingDurationSeconds")
+					local matchCountdownDuration = SoccerDuels.getConstant("MatchCountdownDurationSeconds")
+					local matchGameplayDuration = SoccerDuels.getConstant("MatchGameplayDurationSeconds")
+					local matchOverDuration = SoccerDuels.getConstant("MatchOverDurationSeconds")
+					local maxError = 0.010
+
+					local numMatchesPerGame = SoccerDuels.getConstant("NumberOfMatchesPerGame")
+
+					local mapId = SoccerDuels.newMapInstance("Stadium", {
+						MatchCycleEnabled = false,
+						-- in this mode, the map doesn't go away or end or anything if there are no players on a team
+					})
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "Loading")
+
+					SoccerDuels.addExtraSecondsForTesting(mapLoadingDuration + maxError)
+					SoccerDuels.mapTimerTick()
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "Gameplay")
+
+					SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration + maxError)
+					SoccerDuels.mapTimerTick()
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "Gameplay")
+
+					SoccerDuels.addExtraSecondsForTesting(matchGameplayDuration + maxError)
+					SoccerDuels.mapTimerTick()
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "Gameplay")
+
+					SoccerDuels.addExtraSecondsForTesting(matchOverDuration + maxError)
+					SoccerDuels.mapTimerTick()
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "Gameplay")
+
+					SoccerDuels.destroyMapInstance(mapId)
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == nil)
+				end
+			)
 		end)
 	end)
 end

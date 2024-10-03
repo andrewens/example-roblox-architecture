@@ -26,6 +26,9 @@ local MATCH_COUNTDOWN_STATE_ENUM = Enums.getEnum("MapState", "MatchCountdown")
 local MATCH_GAMEPLAY_STATE_ENUM = Enums.getEnum("MapState", "MatchGameplay")
 local MATCH_OVER_STATE_ENUM = Enums.getEnum("MapState", "MatchOver")
 local GAME_OVER_STATE_ENUM = Enums.getEnum("MapState", "GameOver")
+local PERPETUAL_GAMEPLAY_STATE_ENUM = Enums.getEnum("MapState", "Gameplay")
+
+local DEFAULT_MATCH_CYCLE_ENABLED = Config.getConstant("DefaultMapInstanceOptions", "MatchCycleEnabled")
 
 -- var
 local mapGridOrigin -- Vector3
@@ -64,9 +67,16 @@ local function updateMapState(mapInstanceId)
 		return
 	end
 
-	-- 'Loading' --> 'MatchCountdown'
+	-- 'Loading' --> 'MatchCountdown' | 'Gameplay'
 	if currentStateEnum == MAP_LOADING_STATE_ENUM then
-		setMapState(mapInstanceId, MATCH_COUNTDOWN_STATE_ENUM, MATCH_COUNTDOWN_DURATION_SECONDS)
+		-- interpret having a number of matches played as MatchCycleEnabled=true
+		if MapInstanceMatchesPlayed[mapInstanceId] then
+			setMapState(mapInstanceId, MATCH_COUNTDOWN_STATE_ENUM, MATCH_COUNTDOWN_DURATION_SECONDS)
+			return
+		end
+
+		-- MatchCycleEnabled=false
+		setMapState(mapInstanceId, PERPETUAL_GAMEPLAY_STATE_ENUM, nil)
 		return
 	end
 
@@ -138,7 +148,7 @@ local function getMapInstanceState(mapInstanceId)
 	return Enums.enumToName("MapState", mapStateEnum)
 end
 local function mapTimerTick()
-	for mapInstanceId, mapStateEnum in MapInstanceState do
+	for mapInstanceId, _ in MapInstanceStateChangeTimestamp do
 		updateMapState(mapInstanceId)
 	end
 end
@@ -257,12 +267,25 @@ function destroyMapInstance(mapInstanceId)
 	MapInstanceStateChangeTimestamp[mapInstanceId] = nil
 	MapInstanceMatchesPlayed[mapInstanceId] = nil
 end
-local function newMapInstance(mapName)
+local function newMapInstance(mapName, Options)
+	Options = Options or {}
+
 	if not (typeof(mapName) == "string") then
 		error(`{mapName} is not a string!`)
 	end
 	if Enums.getEnum("Map", mapName) == nil then
 		error(`{mapName} is not a Map!`)
+	end
+	if not (typeof(Options) == "table") then
+		error(`{Options} is not a table!`)
+	end
+
+	local MATCH_CYCLE_ENABLED = if Options.MatchCycleEnabled ~= nil
+		then Options.MatchCycleEnabled
+		else DEFAULT_MATCH_CYCLE_ENABLED
+
+	if not (typeof(MATCH_CYCLE_ENABLED) == typeof(DEFAULT_MATCH_CYCLE_ENABLED)) then
+		error(`{MATCH_CYCLE_ENABLED} is not a {typeof(DEFAULT_MATCH_CYCLE_ENABLED)}!`)
 	end
 
 	local mapInstanceId = getNewMapId() -- the mapInstanceId must never be reused so we can reliably check if a map instance has been destroyed
@@ -283,7 +306,10 @@ local function newMapInstance(mapName)
 	MapInstancePlayers[mapInstanceId] = {}
 	MapInstanceIdToMapPositionIndex[mapInstanceId] = mapPositionIndex
 
-	MapInstanceMatchesPlayed[mapInstanceId] = 0
+	if MATCH_CYCLE_ENABLED then
+		MapInstanceMatchesPlayed[mapInstanceId] = 0
+	end
+
 	setMapState(mapInstanceId, MAP_LOADING_STATE_ENUM, MAP_LOADING_DURATION_SECONDS)
 
 	return mapInstanceId
