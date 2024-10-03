@@ -349,6 +349,78 @@ return function()
 
 				assert(SoccerDuels.getMapInstanceState(mapId) == nil)
 			end)
+			it(
+				"Maps repeat a cycle of 'MatchCountdown', 'MatchGameplay', and 'MatchOver' states a few times, then it's a 'GameOver' state",
+				function()
+					SoccerDuels.destroyAllMapInstances()
+					SoccerDuels.resetTestingVariables()
+
+					local mapLoadingDuration = SoccerDuels.getConstant("MapLoadingDurationSeconds")
+					local matchCountdownDuration = SoccerDuels.getConstant("MatchCountdownDurationSeconds")
+					local matchGameplayDuration = SoccerDuels.getConstant("MatchGameplayDurationSeconds")
+					local matchOverDuration = SoccerDuels.getConstant("MatchOverDurationSeconds")
+					local gameOverDuration = SoccerDuels.getConstant("GameOverDurationSeconds")
+					local maxError = 0.010
+
+					local numMatchesPerGame = SoccerDuels.getConstant("NumberOfMatchesPerGame")
+
+					local mapId = SoccerDuels.newMapInstance("Stadium")
+					local Client1, Client2 = makeSomePlayersConnectToAMap(2, mapId)
+
+					SoccerDuels.addExtraSecondsForTesting(mapLoadingDuration + maxError)
+					SoccerDuels.mapTimerTick()
+
+					for i = 1, numMatchesPerGame do
+						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchCountdown")
+
+						SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration - maxError)
+						SoccerDuels.mapTimerTick()
+
+						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchCountdown")
+
+						SoccerDuels.addExtraSecondsForTesting(2 * maxError)
+						SoccerDuels.mapTimerTick()
+
+						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchGameplay")
+
+						SoccerDuels.addExtraSecondsForTesting(matchGameplayDuration - maxError)
+						SoccerDuels.mapTimerTick()
+
+						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchGameplay")
+
+						SoccerDuels.addExtraSecondsForTesting(2 * maxError)
+						SoccerDuels.mapTimerTick()
+
+						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchOver")
+
+						SoccerDuels.addExtraSecondsForTesting(matchOverDuration - maxError)
+						SoccerDuels.mapTimerTick()
+
+						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchOver")
+
+						SoccerDuels.addExtraSecondsForTesting(2 * maxError)
+						SoccerDuels.mapTimerTick()
+					end
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "GameOver")
+					assert(SoccerDuels.getMapInstanceFolder(mapId))
+
+					SoccerDuels.addExtraSecondsForTesting(gameOverDuration - maxError)
+					SoccerDuels.mapTimerTick()
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "GameOver")
+					assert(SoccerDuels.getMapInstanceFolder(mapId))
+
+					SoccerDuels.addExtraSecondsForTesting(2 * maxError)
+					SoccerDuels.mapTimerTick()
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == nil) -- it automatically gets destroyed
+					assert(SoccerDuels.getMapInstanceFolder(mapId) == nil)
+
+					Client1:Destroy()
+					Client2:Destroy()
+				end
+			)
 		end)
 	end)
 end

@@ -110,7 +110,7 @@ DefaultConfig.MatchJoiningPadGuiBaseXScale = 0.16 -- (width of the 'vs' element)
 DefaultConfig.LobbyMatchJoiningPadXScalePerTeamPlayer = 0.15
 DefaultConfig.LobbyMatchJoiningPadBaseXScale = 0.1 -- (width of the 'vs' element)
 
-DefaultConfig.BufferingAnimationSoccerBallImage = 'rbxassetid://5761550996' --'rbxassetid://6631155345'-- this is a white circle
+DefaultConfig.BufferingAnimationSoccerBallImage = "rbxassetid://5761550996" --'rbxassetid://6631155345'-- this is a white circle
 DefaultConfig.BufferingAnimationSoccerBallMinSize = UDim2.new(0.2, 0, 0.2, 0)
 DefaultConfig.BufferingAnimationSoccerBallMaxSize = UDim2.new(0.35, 0, 0.35, 0)
 DefaultConfig.BufferingAnimationSecondsBetweenEachSoccerBallAnimation = 0.1
@@ -177,9 +177,12 @@ DefaultConfig.MaxMapInstancesPerGridRow = 5
 DefaultConfig.DistanceBetweenMapInstancesStuds = 1E3
 
 -- match state
-DefaultConfig.MapStateTickRateSeconds = 1
+DefaultConfig.MapStateTickRateSeconds = 0.33
+DefaultConfig.NumberOfMatchesPerGame = 5
 DefaultConfig.MapLoadingDurationSeconds = 3
 DefaultConfig.MatchCountdownDurationSeconds = 5
-
+DefaultConfig.MatchGameplayDurationSeconds = 90
+DefaultConfig.MatchOverDurationSeconds = 5
+DefaultConfig.GameOverDurationSeconds = 5
 
 return DefaultConfig

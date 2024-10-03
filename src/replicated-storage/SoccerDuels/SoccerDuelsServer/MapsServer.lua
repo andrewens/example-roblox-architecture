@@ -13,11 +13,19 @@ local MAX_NUM_MAP_INSTANCES_PER_GRID_ROW = Config.getConstant("MaxMapInstancesPe
 local STUDS_BETWEEN_MAP_INSTANCES = Config.getConstant("DistanceBetweenMapInstancesStuds")
 
 local MAP_STATE_TICK_RATE_SECONDS = Config.getConstant("MapStateTickRateSeconds")
+local NUMBER_OF_MATCHES_PER_GAME = Config.getConstant("NumberOfMatchesPerGame")
+
 local MAP_LOADING_DURATION_SECONDS = Config.getConstant("MapLoadingDurationSeconds")
 local MATCH_COUNTDOWN_DURATION_SECONDS = Config.getConstant("MatchCountdownDurationSeconds")
+local MATCH_GAMEPLAY_DURATION_SECONDS = Config.getConstant("MatchGameplayDurationSeconds")
+local MATCH_OVER_DURATION_SECONDS = Config.getConstant("MatchOverDurationSeconds")
+local GAME_OVER_DURATION_SECONDS = Config.getConstant("GameOverDurationSeconds")
 
 local MAP_LOADING_STATE_ENUM = Enums.getEnum("MapState", "Loading")
-local MAP_MATCH_COUNTDOWN_STATE_ENUM = Enums.getEnum("MapState", "MatchCountdown")
+local MATCH_COUNTDOWN_STATE_ENUM = Enums.getEnum("MapState", "MatchCountdown")
+local MATCH_GAMEPLAY_STATE_ENUM = Enums.getEnum("MapState", "MatchGameplay")
+local MATCH_OVER_STATE_ENUM = Enums.getEnum("MapState", "MatchOver")
+local GAME_OVER_STATE_ENUM = Enums.getEnum("MapState", "GameOver")
 
 -- var
 local mapGridOrigin -- Vector3
@@ -29,8 +37,10 @@ local PlayerConnectedMapInstance = {} -- Player --> mapInstanceId
 
 local MapInstanceState = {} -- int mapInstanceId --> int mapStateEnum
 local MapInstanceStateChangeTimestamp = {} -- int mapInstanceId --> int unixTimestampMilliseconds
+local MapInstanceMatchesPlayed = {} -- int mapInstanceId --> int numberOfMatchesPlayed
 
 -- private
+local destroyMapInstance
 local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
 	MapInstanceState[mapInstanceId] = mapStateEnum
 
@@ -45,13 +55,50 @@ local function updateMapState(mapInstanceId)
 	local currentStateEnum = MapInstanceState[mapInstanceId]
 	local stateChangeTimestamp = MapInstanceStateChangeTimestamp[mapInstanceId]
 
-	local now = Time.getUnixTimestampMilliseconds()
+	if stateChangeTimestamp == nil then
+		return
+	end
 
+	local now = Time.getUnixTimestampMilliseconds()
+	if now < stateChangeTimestamp then
+		return
+	end
+
+	-- 'Loading' --> 'MatchCountdown'
 	if currentStateEnum == MAP_LOADING_STATE_ENUM then
-		if now >= stateChangeTimestamp then
-			setMapState(mapInstanceId, MAP_MATCH_COUNTDOWN_STATE_ENUM, MATCH_COUNTDOWN_DURATION_SECONDS)
+		setMapState(mapInstanceId, MATCH_COUNTDOWN_STATE_ENUM, MATCH_COUNTDOWN_DURATION_SECONDS)
+		return
+	end
+
+	-- 'MatchCountdown' --> 'MatchGameplay'
+	if currentStateEnum == MATCH_COUNTDOWN_STATE_ENUM then
+		setMapState(mapInstanceId, MATCH_GAMEPLAY_STATE_ENUM, MATCH_GAMEPLAY_DURATION_SECONDS)
+		return
+	end
+
+	-- 'MatchGameplay' --> 'MatchOver'
+	if currentStateEnum == MATCH_GAMEPLAY_STATE_ENUM then
+		setMapState(mapInstanceId, MATCH_OVER_STATE_ENUM, MATCH_OVER_DURATION_SECONDS)
+		return
+	end
+
+	-- 'MatchOver' --> 'MatchCountdown' | 'GameOver'
+	if currentStateEnum == MATCH_OVER_DURATION_SECONDS then
+		MapInstanceMatchesPlayed[mapInstanceId] += 1
+
+		if MapInstanceMatchesPlayed[mapInstanceId] >= NUMBER_OF_MATCHES_PER_GAME then
+			setMapState(mapInstanceId, GAME_OVER_STATE_ENUM, GAME_OVER_DURATION_SECONDS)
 			return
 		end
+
+		setMapState(mapInstanceId, MATCH_COUNTDOWN_STATE_ENUM, MATCH_COUNTDOWN_DURATION_SECONDS)
+		return
+	end
+
+	-- 'GameOver' --> nil (destroy the map)
+	if currentStateEnum == GAME_OVER_STATE_ENUM then
+		destroyMapInstance(mapInstanceId)
+		return
 	end
 end
 
@@ -181,7 +228,7 @@ local function getMapInstanceOrigin(mapInstanceId)
 
 	return mapPositionIndexToOriginPosition(mapPositionIndex)
 end
-local function destroyMapInstance(mapInstanceId)
+function destroyMapInstance(mapInstanceId)
 	if not Utility.isInteger(mapInstanceId) then
 		error(`{mapInstanceId} is not a map instance id!`)
 	end
@@ -208,6 +255,7 @@ local function destroyMapInstance(mapInstanceId)
 
 	MapInstanceState[mapInstanceId] = nil
 	MapInstanceStateChangeTimestamp[mapInstanceId] = nil
+	MapInstanceMatchesPlayed[mapInstanceId] = nil
 end
 local function newMapInstance(mapName)
 	if not (typeof(mapName) == "string") then
@@ -235,6 +283,7 @@ local function newMapInstance(mapName)
 	MapInstancePlayers[mapInstanceId] = {}
 	MapInstanceIdToMapPositionIndex[mapInstanceId] = mapPositionIndex
 
+	MapInstanceMatchesPlayed[mapInstanceId] = 0
 	setMapState(mapInstanceId, MAP_LOADING_STATE_ENUM, MAP_LOADING_DURATION_SECONDS)
 
 	return mapInstanceId
