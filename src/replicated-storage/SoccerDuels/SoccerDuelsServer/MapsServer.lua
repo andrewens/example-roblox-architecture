@@ -5,21 +5,56 @@ local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Config = require(SoccerDuelsModule.Config)
 local Enums = require(SoccerDuelsModule.Enums)
 local Utility = require(SoccerDuelsModule.Utility)
+local Time = require(SoccerDuelsModule.Time)
 local SoccerDuelsServer -- required in initialize()
 
 -- const
 local MAX_NUM_MAP_INSTANCES_PER_GRID_ROW = Config.getConstant("MaxMapInstancesPerGridRow")
 local STUDS_BETWEEN_MAP_INSTANCES = Config.getConstant("DistanceBetweenMapInstancesStuds")
 
+local MAP_STATE_TICK_RATE_SECONDS = Config.getConstant("MapStateTickRateSeconds")
+local MAP_LOADING_DURATION_SECONDS = Config.getConstant("MapLoadingDurationSeconds")
+local MATCH_COUNTDOWN_DURATION_SECONDS = Config.getConstant("MatchCountdownDurationSeconds")
+
+local MAP_LOADING_STATE_ENUM = Enums.getEnum("MapState", "Loading")
+local MAP_MATCH_COUNTDOWN_STATE_ENUM = Enums.getEnum("MapState", "MatchCountdown")
+
 -- var
 local mapGridOrigin -- Vector3
-local mapInstanceCounter = 0
+local mapInstanceCounter = 0 -- int
 local MapInstanceIdToMapPositionIndex = {} -- int mapInstanceId --> int mapPositionIndex
 local MapInstanceFolder = {} -- int mapPositionIndex --> Folder
 local MapInstancePlayers = {} -- int mapInstanceId --> { Player --> int teamIndex ( 1 or 2 ) }
 local PlayerConnectedMapInstance = {} -- Player --> mapInstanceId
 
+local MapInstanceState = {} -- int mapInstanceId --> int mapStateEnum
+local MapInstanceStateChangeTimestamp = {} -- int mapInstanceId --> int unixTimestampMilliseconds
+
 -- private
+local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
+	MapInstanceState[mapInstanceId] = mapStateEnum
+
+	local stateChangeTimestamp
+	if durationSeconds then
+		stateChangeTimestamp = Time.getUnixTimestampMilliseconds() + 1E3 * durationSeconds
+	end
+
+	MapInstanceStateChangeTimestamp[mapInstanceId] = stateChangeTimestamp
+end
+local function updateMapState(mapInstanceId)
+	local currentStateEnum = MapInstanceState[mapInstanceId]
+	local stateChangeTimestamp = MapInstanceStateChangeTimestamp[mapInstanceId]
+
+	local now = Time.getUnixTimestampMilliseconds()
+
+	if currentStateEnum == MAP_LOADING_STATE_ENUM then
+		if now >= stateChangeTimestamp then
+			setMapState(mapInstanceId, MAP_MATCH_COUNTDOWN_STATE_ENUM, MATCH_COUNTDOWN_DURATION_SECONDS)
+			return
+		end
+	end
+end
+
 local function getNewMapId()
 	mapInstanceCounter += 1
 	return mapInstanceCounter
@@ -43,6 +78,24 @@ local function mapPositionIndexToOriginPosition(mapPositionIndex)
 end
 
 -- public
+local function getMapInstanceState(mapInstanceId)
+	if not Utility.isInteger(mapInstanceId) then
+		error(`{mapInstanceId} is not a map instance id!`)
+	end
+
+	local mapStateEnum = MapInstanceState[mapInstanceId]
+	if mapStateEnum == nil then
+		return nil
+	end
+
+	return Enums.enumToName("MapState", mapStateEnum)
+end
+local function mapTimerTick()
+	for mapInstanceId, mapStateEnum in MapInstanceState do
+		updateMapState(mapInstanceId)
+	end
+end
+
 local function disconnectPlayerFromAllMapInstances(Player)
 	if not Utility.isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
@@ -152,6 +205,9 @@ local function destroyMapInstance(mapInstanceId)
 
 	MapInstancePlayers[mapInstanceId] = nil
 	MapInstanceIdToMapPositionIndex[mapInstanceId] = nil
+
+	MapInstanceState[mapInstanceId] = nil
+	MapInstanceStateChangeTimestamp[mapInstanceId] = nil
 end
 local function newMapInstance(mapName)
 	if not (typeof(mapName) == "string") then
@@ -179,6 +235,8 @@ local function newMapInstance(mapName)
 	MapInstancePlayers[mapInstanceId] = {}
 	MapInstanceIdToMapPositionIndex[mapInstanceId] = mapPositionIndex
 
+	setMapState(mapInstanceId, MAP_LOADING_STATE_ENUM, MAP_LOADING_DURATION_SECONDS)
+
 	return mapInstanceId
 end
 local function getAllMapInstances()
@@ -204,9 +262,16 @@ local function initializeMapsServer()
 	for mapEnum, mapName in Enums.iterateEnumsOfType("Map") do
 		Utility.convertInstanceIntoModel(Assets.getExpectedAsset(`{mapName} MapFolder`))
 	end
+
+	Utility.runServiceSteppedConnect(MAP_STATE_TICK_RATE_SECONDS, mapTimerTick)
 end
 
 return {
+	-- map state
+	getMapInstanceState = getMapInstanceState,
+	mapTimerTick = mapTimerTick,
+
+	-- map instances
 	disconnectPlayerFromAllMapInstances = disconnectPlayerFromAllMapInstances,
 	getPlayersConnectedToMapInstance = getPlayersConnectedToMapInstance,
 	getPlayerConnectedMapInstance = getPlayerConnectedMapInstance,
@@ -220,6 +285,7 @@ return {
 	getAllMapInstances = getAllMapInstances,
 	newMapInstance = newMapInstance,
 
+	-- standard methods
 	disconnectPlayer = disconnectPlayerFromAllMapInstances, -- this is invoked in SoccerDuelsServer.disconnectPlayer(), hence the duplicate method
 	initialize = initializeMapsServer,
 }

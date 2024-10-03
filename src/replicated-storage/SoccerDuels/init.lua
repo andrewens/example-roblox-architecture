@@ -76,6 +76,10 @@ return {
 	getAllMapInstances = SoccerDuelsServer.getAllMapInstances,
 	newMapInstance = SoccerDuelsServer.newMapInstance,
 
+	-- map state
+	getMapInstanceState = SoccerDuelsServer.getMapInstanceState,
+	mapTimerTick = SoccerDuelsServer.mapTimerTick,
+
 	-- map voting
 	getMatchPadWinningMapVote = SoccerDuelsServer.getMatchPadWinningMapVote,
 	getMatchPadMapVotes = SoccerDuelsServer.getMatchPadMapVotes,

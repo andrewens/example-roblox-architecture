@@ -242,6 +242,10 @@ return {
 	getAllMapInstances = MapsServer.getAllMapInstances,
 	newMapInstance = MapsServer.newMapInstance,
 
+	-- map state
+	getMapInstanceState = MapsServer.getMapInstanceState,
+	mapTimerTick = MapsServer.mapTimerTick,
+
 	-- map voting
 	getMatchPadWinningMapVote = MatchJoiningPadsServer.getMatchPadWinningMapVote,
 	getMatchPadMapVotes = MatchJoiningPadsServer.getMatchPadMapVotes,

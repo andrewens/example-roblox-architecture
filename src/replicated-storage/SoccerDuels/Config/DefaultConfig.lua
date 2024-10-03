@@ -176,4 +176,10 @@ DefaultConfig.MapThumbnailImages = {
 DefaultConfig.MaxMapInstancesPerGridRow = 5
 DefaultConfig.DistanceBetweenMapInstancesStuds = 1E3
 
+-- match state
+DefaultConfig.MapStateTickRateSeconds = 1
+DefaultConfig.MapLoadingDurationSeconds = 3
+DefaultConfig.MatchCountdownDurationSeconds = 5
+
+
 return DefaultConfig

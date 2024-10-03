@@ -6,6 +6,29 @@ local SoccerDuels = require(ReplicatedStorage.SoccerDuels)
 local MockInstance = require(TestsFolder.MockInstance)
 local Utility = require(TestsFolder.Utility)
 
+-- private
+local function makeSomePlayersConnectToAMap(numPlayers, mapId)
+	if not Utility.isInteger(numPlayers) then
+		error(`{numPlayers} is not an integer!`)
+	end
+	if mapId == nil then
+		error(`{mapId} is not a map id!`)
+	end
+
+	local Clients = {}
+
+	for i = 1, numPlayers do
+		local Player = MockInstance.new("Player")
+		local Client = SoccerDuels.newClient(Player)
+		Client:LoadPlayerDataAsync()
+		Clients[i] = Client
+
+		SoccerDuels.connectPlayerToMapInstance(Player, mapId, (i % 2) + 1)
+	end
+
+	return table.unpack(Clients)
+end
+
 -- test
 return function()
 	describe("Maps", function()
@@ -272,6 +295,59 @@ return function()
 				Client2:Destroy()
 
 				SoccerDuels.destroyAllMapInstances()
+			end)
+		end)
+		describe("Map match state", function()
+			--[[
+				Loading
+					|
+				MatchCountdown
+					|
+				Match---------->--------|
+					|					|
+				MatchOver				|
+					|					|
+					|---------->--------|
+					|					|
+				repeat 5x		If all players on a team leave
+					|					|
+					|---------<---------|
+					|
+				GameOver
+					|
+				(destroy Map)
+			]]
+			--[[
+				Additional states:
+				* WinningTeamIndex
+				* Goals per team
+				* Time left
+				* Players per team
+			]]
+			it("Maps begin in a 'Loading' state that lasts a fixed amount of time", function()
+				SoccerDuels.destroyAllMapInstances()
+				SoccerDuels.resetTestingVariables()
+
+				local mapLoadingDuration = SoccerDuels.getConstant("MapLoadingDurationSeconds")
+				local maxError = 0.010
+
+				local mapId = SoccerDuels.newMapInstance("Stadium")
+
+				assert(SoccerDuels.getMapInstanceState(mapId) == "Loading")
+
+				SoccerDuels.addExtraSecondsForTesting(mapLoadingDuration - maxError)
+				SoccerDuels.mapTimerTick()
+
+				assert(SoccerDuels.getMapInstanceState(mapId) == "Loading")
+
+				SoccerDuels.addExtraSecondsForTesting(2 * maxError)
+				SoccerDuels.mapTimerTick()
+
+				assert(SoccerDuels.getMapInstanceState(mapId) == "MatchCountdown")
+
+				SoccerDuels.destroyMapInstance(mapId)
+
+				assert(SoccerDuels.getMapInstanceState(mapId) == nil)
 			end)
 		end)
 	end)
