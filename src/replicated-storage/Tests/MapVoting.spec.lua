@@ -171,9 +171,6 @@ return function()
 					Client2:Destroy()
 				end
 			)
-            it("Players are connected to the winning map after the MapVoting state ends", function()
-                
-            end)
 		end)
 		describe("Client:OnConnectedMatchPadVoteChangedConnect()", function()
 			it(

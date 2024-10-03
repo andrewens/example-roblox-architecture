@@ -12,26 +12,32 @@ local MAX_NUM_MAP_INSTANCES_PER_GRID_ROW = Config.getConstant("MaxMapInstancesPe
 local STUDS_BETWEEN_MAP_INSTANCES = Config.getConstant("DistanceBetweenMapInstancesStuds")
 
 -- var
-local mapGridOrigin
-local MapInstanceFolder = {} -- int mapInstanceId --> Folder
+local mapGridOrigin -- Vector3
+local mapInstanceCounter = 0
+local MapInstanceIdToMapPositionIndex = {} -- int mapInstanceId --> int mapPositionIndex
+local MapInstanceFolder = {} -- int mapPositionIndex --> Folder
 local MapInstancePlayers = {} -- int mapInstanceId --> { Player --> int teamIndex ( 1 or 2 ) }
 local PlayerConnectedMapInstance = {} -- Player --> mapInstanceId
 
 -- private
-local function getUnusedMapInstanceId()
-	local mapInstanceId = 0
-	repeat
-		mapInstanceId += 1
-	until MapInstanceFolder[mapInstanceId] == nil
-
-	return mapInstanceId
+local function getNewMapId()
+	mapInstanceCounter += 1
+	return mapInstanceCounter
 end
-local function mapInstanceIdToOriginPosition(mapInstanceId)
+local function getUnusedMapPositionIndex()
+	local mapPositionIndex = 0
+	repeat
+		mapPositionIndex += 1
+	until MapInstanceFolder[mapPositionIndex] == nil
+
+	return mapPositionIndex
+end
+local function mapPositionIndexToOriginPosition(mapPositionIndex)
 	return mapGridOrigin
 		+ Vector3.new(
-				((mapInstanceId - 1) % MAX_NUM_MAP_INSTANCES_PER_GRID_ROW) + 0.5,
+				((mapPositionIndex - 1) % MAX_NUM_MAP_INSTANCES_PER_GRID_ROW) + 0.5,
 				0,
-				math.floor(mapInstanceId / MAX_NUM_MAP_INSTANCES_PER_GRID_ROW) + 0.5
+				math.floor(mapPositionIndex / MAX_NUM_MAP_INSTANCES_PER_GRID_ROW) + 0.5
 			)
 			* STUDS_BETWEEN_MAP_INSTANCES
 end
@@ -71,7 +77,10 @@ local function connectPlayerToMapInstance(Player, mapInstanceId, teamIndex)
 	if not SoccerDuelsServer.playerDataIsLoaded(Player) then
 		error(`{Player.Name}'s data is not loaded!`)
 	end
-	if MapInstanceFolder[mapInstanceId] == nil then
+	if not Utility.isInteger(mapInstanceId) then
+		error(`{mapInstanceId} is not an integer!`)
+	end
+	if MapInstanceIdToMapPositionIndex[mapInstanceId] == nil then
 		error(`{mapInstanceId} is not an active map instance id!`)
 	end
 	if not (teamIndex == 1 or teamIndex == 2) then
@@ -100,21 +109,36 @@ local function getMapInstanceFolder(mapInstanceId)
 		error(`{mapInstanceId} is not a map instance id!`)
 	end
 
-	return MapInstanceFolder[mapInstanceId]
+	local mapPositionIndex = MapInstanceIdToMapPositionIndex[mapInstanceId]
+	if mapPositionIndex == nil then
+		return nil
+	end
+
+	return MapInstanceFolder[mapPositionIndex]
 end
 local function getMapInstanceOrigin(mapInstanceId)
 	if not Utility.isInteger(mapInstanceId) then
 		error(`{mapInstanceId} is not a map instance id!`)
 	end
 
-	return mapInstanceIdToOriginPosition(mapInstanceId)
+	local mapPositionIndex = MapInstanceIdToMapPositionIndex[mapInstanceId]
+	if mapPositionIndex == nil then
+		return nil
+	end
+
+	return mapPositionIndexToOriginPosition(mapPositionIndex)
 end
 local function destroyMapInstance(mapInstanceId)
 	if not Utility.isInteger(mapInstanceId) then
 		error(`{mapInstanceId} is not a map instance id!`)
 	end
 
-	local MapFolder = MapInstanceFolder[mapInstanceId]
+	local mapPositionIndex = MapInstanceIdToMapPositionIndex[mapInstanceId]
+	if mapPositionIndex == nil then
+		return
+	end
+
+	local MapFolder = MapInstanceFolder[mapPositionIndex]
 	if MapFolder == nil then
 		return
 	end
@@ -124,8 +148,10 @@ local function destroyMapInstance(mapInstanceId)
 	end
 
 	MapFolder:Destroy()
-	MapInstanceFolder[mapInstanceId] = nil
+	MapInstanceFolder[mapPositionIndex] = nil
+
 	MapInstancePlayers[mapInstanceId] = nil
+	MapInstanceIdToMapPositionIndex[mapInstanceId] = nil
 end
 local function newMapInstance(mapName)
 	if not (typeof(mapName) == "string") then
@@ -135,8 +161,9 @@ local function newMapInstance(mapName)
 		error(`{mapName} is not a Map!`)
 	end
 
-	local mapInstanceId = getUnusedMapInstanceId()
-	local mapOrigin = mapInstanceIdToOriginPosition(mapInstanceId)
+	local mapInstanceId = getNewMapId() -- the mapInstanceId must never be reused so we can reliably check if a map instance has been destroyed
+	local mapPositionIndex = getUnusedMapPositionIndex() -- but we can reuse the position placement of the map
+	local mapOrigin = mapPositionIndexToOriginPosition(mapPositionIndex)
 
 	local mapFolderAssetName = `{mapName} MapFolder`
 	local mapOriginPartAssetName = `{mapName} MapOriginPart`
@@ -148,22 +175,23 @@ local function newMapInstance(mapName)
 	MapFolder:PivotTo(CFrame.new(mapOrigin))
 	MapFolder.Parent = workspace
 
-	MapInstanceFolder[mapInstanceId] = MapFolder
+	MapInstanceFolder[mapPositionIndex] = MapFolder
 	MapInstancePlayers[mapInstanceId] = {}
+	MapInstanceIdToMapPositionIndex[mapInstanceId] = mapPositionIndex
 
 	return mapInstanceId
 end
 local function getAllMapInstances()
 	local MapInstanceIds = {}
 
-	for mapInstanceId, _ in MapInstanceFolder do
+	for mapInstanceId, _ in MapInstanceIdToMapPositionIndex do
 		table.insert(MapInstanceIds, mapInstanceId)
 	end
 
 	return MapInstanceIds
 end
 local function destroyAllMapInstances()
-	for mapInstanceId, _ in MapInstanceFolder do
+	for mapInstanceId, _ in MapInstanceIdToMapPositionIndex do
 		destroyMapInstance(mapInstanceId)
 	end
 end
@@ -174,8 +202,7 @@ local function initializeMapsServer()
 	mapGridOrigin = MapGridOriginPart.Position
 
 	for mapEnum, mapName in Enums.iterateEnumsOfType("Map") do
-		local MapFolder = Assets.getExpectedAsset(`{mapName} MapFolder`)
-		Utility.convertInstanceIntoModel(MapFolder)
+		Utility.convertInstanceIntoModel(Assets.getExpectedAsset(`{mapName} MapFolder`))
 	end
 end
 
@@ -184,7 +211,7 @@ return {
 	getPlayersConnectedToMapInstance = getPlayersConnectedToMapInstance,
 	getPlayerConnectedMapInstance = getPlayerConnectedMapInstance,
 	connectPlayerToMapInstance = connectPlayerToMapInstance,
-	playerIsInLobby = playerIsInLobby,
+	playerIsInLobby = playerIsInLobby, --> TODO this should probably be defined in the SoccerDuelsServer module
 
 	destroyAllMapInstances = destroyAllMapInstances,
 	getMapInstanceFolder = getMapInstanceFolder,
