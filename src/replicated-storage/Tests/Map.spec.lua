@@ -484,6 +484,11 @@ return function()
 						local mapId = SoccerDuels.newMapInstance("Stadium")
 						local Client1, Client2, Client3, Client4 = makeSomePlayersConnectToAMap(4, mapId)
 
+						assert(
+							SoccerDuels.getPlayerTeamIndex(Client1.Player)
+								== SoccerDuels.getPlayerTeamIndex(Client3.Player)
+						)
+
 						SoccerDuels.addExtraSecondsForTesting(mapLoadingDuration + maxError)
 						SoccerDuels.mapTimerTick()
 
@@ -493,10 +498,6 @@ return function()
 						SoccerDuels.mapTimerTick()
 
 						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchGameplay")
-						assert(
-							SoccerDuels.getPlayerTeamIndex(Client1.Player)
-								== SoccerDuels.getPlayerTeamIndex(Client3.Player)
-						)
 
 						SoccerDuels.addExtraSecondsForTesting(matchGameplayDuration * 0.5) -- this is just an arbitrary time during match gameplay
 						SoccerDuels.mapTimerTick()
@@ -526,10 +527,121 @@ return function()
 						Client4:Destroy()
 					end)
 					it("Players left during 'MatchCountdown'", function()
-					
+						SoccerDuels.destroyAllMapInstances()
+						SoccerDuels.resetTestingVariables()
+
+						local mapLoadingDuration = SoccerDuels.getConstant("MapLoadingDurationSeconds")
+						local matchCountdownDuration = SoccerDuels.getConstant("MatchCountdownDurationSeconds")
+						local matchOverDuration = SoccerDuels.getConstant("MatchOverDurationSeconds")
+						local gameOverDuration = SoccerDuels.getConstant("GameOverDurationSeconds")
+						local maxError = 0.010
+
+						local mapId = SoccerDuels.newMapInstance("Stadium")
+						local Client1, Client2, Client3, Client4 = makeSomePlayersConnectToAMap(4, mapId)
+
+						assert(
+							SoccerDuels.getPlayerTeamIndex(Client1.Player)
+								== SoccerDuels.getPlayerTeamIndex(Client3.Player)
+						) -- Client3 and Client1 need to be on the same team so we can get rid of all players on one team
+
+						SoccerDuels.addExtraSecondsForTesting(mapLoadingDuration + maxError)
+						SoccerDuels.mapTimerTick()
+
+						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchCountdown")
+
+						SoccerDuels.addExtraSecondsForTesting(0.5 * matchCountdownDuration) -- this is just an arbitrary time during match gameplay
+						SoccerDuels.mapTimerTick()
+
+						SoccerDuels.disconnectPlayer(Client1.Player)
+
+						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchCountdown")
+
+						SoccerDuels.disconnectPlayer(Client3.Player)
+						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchCountdown")
+
+						SoccerDuels.addExtraSecondsForTesting(0.5 * matchCountdownDuration + maxError)
+						SoccerDuels.mapTimerTick()
+
+						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchOver")
+
+						SoccerDuels.addExtraSecondsForTesting(matchOverDuration + maxError)
+						SoccerDuels.mapTimerTick()
+
+						if not (SoccerDuels.getMapInstanceState(mapId) == "GameOver") then
+							error(`{SoccerDuels.getMapInstanceState(mapId)} != "GameOver"`)
+						end
+
+						SoccerDuels.addExtraSecondsForTesting(gameOverDuration + maxError)
+						SoccerDuels.mapTimerTick()
+
+						assert(SoccerDuels.getMapInstanceState(mapId) == nil)
+
+						Client1:Destroy()
+						Client2:Destroy()
+						Client3:Destroy()
+						Client4:Destroy()
 					end)
 					it("Players left during 'MatchOver'", function()
-					
+						SoccerDuels.destroyAllMapInstances()
+						SoccerDuels.resetTestingVariables()
+
+						local mapLoadingDuration = SoccerDuels.getConstant("MapLoadingDurationSeconds")
+						local matchCountdownDuration = SoccerDuels.getConstant("MatchCountdownDurationSeconds")
+						local matchGameplayDuration = SoccerDuels.getConstant("MatchGameplayDurationSeconds")
+						local matchOverDuration = SoccerDuels.getConstant("MatchOverDurationSeconds")
+						local gameOverDuration = SoccerDuels.getConstant("GameOverDurationSeconds")
+						local maxError = 0.010
+
+						local mapId = SoccerDuels.newMapInstance("Stadium")
+						local Client1, Client2, Client3, Client4 = makeSomePlayersConnectToAMap(4, mapId)
+
+						assert(
+							SoccerDuels.getPlayerTeamIndex(Client1.Player)
+								== SoccerDuels.getPlayerTeamIndex(Client3.Player)
+						) -- Client3 and Client1 need to be on the same team so we can get rid of all players on one team
+
+						SoccerDuels.addExtraSecondsForTesting(mapLoadingDuration + maxError)
+						SoccerDuels.mapTimerTick()
+
+						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchCountdown")
+
+						SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration + maxError)
+						SoccerDuels.mapTimerTick()
+
+						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchGameplay")
+
+						SoccerDuels.addExtraSecondsForTesting(matchGameplayDuration + maxError)
+						SoccerDuels.mapTimerTick()
+
+						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchOver")
+
+						SoccerDuels.addExtraSecondsForTesting(0.5 * matchOverDuration)
+						SoccerDuels.mapTimerTick()
+
+						SoccerDuels.disconnectPlayer(Client1.Player)
+
+						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchOver")
+
+						SoccerDuels.disconnectPlayerFromAllMapInstances(Client3.Player)
+
+						assert(SoccerDuels.getMapInstanceState(mapId) == "MatchOver") -- 'MatchOver' lasts for as long as it lasts still
+
+						SoccerDuels.addExtraSecondsForTesting(0.5 * matchOverDuration + maxError)
+						SoccerDuels.mapTimerTick()
+
+						if not (SoccerDuels.getMapInstanceState(mapId) == "GameOver") then
+							error(`{SoccerDuels.getMapInstanceState(mapId)} != "GameOver"`)
+						end
+
+						SoccerDuels.addExtraSecondsForTesting(gameOverDuration + maxError)
+						SoccerDuels.mapTimerTick()
+
+						assert(SoccerDuels.getMapInstanceState(mapId) == nil)
+
+						Client1:Destroy()
+						Client2:Destroy()
+						Client3:Destroy()
+						Client4:Destroy()
 					end)
 				end
 			)
