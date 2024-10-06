@@ -95,6 +95,7 @@ local function newClient(Player)
 	self._ImageLabelsWaitingForAvatarImages = {} -- int userId --> [ ImageLabel, ... ]
 
 	self._PlayerPingMilliseconds = {} -- Player --> int playerPingMilliseconds
+	self._PlayerPingQualityChangedCallbacks = {} -- function callback(Player, string pingQuality) --> true
 
 	-- init
 	setmetatable(self, ClientMetatable)
@@ -107,6 +108,7 @@ end
 local function initializeClients()
 	local ClientMethods = {
 		-- ping
+		OnPlayerPingQualityChangedConnect = ClientPing.onPlayerPingQualityChangeConnect,
 		GetPlayerPingMilliseconds = ClientPing.getPlayerPingMilliseconds,
 		GetPlayerPingQuality = ClientPing.getPlayerPingQuality,
 

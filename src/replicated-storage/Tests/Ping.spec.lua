@@ -65,79 +65,154 @@ return function()
 
 			assert(SoccerDuels.getPlayerPingMilliseconds(Player2) == nil)
 		end)
-		it("A player's ping quality can be 'Good', 'Okay', or 'Bad', which can be looked up on the server or client", function()
-			SoccerDuels.disconnectAllPlayers()
-			SoccerDuels.resetTestingVariables()
+		it(
+			"A player's ping quality can be 'Good', 'Okay', or 'Bad', which can be looked up on the server or client",
+			function()
+				SoccerDuels.disconnectAllPlayers()
+				SoccerDuels.resetTestingVariables()
 
-			local maxGoodPingMs = SoccerDuels.getConstant("PingQualityThresholdMilliseconds", "Good")
-			local maxOkayPingMs = SoccerDuels.getConstant("PingQualityThresholdMilliseconds", "Okay")
-            local placeHolderPingQuality = SoccerDuels.getConstant("PlaceholderPingQuality")
+				local maxGoodPingMs = SoccerDuels.getConstant("PingQualityThresholdMilliseconds", "Good")
+				local maxOkayPingMs = SoccerDuels.getConstant("PingQualityThresholdMilliseconds", "Okay")
+				local placeHolderPingQuality = SoccerDuels.getConstant("PlaceholderPingQuality")
 
-			local Player1 = MockInstance.new("Player")
-			local Player2 = MockInstance.new("Player")
+				local Player1 = MockInstance.new("Player")
+				local Player2 = MockInstance.new("Player")
 
-			local Client1 = SoccerDuels.newClient(Player1)
-			local Client2 = SoccerDuels.newClient(Player2)
+				local Client1 = SoccerDuels.newClient(Player1)
+				local Client2 = SoccerDuels.newClient(Player2)
 
-            assert(SoccerDuels.getPlayerPingQuality(Player1) == placeHolderPingQuality)
-			assert(Client1:GetPlayerPingQuality(Player1) == placeHolderPingQuality)
-			assert(Client2:GetPlayerPingQuality(Player1) == placeHolderPingQuality)
+				assert(SoccerDuels.getPlayerPingQuality(Player1) == placeHolderPingQuality)
+				assert(Client1:GetPlayerPingQuality(Player1) == placeHolderPingQuality)
+				assert(Client2:GetPlayerPingQuality(Player1) == placeHolderPingQuality)
 
-			Client1:LoadPlayerDataAsync()
-			Client2:LoadPlayerDataAsync()
+				Client2:LoadPlayerDataAsync()
 
-			-- good
-			local maxErrorMs = 20 -- lower error thresholds will not reliably make the latency within the desired range
-			local artificialLatencyMs = math.floor(maxGoodPingMs * 0.5) - maxErrorMs
+				-- (event)
+				local changeCount = 0
+				local LastPlayer, lastPingQuality
+				local function callback(...)
+					changeCount += 1
+					LastPlayer, lastPingQuality = ...
+				end
 
-			SoccerDuels.setTestingVariable("ExtraLoadTime", artificialLatencyMs * 1E-3)
+				local conn = Client2:OnPlayerPingQualityChangedConnect(callback)
 
-			local start = SoccerDuels.getUnixTimestampMilliseconds()
-			SoccerDuels.pingPlayerAsync(Player1)
-			local elapsedMilliseconds = SoccerDuels.getUnixTimestampMilliseconds() - start
+				assert(changeCount == 1)
+				assert(LastPlayer == Player2)
+				assert(lastPingQuality == placeHolderPingQuality)
 
-			assert(math.abs(elapsedMilliseconds) <= maxGoodPingMs)
-			assert(SoccerDuels.getPlayerPingQuality(Player1) == "Good")
-			assert(Client1:GetPlayerPingQuality(Player1) == "Good")
-			assert(Client2:GetPlayerPingQuality(Player1) == "Good")
+				Client1:LoadPlayerDataAsync()
 
-			-- okay
-			artificialLatencyMs = math.floor(maxOkayPingMs * 0.5) - maxErrorMs
+				assert(changeCount == 2)
+				assert(LastPlayer == Player1)
+				assert(lastPingQuality == placeHolderPingQuality)
 
-			SoccerDuels.setTestingVariable("ExtraLoadTime", artificialLatencyMs * 1E-3)
+				if placeHolderPingQuality ~= "Good" then -- Player2's ping quality should stay at 'Good' for the rest of the test to avoid extra latency
+					SoccerDuels.pingPlayerAsync(Player2)
 
-			start = SoccerDuels.getUnixTimestampMilliseconds()
-			SoccerDuels.pingPlayerAsync(Player1)
-			elapsedMilliseconds = SoccerDuels.getUnixTimestampMilliseconds() - start
+					assert(changeCount == 3)
+					assert(LastPlayer == Player2)
+					assert(lastPingQuality == "Good")
+				end
 
-			assert(elapsedMilliseconds > maxGoodPingMs)
-			assert(elapsedMilliseconds <= maxOkayPingMs)
-			assert(SoccerDuels.getPlayerPingQuality(Player1) == "Okay")
-			assert(Client1:GetPlayerPingQuality(Player1) == "Okay")
-			assert(Client2:GetPlayerPingQuality(Player1) == "Okay")
+                changeCount = 0
 
-			-- bad
-			artificialLatencyMs = math.ceil(maxOkayPingMs * 0.5) + maxErrorMs -- plus sign instead of minus to get over the 'okay' threshold into 'bad'
+				-- good
+				local maxErrorMs = 20 -- lower error thresholds will not reliably make the latency within the desired range
+				local artificialLatencyMs = math.floor(maxGoodPingMs * 0.5) - maxErrorMs
 
-			SoccerDuels.setTestingVariable("ExtraLoadTime", artificialLatencyMs * 1E-3)
+				SoccerDuels.setTestingVariable("ExtraLoadTime", artificialLatencyMs * 1E-3)
 
-			start = SoccerDuels.getUnixTimestampMilliseconds()
-			SoccerDuels.pingPlayerAsync(Player1)
-			elapsedMilliseconds = SoccerDuels.getUnixTimestampMilliseconds() - start
+				local start = SoccerDuels.getUnixTimestampMilliseconds()
+				SoccerDuels.pingPlayerAsync(Player1)
+				local elapsedMilliseconds = SoccerDuels.getUnixTimestampMilliseconds() - start
 
-			assert(elapsedMilliseconds > maxOkayPingMs)
-			assert(SoccerDuels.getPlayerPingQuality(Player1) == "Bad")
-			assert(Client1:GetPlayerPingQuality(Player1) == "Bad")
-			assert(Client2:GetPlayerPingQuality(Player1) == "Bad")
+				assert(math.abs(elapsedMilliseconds) <= maxGoodPingMs)
+				assert(SoccerDuels.getPlayerPingQuality(Player1) == "Good")
+				assert(Client1:GetPlayerPingQuality(Player1) == "Good")
+				assert(Client2:GetPlayerPingQuality(Player1) == "Good")
 
-			-- cleanup
-			SoccerDuels.resetTestingVariables()
-			Client1:Destroy()
+				-- (event)
+				if placeHolderPingQuality == "Good" then
+					assert(changeCount == 0)
+					assert(LastPlayer == Player1)
+					assert(lastPingQuality == placeHolderPingQuality)
+				else
+					assert(changeCount == 1)
+					assert(LastPlayer == Player1)
+					assert(lastPingQuality == "Good")
+				end
 
-			assert(SoccerDuels.getPlayerPingQuality(Player1) == placeHolderPingQuality)
-			assert(Client2:GetPlayerPingQuality(Player1) == placeHolderPingQuality)
+                changeCount = 0
 
-			Client2:Destroy()
-		end)
+				-- okay
+				artificialLatencyMs = math.floor(maxOkayPingMs * 0.5) - maxErrorMs
+
+				SoccerDuels.setTestingVariable("ExtraLoadTime", artificialLatencyMs * 1E-3)
+
+				start = SoccerDuels.getUnixTimestampMilliseconds()
+				SoccerDuels.pingPlayerAsync(Player1)
+				elapsedMilliseconds = SoccerDuels.getUnixTimestampMilliseconds() - start
+
+				assert(elapsedMilliseconds > maxGoodPingMs)
+				assert(elapsedMilliseconds <= maxOkayPingMs)
+				assert(SoccerDuels.getPlayerPingQuality(Player1) == "Okay")
+				assert(Client1:GetPlayerPingQuality(Player1) == "Okay")
+				assert(Client2:GetPlayerPingQuality(Player1) == "Okay")
+
+                -- (event)
+                assert(changeCount == 1)
+                assert(LastPlayer == Player1)
+                assert(lastPingQuality == "Okay")
+
+                changeCount = 0
+
+				-- bad
+				artificialLatencyMs = math.ceil(maxOkayPingMs * 0.5) + maxErrorMs -- plus sign instead of minus to get over the 'okay' threshold into 'bad'
+
+				SoccerDuels.setTestingVariable("ExtraLoadTime", artificialLatencyMs * 1E-3)
+
+				start = SoccerDuels.getUnixTimestampMilliseconds()
+				SoccerDuels.pingPlayerAsync(Player1)
+				elapsedMilliseconds = SoccerDuels.getUnixTimestampMilliseconds() - start
+
+				assert(elapsedMilliseconds > maxOkayPingMs)
+				assert(SoccerDuels.getPlayerPingQuality(Player1) == "Bad")
+				assert(Client1:GetPlayerPingQuality(Player1) == "Bad")
+				assert(Client2:GetPlayerPingQuality(Player1) == "Bad")
+
+                -- (event)
+                assert(changeCount == 1)
+                assert(LastPlayer == Player1)
+                assert(lastPingQuality == "Bad")
+
+                changeCount = 0
+
+				-- placeholder
+				SoccerDuels.resetTestingVariables()
+				Client1:Destroy()
+
+				assert(SoccerDuels.getPlayerPingQuality(Player1) == placeHolderPingQuality)
+				assert(Client2:GetPlayerPingQuality(Player1) == placeHolderPingQuality)
+
+                -- (event)
+                if placeHolderPingQuality == "Bad" then
+					assert(changeCount == 0)
+					assert(LastPlayer == Player1)
+					assert(lastPingQuality == placeHolderPingQuality)
+				else
+					assert(changeCount == 1)
+					assert(LastPlayer == Player1)
+					assert(lastPingQuality == placeHolderPingQuality)
+				end
+
+                changeCount = 0
+
+                conn:Disconnect()
+				Client2:Destroy()
+
+                assert(changeCount == 0)
+			end
+		)
 	end)
 end

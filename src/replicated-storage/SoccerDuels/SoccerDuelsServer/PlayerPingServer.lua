@@ -11,18 +11,27 @@ local TestingVariables = require(SoccerDuelsServerModule.TestingVariables)
 
 -- const
 local PING_CHECK_POLL_RATE_SECONDS = Config.getConstant("PingCheckPollRateSeconds")
-local INITIAL_PLAYER_PING_VALUE_MILLISECONDS = Config.getConstant("InitialPlayerPingValueMilliseconds")
 local MAX_PING_TIMEOUT_SECONDS = Config.getConstant("MaxPingTimeoutSeconds")
 
 local GOOD_PING_THRESHOLD_MILLISECONDS = Config.getConstant("PingQualityThresholdMilliseconds", "Good")
-local OKAY_PING_THRESHOLD_MILLISECONSD = Config.getConstant("PingQualityThresholdMilliseconds", "Okay")
+local OKAY_PING_THRESHOLD_MILLISECONDS = Config.getConstant("PingQualityThresholdMilliseconds", "Okay")
 local PLACE_HOLDER_PING_QUALITY = Config.getConstant("PlaceholderPingQuality")
 
 -- var
 local PlayerPingSentTimestamp = {} -- Player --> int unixTimestampMilliseconds
 local PlayerPing = {} -- Player --> int lastPingDurationMilliseconds
+local placeHolderPingMilliseconds = 0
 
 -- private
+local function pingQualityToMinPingMilliseconds(pingQuality)
+    if pingQuality == "Bad" then
+        return OKAY_PING_THRESHOLD_MILLISECONDS + 1
+    elseif pingQuality == "Okay" then
+        return GOOD_PING_THRESHOLD_MILLISECONDS + 1
+    end
+
+    return 0
+end
 local function cachePlayerPing(Player, pingMilliseconds)
 	PlayerPingSentTimestamp[Player] = nil
 	PlayerPing[Player] = pingMilliseconds
@@ -95,7 +104,7 @@ local function getPlayerPingQuality(Player)
 		return "Good"
 	end
 
-	if playerPingMilliseconds <= OKAY_PING_THRESHOLD_MILLISECONSD then
+	if playerPingMilliseconds <= OKAY_PING_THRESHOLD_MILLISECONDS then
 		return "Okay"
 	end
 
@@ -115,9 +124,15 @@ local function pingPlayerAsync(Player)
 	return PlayerPing[Player]
 end
 local function playerDataLoaded(Player)
-	PlayerPing[Player] = INITIAL_PLAYER_PING_VALUE_MILLISECONDS
+    for OtherPlayer, playerPingMilliseconds in PlayerPing do
+        Network.fireClient("ReplicatePlayerPing", Player, OtherPlayer, playerPingMilliseconds)
+    end
+
+    cachePlayerPing(Player, placeHolderPingMilliseconds)
 end
 local function initializePlayerPingServer()
+    placeHolderPingMilliseconds = pingQualityToMinPingMilliseconds(PLACE_HOLDER_PING_QUALITY)
+
 	Network.onServerEventConnect("PingPlayer", onPlayerReturnPing)
 	Utility.runServiceSteppedConnect(PING_CHECK_POLL_RATE_SECONDS, pingAllPlayers)
 end

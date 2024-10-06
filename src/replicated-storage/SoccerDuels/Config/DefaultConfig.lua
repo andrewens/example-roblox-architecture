@@ -191,7 +191,6 @@ DefaultConfig.DefaultMapInstanceOptions = {
 
 -- ping
 DefaultConfig.PingCheckPollRateSeconds = 1
-DefaultConfig.InitialPlayerPingValueMilliseconds = 50
 DefaultConfig.MaxPingTimeoutSeconds = 2
 DefaultConfig.PingQualityThresholdMilliseconds = {
 	Good = 50,
