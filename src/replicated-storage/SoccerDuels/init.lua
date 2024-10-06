@@ -101,6 +101,7 @@ return {
 
 	-- ping
 	getPlayerPingMilliseconds = SoccerDuelsServer.getPlayerPingMilliseconds,
+	getPlayerPingQuality = SoccerDuelsServer.getPlayerPingQuality,
 	pingPlayerAsync = SoccerDuelsServer.pingPlayerAsync,
 
 	-- SoccerDuels client

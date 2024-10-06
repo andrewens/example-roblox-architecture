@@ -14,6 +14,10 @@ local PING_CHECK_POLL_RATE_SECONDS = Config.getConstant("PingCheckPollRateSecond
 local INITIAL_PLAYER_PING_VALUE_MILLISECONDS = Config.getConstant("InitialPlayerPingValueMilliseconds")
 local MAX_PING_TIMEOUT_SECONDS = Config.getConstant("MaxPingTimeoutSeconds")
 
+local GOOD_PING_THRESHOLD_MILLISECONDS = Config.getConstant("PingQualityThresholdMilliseconds", "Good")
+local OKAY_PING_THRESHOLD_MILLISECONSD = Config.getConstant("PingQualityThresholdMilliseconds", "Okay")
+local PLACE_HOLDER_PING_QUALITY = Config.getConstant("PlaceholderPingQuality")
+
 -- var
 local PlayerPingSentTimestamp = {} -- Player --> int unixTimestampMilliseconds
 local PlayerPing = {} -- Player --> int lastPingDurationMilliseconds
@@ -77,6 +81,26 @@ local function getCachedPlayerPingMilliseconds(Player)
 
 	return PlayerPing[Player]
 end
+local function getPlayerPingQuality(Player)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+
+	local playerPingMilliseconds = PlayerPing[Player]
+	if playerPingMilliseconds == nil then
+		return PLACE_HOLDER_PING_QUALITY
+	end
+
+	if playerPingMilliseconds <= GOOD_PING_THRESHOLD_MILLISECONDS then
+		return "Good"
+	end
+
+	if playerPingMilliseconds <= OKAY_PING_THRESHOLD_MILLISECONSD then
+		return "Okay"
+	end
+
+	return "Bad"
+end
 local function pingPlayerAsync(Player)
 	if not Utility.isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
@@ -100,6 +124,7 @@ end
 
 return {
 	getPlayerPingMilliseconds = getCachedPlayerPingMilliseconds,
+	getPlayerPingQuality = getPlayerPingQuality,
 	pingPlayerAsync = pingPlayerAsync,
 
 	initialize = initializePlayerPingServer,

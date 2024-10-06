@@ -268,7 +268,8 @@ return {
 
 	-- ping
 	getPlayerPingMilliseconds = PlayerPingServer.getPlayerPingMilliseconds,
-	pingPlayerAsync= PlayerPingServer.pingPlayerAsync,
+	getPlayerPingQuality = PlayerPingServer.getPlayerPingQuality,
+	pingPlayerAsync = PlayerPingServer.pingPlayerAsync,
 
 	-- testing
 	resetAvailableDataStoreRequestsTestingMode = TestingVariables.resetAvailableDataStoreRequestsTestingMode,

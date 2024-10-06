@@ -193,5 +193,11 @@ DefaultConfig.DefaultMapInstanceOptions = {
 DefaultConfig.PingCheckPollRateSeconds = 1
 DefaultConfig.InitialPlayerPingValueMilliseconds = 50
 DefaultConfig.MaxPingTimeoutSeconds = 2
+DefaultConfig.PingQualityThresholdMilliseconds = {
+	Good = 50,
+	Okay = 150, -- any ping above this is considered 'Bad'
+	-- 'Bad'
+}
+DefaultConfig.PlaceholderPingQuality = "Bad" -- if a player has left or hasn't loaded, this is the ping quality the system will read for them
 
 return DefaultConfig

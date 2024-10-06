@@ -108,6 +108,7 @@ local function initializeClients()
 	local ClientMethods = {
 		-- ping
 		GetPlayerPingMilliseconds = ClientPing.getPlayerPingMilliseconds,
+		GetPlayerPingQuality = ClientPing.getPlayerPingQuality,
 
 		-- client user interface mode
 		OnUserInterfaceModeChangedConnect = ClientUserInterfaceMode.onClientUserInterfaceModeChangedConnect,
