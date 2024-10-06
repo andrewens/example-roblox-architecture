@@ -78,6 +78,7 @@ return {
 
 	-- map state
 	getMapInstanceState = SoccerDuelsServer.getMapInstanceState,
+	getPlayerTeamIndex = SoccerDuelsServer.getPlayerTeamIndex,
 	mapTimerTick = SoccerDuelsServer.mapTimerTick,
 
 	-- map voting

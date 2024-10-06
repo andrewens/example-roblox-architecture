@@ -244,6 +244,7 @@ return {
 
 	-- map state
 	getMapInstanceState = MapsServer.getMapInstanceState,
+	getPlayerTeamIndex = MapsServer.getPlayerTeamIndex,
 	mapTimerTick = MapsServer.mapTimerTick,
 
 	-- map voting

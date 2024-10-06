@@ -54,6 +54,41 @@ local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
 
 	MapInstanceStateChangeTimestamp[mapInstanceId] = stateChangeTimestamp
 end
+local function mapInstanceHasNoPlayersOnATeam(mapInstanceId)
+	local team1HasPlayers = false
+	local team2HasPlayers = false
+
+	for Player, teamIndex in MapInstancePlayers[mapInstanceId] do
+		if teamIndex == 1 then
+			team1HasPlayers = true
+		else
+			team2HasPlayers = true
+		end
+
+		if team1HasPlayers and team2HasPlayers then
+			return false
+		end
+	end
+
+	return not (team1HasPlayers and team2HasPlayers)
+end
+local function updateMapStateAfterPlayerLeft(mapInstanceId)
+	-- if MatchCycleEnabled=false, we don't do anything
+	if MapInstanceMatchesPlayed[mapInstanceId] == nil then
+		return
+	end
+
+	-- 'MatchGameplay' --> 'MatchOver' when there are no players on a team
+	local currentStateEnum = MapInstanceState[mapInstanceId]
+	if currentStateEnum == MATCH_GAMEPLAY_STATE_ENUM then
+		if not mapInstanceHasNoPlayersOnATeam(mapInstanceId) then
+			return
+		end
+
+		setMapState(mapInstanceId, MATCH_OVER_STATE_ENUM, MATCH_OVER_DURATION_SECONDS)
+		return
+	end
+end
 local function updateMapState(mapInstanceId)
 	local currentStateEnum = MapInstanceState[mapInstanceId]
 	local stateChangeTimestamp = MapInstanceStateChangeTimestamp[mapInstanceId]
@@ -67,10 +102,10 @@ local function updateMapState(mapInstanceId)
 		return
 	end
 
-	-- 'Loading' --> 'MatchCountdown' | 'Gameplay'
+	-- 'Loading' --> 'MatchCountdown' | 'Gameplay' (dependencing on MatchCycleEnabled)
 	if currentStateEnum == MAP_LOADING_STATE_ENUM then
-		-- interpret having a number of matches played as MatchCycleEnabled=true
-		if MapInstanceMatchesPlayed[mapInstanceId] then
+		-- MatchCycleEnabled=true
+		if MapInstanceMatchesPlayed[mapInstanceId] then -- (interpret having a number of matches played as MatchCycleEnabled=true)
 			setMapState(mapInstanceId, MATCH_COUNTDOWN_STATE_ENUM, MATCH_COUNTDOWN_DURATION_SECONDS)
 			return
 		end
@@ -80,8 +115,13 @@ local function updateMapState(mapInstanceId)
 		return
 	end
 
-	-- 'MatchCountdown' --> 'MatchGameplay'
+	-- 'MatchCountdown' --> 'MatchGameplay' | 'MatchOver' (if a team has no players on it)
 	if currentStateEnum == MATCH_COUNTDOWN_STATE_ENUM then
+		if mapInstanceHasNoPlayersOnATeam(mapInstanceId) then
+			setMapState(mapInstanceId, MATCH_OVER_STATE_ENUM, MATCH_OVER_DURATION_SECONDS)
+			return
+		end
+
 		setMapState(mapInstanceId, MATCH_GAMEPLAY_STATE_ENUM, MATCH_GAMEPLAY_DURATION_SECONDS)
 		return
 	end
@@ -94,13 +134,20 @@ local function updateMapState(mapInstanceId)
 
 	-- 'MatchOver' --> 'MatchCountdown' | 'GameOver'
 	if currentStateEnum == MATCH_OVER_DURATION_SECONDS then
+		-- go to 'GameOver' if we've played all of the matches
 		MapInstanceMatchesPlayed[mapInstanceId] += 1
-
 		if MapInstanceMatchesPlayed[mapInstanceId] >= NUMBER_OF_MATCHES_PER_GAME then
 			setMapState(mapInstanceId, GAME_OVER_STATE_ENUM, GAME_OVER_DURATION_SECONDS)
 			return
 		end
 
+		-- go to 'GameOver' if a team has no players on it
+		if mapInstanceHasNoPlayersOnATeam(mapInstanceId) then
+			setMapState(mapInstanceId, GAME_OVER_STATE_ENUM, GAME_OVER_DURATION_SECONDS)
+			return
+		end
+
+		-- go to 'MatchCountdown' to repeat the oloop
 		setMapState(mapInstanceId, MATCH_COUNTDOWN_STATE_ENUM, MATCH_COUNTDOWN_DURATION_SECONDS)
 		return
 	end
@@ -147,6 +194,14 @@ local function getMapInstanceState(mapInstanceId)
 
 	return Enums.enumToName("MapState", mapStateEnum)
 end
+local function getPlayerTeamIndex(Player) -- TODO will probably want to make this work with match joining pads as well
+	local mapInstanceId = PlayerConnectedMapInstance[Player]
+	if mapInstanceId == nil then
+		return
+	end
+
+	return MapInstancePlayers[mapInstanceId][Player]
+end
 local function mapTimerTick()
 	for mapInstanceId, _ in MapInstanceStateChangeTimestamp do
 		updateMapState(mapInstanceId)
@@ -165,6 +220,8 @@ local function disconnectPlayerFromAllMapInstances(Player)
 
 	MapInstancePlayers[mapInstanceId][Player] = nil
 	PlayerConnectedMapInstance[Player] = nil
+
+	updateMapStateAfterPlayerLeft(mapInstanceId)
 end
 local function getPlayersConnectedToMapInstance(mapInstanceId)
 	if not Utility.isInteger(mapInstanceId) then
@@ -344,6 +401,7 @@ end
 return {
 	-- map state
 	getMapInstanceState = getMapInstanceState,
+	getPlayerTeamIndex = getPlayerTeamIndex,
 	mapTimerTick = mapTimerTick,
 
 	-- map instances
