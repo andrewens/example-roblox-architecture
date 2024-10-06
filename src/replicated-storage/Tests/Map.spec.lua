@@ -645,6 +645,10 @@ return function()
 					end)
 				end
 			)
+			it("Players in a map are automatically returned to the lobby when the map is destroyed", function()
+				-- ... playerIsInLobby
+				-- position?
+			end)
 		end)
 	end)
 end

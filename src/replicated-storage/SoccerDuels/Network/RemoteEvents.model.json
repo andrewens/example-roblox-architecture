@@ -64,6 +64,14 @@
     {
       "Name": "PlayerVoteForMap",
       "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "PingPlayer",
+      "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "ReplicatePlayerPing",
+      "ClassName": "RemoteEvent"
     }
   ]
 }

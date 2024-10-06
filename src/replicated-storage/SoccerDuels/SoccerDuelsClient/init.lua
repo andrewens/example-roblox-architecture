@@ -14,6 +14,7 @@ local Gui = require(script.Gui)
 local ClientInput = require(SoccerDuelsClientStateFolder.ClientInput)
 local ClientMatchPad = require(SoccerDuelsClientStateFolder.ClientMatchPad)
 local ClientModalState = require(SoccerDuelsClientStateFolder.ClientModalState)
+local ClientPing = require(SoccerDuelsClientStateFolder.ClientPing)
 local ClientSettings = require(SoccerDuelsClientStateFolder.ClientSettings)
 local ClientToastNotificationState = require(SoccerDuelsClientStateFolder.ClientToastNotificationState)
 local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserInterfaceMode)
@@ -93,6 +94,8 @@ local function newClient(Player)
 	self._CachedPlayerAvatarImages = {} -- int userId --> string imageContent
 	self._ImageLabelsWaitingForAvatarImages = {} -- int userId --> [ ImageLabel, ... ]
 
+	self._PlayerPingMilliseconds = {} -- Player --> int playerPingMilliseconds
+
 	-- init
 	setmetatable(self, ClientMetatable)
 
@@ -103,6 +106,9 @@ local function newClient(Player)
 end
 local function initializeClients()
 	local ClientMethods = {
+		-- ping
+		GetPlayerPingMilliseconds = ClientPing.getPlayerPingMilliseconds,
+
 		-- client user interface mode
 		OnUserInterfaceModeChangedConnect = ClientUserInterfaceMode.onClientUserInterfaceModeChangedConnect,
 		GetUserInterfaceMode = ClientUserInterfaceMode.getClientUserInterfaceMode,

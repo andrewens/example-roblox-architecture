@@ -14,6 +14,7 @@ local MapsServer = require(script.MapsServer)
 local MatchJoiningPadsServer = require(script.MatchJoiningPadsServer)
 local NotifyPlayerServer = require(script.NotifyPlayerServer)
 local PlayerControllerTypeServer = require(script.PlayerControllerTypeServer)
+local PlayerPingServer = require(script.PlayerPingServer)
 local TestingVariables = require(script.TestingVariables)
 
 -- const
@@ -99,6 +100,7 @@ local function getPlayerSaveData(Player)
 	CachedPlayerSaveData[Player] = PlayerSaveData
 
 	-- other systems
+	PlayerPingServer.playerDataLoaded(Player)
 	LobbyCharacterServer.playerDataLoaded(Player)
 	MatchJoiningPadsServer.playerDataLoaded(Player)
 
@@ -156,9 +158,10 @@ local function disconnectPlayer(Player, kickPlayer)
 
 	CachedPlayerSaveData[Player] = nil
 
-	LobbyCharacterServer.disconnectPlayer(Player)
 	PlayerControllerTypeServer.disconnectPlayer(Player)
 	MatchJoiningPadsServer.disconnectPlayer(Player)
+	LobbyCharacterServer.disconnectPlayer(Player)
+	PlayerPingServer.disconnectPlayer(Player)
 	MapsServer.disconnectPlayer(Player)
 
 	Network.fireAllClients("PlayerDisconnected", Player) -- TODO this behavior is untested
@@ -214,9 +217,10 @@ local function initializeServer()
 	task.spawn(autoSaveAllPlayerData)
 	game:BindToClose(saveAllPlayerData)
 
-	LobbyCharacterServer.initialize()
 	PlayerControllerTypeServer.initialize()
 	MatchJoiningPadsServer.initialize()
+	LobbyCharacterServer.initialize()
+	PlayerPingServer.initialize()
 	MapsServer.initialize()
 
 	script.Parent = ServerScriptService -- prevent exploiters from accessing server code
@@ -261,6 +265,10 @@ return {
 	getMatchPadTeamPlayers = MatchJoiningPadsServer.getMatchPadTeamPlayers,
 	getMatchJoiningPads = MatchJoiningPadsServer.getMatchJoiningPads,
 	getMatchPadState = MatchJoiningPadsServer.getMatchPadState,
+
+	-- ping
+	getPlayerPingMilliseconds = PlayerPingServer.getPlayerPingMilliseconds,
+	pingPlayerAsync= PlayerPingServer.pingPlayerAsync,
 
 	-- testing
 	resetAvailableDataStoreRequestsTestingMode = TestingVariables.resetAvailableDataStoreRequestsTestingMode,

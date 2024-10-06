@@ -99,6 +99,10 @@ return {
 	-- notify players
 	notifyPlayer = SoccerDuelsServer.notifyPlayer,
 
+	-- ping
+	getPlayerPingMilliseconds = SoccerDuelsServer.getPlayerPingMilliseconds,
+	pingPlayerAsync = SoccerDuelsServer.pingPlayerAsync,
+
 	-- SoccerDuels client
 	newClient = SoccerDuelsClient.new,
 
