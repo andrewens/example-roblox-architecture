@@ -6,6 +6,7 @@ local SoccerDuelsClientStateFolder = script:FindFirstAncestor("State")
 local SoccerDuelsClientModule = script:FindFirstAncestor("SoccerDuelsClient")
 
 local ClientInput = require(SoccerDuelsClientStateFolder.ClientInput)
+local ClientMapState = require(SoccerDuelsClientStateFolder.ClientMapState)
 local ClientMatchPad = require(SoccerDuelsClientStateFolder.ClientMatchPad)
 local ClientPing = require(SoccerDuelsClientStateFolder.ClientPing)
 local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserInterfaceMode)
@@ -95,6 +96,7 @@ local function loadClientPlayerDataAsync(self)
 
 	ClientMatchPad.initialize(self) -- must be before GetPlayerSaveData b/c it listens to a remote event that fires afterward
 	AvatarHeadshotImages.initialize(self)
+	ClientMapState.initialize(self)
 	UIAnimations.initialize(self)
 	ClientPing.initialize(self)
 

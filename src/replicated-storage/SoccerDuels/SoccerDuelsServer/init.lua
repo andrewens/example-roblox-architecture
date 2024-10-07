@@ -240,10 +240,12 @@ return {
 	playerIsInLobby = MapsServer.playerIsInLobby,
 
 	destroyAllMapInstances = MapsServer.destroyAllMapInstances,
+	getAllMapInstances = MapsServer.getAllMapInstances,
+
+	getMapInstanceMapName = MapsServer.getMapInstanceMapName,
 	getMapInstanceFolder = MapsServer.getMapInstanceFolder,
 	getMapInstanceOrigin = MapsServer.getMapInstanceOrigin,
 	destroyMapInstance = MapsServer.destroyMapInstance,
-	getAllMapInstances = MapsServer.getAllMapInstances,
 	newMapInstance = MapsServer.newMapInstance,
 
 	-- map state

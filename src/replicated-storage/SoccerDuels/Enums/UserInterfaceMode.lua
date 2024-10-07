@@ -3,4 +3,10 @@ return {
 	"Lobby",
 	"MatchJoiningPad",
 	"MapVoting",
+	"LoadingMap",
+	"MatchCountdown",
+	"MatchGameplay",
+	"MatchOver",
+	"GameOver",
+	"Gameplay"
 }

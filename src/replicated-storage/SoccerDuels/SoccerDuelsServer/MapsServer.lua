@@ -4,8 +4,9 @@ local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Config = require(SoccerDuelsModule.Config)
 local Enums = require(SoccerDuelsModule.Enums)
-local Utility = require(SoccerDuelsModule.Utility)
+local Network = require(SoccerDuelsModule.Network)
 local Time = require(SoccerDuelsModule.Time)
+local Utility = require(SoccerDuelsModule.Utility)
 local SoccerDuelsServer -- required in initialize()
 
 -- const
@@ -41,8 +42,18 @@ local PlayerConnectedMapInstance = {} -- Player --> mapInstanceId
 local MapInstanceState = {} -- int mapInstanceId --> int mapStateEnum
 local MapInstanceStateChangeTimestamp = {} -- int mapInstanceId --> int unixTimestampMilliseconds
 local MapInstanceMatchesPlayed = {} -- int mapInstanceId --> int numberOfMatchesPlayed
+local MapInstanceMapEnum = {} -- int mapInstanceId --> int mapEnum
 
 -- private
+local function replicateMapStateToPlayer(Player)
+	local mapStateEnum
+	if PlayerConnectedMapInstance[Player] then
+		mapStateEnum = MapInstanceState[PlayerConnectedMapInstance[Player]]
+	end
+
+	Network.fireClient("MapStateChanged", Player, mapStateEnum)
+end
+
 local destroyMapInstance
 local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
 	MapInstanceState[mapInstanceId] = mapStateEnum
@@ -53,6 +64,10 @@ local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
 	end
 
 	MapInstanceStateChangeTimestamp[mapInstanceId] = stateChangeTimestamp
+
+	for Player, teamIndex in MapInstancePlayers[mapInstanceId] do
+		replicateMapStateToPlayer(Player)
+	end
 end
 local function mapInstanceHasNoPlayersOnATeam(mapInstanceId)
 	local team1HasPlayers = false
@@ -222,6 +237,7 @@ local function disconnectPlayerFromAllMapInstances(Player)
 	PlayerConnectedMapInstance[Player] = nil
 
 	updateMapStateAfterPlayerLeft(mapInstanceId)
+	replicateMapStateToPlayer(Player)
 end
 local function getPlayersConnectedToMapInstance(mapInstanceId)
 	if not Utility.isInteger(mapInstanceId) then
@@ -258,6 +274,8 @@ local function connectPlayerToMapInstance(Player, mapInstanceId, teamIndex)
 
 	MapInstancePlayers[mapInstanceId][Player] = teamIndex
 	PlayerConnectedMapInstance[Player] = mapInstanceId
+
+	replicateMapStateToPlayer(Player)
 end
 local function playerIsInLobby(Player)
 	if not Utility.isA(Player, "Player") then
@@ -271,6 +289,13 @@ local function playerIsInLobby(Player)
 	return PlayerConnectedMapInstance[Player] == nil
 end
 
+local function getMapInstanceMapName(mapInstanceId)
+	if not Utility.isInteger(mapInstanceId) then
+		error(`{mapInstanceId} is not a map instance id!`)
+	end
+
+	return Enums.enumToName("Map", MapInstanceMapEnum[mapInstanceId])
+end
 local function getMapInstanceFolder(mapInstanceId)
 	if not Utility.isInteger(mapInstanceId) then
 		error(`{mapInstanceId} is not a map instance id!`)
@@ -326,11 +351,12 @@ function destroyMapInstance(mapInstanceId)
 end
 local function newMapInstance(mapName, Options)
 	Options = Options or {}
+	local mapEnum = Enums.getEnum("Map", mapName)
 
 	if not (typeof(mapName) == "string") then
 		error(`{mapName} is not a string!`)
 	end
-	if Enums.getEnum("Map", mapName) == nil then
+	if mapEnum == nil then
 		error(`{mapName} is not a Map!`)
 	end
 	if not (typeof(Options) == "table") then
@@ -362,6 +388,7 @@ local function newMapInstance(mapName, Options)
 	MapInstanceFolder[mapPositionIndex] = MapFolder
 	MapInstancePlayers[mapInstanceId] = {}
 	MapInstanceIdToMapPositionIndex[mapInstanceId] = mapPositionIndex
+	MapInstanceMapEnum[mapInstanceId] = mapEnum
 
 	if MATCH_CYCLE_ENABLED then
 		MapInstanceMatchesPlayed[mapInstanceId] = 0
@@ -371,6 +398,7 @@ local function newMapInstance(mapName, Options)
 
 	return mapInstanceId
 end
+
 local function getAllMapInstances()
 	local MapInstanceIds = {}
 
@@ -385,6 +413,7 @@ local function destroyAllMapInstances()
 		destroyMapInstance(mapInstanceId)
 	end
 end
+
 local function initializeMapsServer()
 	SoccerDuelsServer = require(script.Parent)
 
@@ -412,10 +441,12 @@ return {
 	playerIsInLobby = playerIsInLobby, --> TODO this should probably be defined in the SoccerDuelsServer module
 
 	destroyAllMapInstances = destroyAllMapInstances,
+	getAllMapInstances = getAllMapInstances,
+
+	getMapInstanceMapName = getMapInstanceMapName,
 	getMapInstanceFolder = getMapInstanceFolder,
 	getMapInstanceOrigin = getMapInstanceOrigin,
 	destroyMapInstance = destroyMapInstance,
-	getAllMapInstances = getAllMapInstances,
 	newMapInstance = newMapInstance,
 
 	-- standard methods

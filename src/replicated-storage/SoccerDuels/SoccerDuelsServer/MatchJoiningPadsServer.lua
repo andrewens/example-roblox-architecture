@@ -1,7 +1,9 @@
 -- dependency
 local PhysicsService = game:GetService("PhysicsService")
 local RunService = game:GetService("RunService")
+
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
+local SoccerDuelsServerModule = script:FindFirstAncestor("SoccerDuelsServer")
 
 local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Config = require(SoccerDuelsModule.Config)
@@ -10,6 +12,8 @@ local Network = require(SoccerDuelsModule.Network)
 local Time = require(SoccerDuelsModule.Time)
 local Utility = require(SoccerDuelsModule.Utility)
 local SoccerDuelsServer -- required in initialize()
+
+local MapsServer = require(SoccerDuelsServerModule.MapsServer)
 
 -- const
 local CHARACTER_TELEPORT_VERTICAL_OFFSET = Config.getConstant("CharacterTeleportVerticalOffset")
@@ -42,7 +46,7 @@ local MatchPadLastPlayerWhoVoted = {} -- int matchPadEnum --> Player
 local PlayerConnectedMatchPad = {} -- Player --> [ int matchPadEnum, int teamIndex ]
 
 -- private
-local disconnectPlayerFromAllMatchPads
+local disconnectPlayerFromAllMatchPads, getMatchPadWinningMapVote
 local function setMatchPadState(matchPadEnum, matchPadStateEnum, stateChangeTimestamp)
 	MatchPadState[matchPadEnum] = matchPadStateEnum
 	MatchPadStateChangeTimestamp[matchPadEnum] = stateChangeTimestamp
@@ -63,40 +67,42 @@ local function updateMatchPadState(matchPadEnum)
 	local numTeam1Players = Utility.tableCount(MatchPadTeamPlayers[matchPadEnum][1])
 	local numTeam2Players = Utility.tableCount(MatchPadTeamPlayers[matchPadEnum][2])
 
+	-- 'Countdown' | 'MapVoting' --> 'WaitingForPlayers' (when a player disconnects)
 	if numTeam1Players < maxPlayers or numTeam2Players < maxPlayers then
 		setMatchPadState(matchPadEnum, WAITING_FOR_PLAYERS_STATE_ENUM, nil)
 		return
 	end
 
+	-- 'WaitingForPlayers' --> 'Countdown'
 	local timestampWhenStateChanges = MatchPadStateChangeTimestamp[matchPadEnum]
 	local now = Time.getUnixTimestampMilliseconds()
 
 	if timestampWhenStateChanges == nil then
-		-- previous state should have been 'WaitingForPlayers'
 		setMatchPadState(matchPadEnum, COUNTDOWN_STATE_ENUM, now + MATCH_JOINING_PAD_COUNTDOWN_DURATION_MILLISECONDS)
 		return
 	end
 
+	-- (do nothing if it's not time to change the state yet)
 	if now < timestampWhenStateChanges then
 		return
 	end
 
-	if MatchPadState[matchPadEnum] == COUNTDOWN_STATE_ENUM then -- countdown --> map voting
+	-- 'Countdown' --> 'MapVoting'
+	if MatchPadState[matchPadEnum] == COUNTDOWN_STATE_ENUM then
 		setMatchPadState(matchPadEnum, MAP_VOTING_STATE_ENUM, now + MATCH_JOINING_PAD_MAP_VOTING_DURATION_MILLISECONDS)
 		return
 	end
 
-	-- remove players from this match pad
-	for Player, _ in MatchPadTeamPlayers[matchPadEnum][1] do
-		disconnectPlayerFromAllMatchPads(Player)
-	end
-	for Player, _ in MatchPadTeamPlayers[matchPadEnum][2] do
-		disconnectPlayerFromAllMatchPads(Player)
-	end
+	-- 'MapVoting' --> 'WaitingForPlayers'
+	local winningMapName = getMatchPadWinningMapVote(matchPadEnum) -- has to be before the match pad state changes
+	local mapId = MapsServer.newMapInstance(winningMapName)
 
-	setMatchPadState(matchPadEnum, WAITING_FOR_PLAYERS_STATE_ENUM, nil)
-
-	-- TODO actually put players into a match
+	for teamIndex, Players in MatchPadTeamPlayers[matchPadEnum] do
+		for Player, _ in Players do
+			disconnectPlayerFromAllMatchPads(Player) --> this triggers the match pad state to go to 'WaitingForPlayers'
+			MapsServer.connectPlayerToMapInstance(Player, mapId, teamIndex)
+		end
+	end
 end
 local function removePlayerFromPreviousMatchPad(Player)
 	if PlayerConnectedMatchPad[Player] == nil then
@@ -240,6 +246,10 @@ local function clientVoteOnMap(Player, mapEnum)
 	Network.fireAllClients("PlayerVoteForMap", matchPadEnum, Player, mapEnum)
 end
 local function clientTeleportToMatchPad(Player, matchPadEnum, teamIndex)
+	if not SoccerDuelsServer.playerIsInLobby(Player) then
+		error(`{Player.Name} is not in the lobby!`)
+	end
+
 	local Char = Player.Character
 	if Char == nil or Char.Parent == nil then
 		disconnectPlayerFromAllMatchPads(Player)
@@ -272,6 +282,10 @@ local function clientTeleportToMatchPad(Player, matchPadEnum, teamIndex)
 	return true, teamIndex
 end
 local function clientJoinMatchPad(Player, matchPadEnum, teamIndex)
+	if not SoccerDuelsServer.playerIsInLobby(Player) then
+		error(`{Player.Name} is not in the lobby!`)
+	end
+
 	if Player.Character == nil or Player.Character.Parent == nil then
 		disconnectPlayerFromAllMatchPads(Player)
 		return
@@ -306,14 +320,25 @@ local function clientDisconnectFromMatchPad(Player, matchPadEnum, teamIndex)
 end
 
 -- public
-local function getMatchPadWinningMapVote(matchPadName)
-	if not (typeof(matchPadName) == "string") then
-		error(`{matchPadName} is not a string!`)
-	end
+function getMatchPadWinningMapVote(matchPadName)
+	local matchPadEnum
+	if Utility.isInteger(matchPadName) then
+		-- matchPadName can be an enum integer
+		matchPadEnum = matchPadName
 
-	local matchPadEnum = Enums.getEnum("MatchJoiningPad", matchPadName)
-	if matchPadEnum == nil then
-		error(`"{matchPadName}" is not the name of a match joining pad!`)
+		if Enums.enumToName("MatchJoiningPad", matchPadEnum) == nil then
+			error(`{matchPadEnum} is not a valid MatchJoiningPad Enum!`)
+		end
+	else
+		-- matchPadName can be a string
+		if not (typeof(matchPadName) == "string") then
+			error(`{matchPadName} is not a string!`)
+		end
+
+		matchPadEnum = Enums.getEnum("MatchJoiningPad", matchPadName)
+		if matchPadEnum == nil then
+			error(`"{matchPadName}" is not the name of a match joining pad!`)
+		end
 	end
 
 	-- tally votes
@@ -337,12 +362,11 @@ local function getMatchPadWinningMapVote(matchPadName)
 		end
 	end
 
-	if winningMapEnum then
-		local winningMapName = Enums.enumToName("Map", winningMapEnum)
-		return winningMapName
+	if winningMapEnum == nil then
+		winningMapEnum = Enums.getRandomEnumOfType("Map")
 	end
 
-	return nil
+	return Enums.enumToName("Map", winningMapEnum)
 end
 local function getMatchPadMapVotes(matchPadName)
 	if not (typeof(matchPadName) == "string") then
@@ -456,6 +480,9 @@ local function teleportPlayerToLobbySpawnLocation(Player)
 		--error(`{Player.Name}'s data is not loaded!`)
 		return
 	end
+	if not SoccerDuelsServer.playerIsInLobby(Player) then
+		error(`{Player.Name} is not in the lobby!`)
+	end
 
 	disconnectPlayerFromAllMatchPads(Player)
 
@@ -481,6 +508,9 @@ local function teleportPlayerToMatchPad(Player, matchPadName, teamIndex)
 	if not (teamIndex == nil or teamIndex == 1 or teamIndex == 2) then
 		-- if `teamIndex` is nil, then connectPlayerToMatchPad() will automatically assign player a teamIndex
 		error(`{teamIndex} is not 1 or 2!`)
+	end
+	if not SoccerDuelsServer.playerIsInLobby(Player) then
+		error(`{Player.Name} is not in the lobby!`)
 	end
 
 	local matchPadEnum = Enums.getEnum("MatchJoiningPad", matchPadName)
@@ -529,7 +559,7 @@ local function onPlayerDataLoaded(Player)
 	end
 end
 local function initializeMatchJoiningPads()
-	SoccerDuelsServer = require(script.Parent)
+	SoccerDuelsServer = require(SoccerDuelsServerModule)
 
 	local MatchJoiningPadsFolder = Assets.getExpectedAsset("MatchJoiningPadsFolder")
 	for _, Folder in MatchJoiningPadsFolder:GetChildren() do

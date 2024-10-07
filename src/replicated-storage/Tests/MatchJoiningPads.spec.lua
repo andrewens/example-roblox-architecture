@@ -679,8 +679,10 @@ return function()
 					SoccerDuels.addExtraSecondsForTesting(2 * maxError)
 					SoccerDuels.matchPadTimerTick()
 
-					assert(Client1:GetUserInterfaceMode() == "Lobby") -- TODO
-					assert(Client2:GetUserInterfaceMode() == "Lobby")
+					if not (Client1:GetUserInterfaceMode() == "LoadingMap") then
+						error(`{Client1:GetUserInterfaceMode()} != {"LoadingMap"}`)
+					end
+					assert(Client2:GetUserInterfaceMode() == "LoadingMap")
 
 					Client1:Destroy()
 					Client2:Destroy()
@@ -958,13 +960,15 @@ return function()
 				assert(lastMatchStateName == nil)
 				assert(lastStateEndTimestamp == nil)
 
+				SoccerDuels.disconnectPlayerFromAllMapInstances(Player2) -- Players will have been added to a map
 				SoccerDuels.teleportPlayerToMatchPad(Player2, "1v1 #1", 2)
 
-				assert(changeCount == 9)
+				assert(changeCount == 9) -- it should be the same 'WaitingForPlayers' state b/c 'MapVoting' ended
 				assert(lastMatchStateName == nil)
 				assert(lastStateEndTimestamp == nil)
 
 				conn:Disconnect()
+				SoccerDuels.disconnectPlayerFromAllMapInstances(Player1)
 				SoccerDuels.teleportPlayerToMatchPad(Player1, "1v1 #1", 1)
 
 				assert(changeCount == 9)
@@ -976,5 +980,130 @@ return function()
 				Client3:Destroy()
 			end)
 		end)
+		it(
+			"When a match joining pad 'MapVoting' state ends, it creates a new Map and connects all the players to it; players' UserInterface modes match the map state",
+			function()
+				SoccerDuels.disconnectAllPlayers()
+				SoccerDuels.destroyAllMapInstances()
+				SoccerDuels.resetTestingVariables()
+
+				local maxError = 0.010 -- seconds
+				local countdownDuration = SoccerDuels.getConstant("MatchJoiningPadCountdownDurationSeconds")
+				local mapVotingDuration = SoccerDuels.getConstant("MatchJoiningPadMapVotingDurationSeconds")
+				local mapLoadingDuration = SoccerDuels.getConstant("MapLoadingDurationSeconds")
+				local matchCountdownDuration = SoccerDuels.getConstant("MatchCountdownDurationSeconds")
+				local matchGameplayDuration = SoccerDuels.getConstant("MatchGameplayDurationSeconds")
+				local matchOverDuration = SoccerDuels.getConstant("MatchOverDurationSeconds")
+				local gameOverDuration = SoccerDuels.getConstant("GameOverDurationSeconds")
+				local numMatchesPerGame = SoccerDuels.getConstant("NumberOfMatchesPerGame")
+
+				local Player1 = MockInstance.new("Player")
+				local Player2 = MockInstance.new("Player")
+
+				local Client1 = SoccerDuels.newClient(Player1)
+				local Client2 = SoccerDuels.newClient(Player2)
+
+				Client1:LoadPlayerDataAsync()
+				Client2:LoadPlayerDataAsync()
+
+				SoccerDuels.teleportPlayerToMatchPad(Player1, "1v1 #1", 1)
+				SoccerDuels.teleportPlayerToMatchPad(Player2, "1v1 #1", 2)
+
+				assert(SoccerDuels.getMatchPadState("1v1 #1") == "Countdown")
+
+				SoccerDuels.addExtraSecondsForTesting(countdownDuration + maxError)
+				SoccerDuels.matchPadTimerTick()
+
+				assert(SoccerDuels.getMatchPadState("1v1 #1") == "MapVoting")
+
+				assert(Client1:GetUserInterfaceMode() == "MapVoting")
+				assert(Client2:GetUserInterfaceMode() == "MapVoting")
+
+				Client1:VoteForMap("Stadium")
+				Client2:VoteForMap("Stadium")
+
+				assert(#SoccerDuels.getAllMapInstances() == 0)
+
+				SoccerDuels.addExtraSecondsForTesting(mapVotingDuration + maxError)
+				SoccerDuels.matchPadTimerTick()
+
+				assert(SoccerDuels.getMatchPadState("1v1 #1") == "WaitingForPlayers")
+				assert(Utility.tableDeepEqual(SoccerDuels.getMatchPadTeamPlayers("1v1 #1"), { {}, {} }))
+				assert(SoccerDuels.getPlayerConnectedMatchPadName(Player1) == nil)
+				assert(SoccerDuels.getPlayerConnectedMatchPadName(Player2) == nil)
+
+				assert(#SoccerDuels.getAllMapInstances() == 1)
+				local mapId = SoccerDuels.getAllMapInstances()[1]
+				assert(SoccerDuels.getMapInstanceMapName(mapId) == "Stadium")
+				assert(SoccerDuels.getMapInstanceState(mapId) == "Loading")
+
+				if not (SoccerDuels.getPlayerConnectedMapInstance(Player1) == mapId) then
+					error(`{SoccerDuels.getPlayerConnectedMapInstance(Player1)} != {mapId}`)
+				end
+				assert(SoccerDuels.getPlayerConnectedMapInstance(Player2) == mapId)
+				assert(SoccerDuels.getPlayerTeamIndex(Player1) == 1)
+				assert(SoccerDuels.getPlayerTeamIndex(Player2) == 2)
+				assert(not SoccerDuels.playerIsInLobby(Player1))
+				assert(not SoccerDuels.playerIsInLobby(Player2))
+
+				assert(Client1:GetUserInterfaceMode() == "LoadingMap")
+				assert(Client2:GetUserInterfaceMode() == "LoadingMap")
+
+				local s = pcall(SoccerDuels.teleportPlayerToMatchPad, Player1, "1v1 #1", 1)
+				assert(not s)
+
+				SoccerDuels.addExtraSecondsForTesting(mapLoadingDuration + maxError)
+				SoccerDuels.mapTimerTick()
+
+				for i = 1, numMatchesPerGame do
+					assert(SoccerDuels.getMapInstanceState(mapId) == "MatchCountdown")
+					assert(Client1:GetUserInterfaceMode() == "MatchCountdown")
+					assert(Client2:GetUserInterfaceMode() == "MatchCountdown")
+
+					SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration + maxError)
+					SoccerDuels.mapTimerTick()
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "MatchGameplay")
+					assert(Client1:GetUserInterfaceMode() == "MatchGameplay")
+					assert(Client2:GetUserInterfaceMode() == "MatchGameplay")
+
+					SoccerDuels.addExtraSecondsForTesting(matchGameplayDuration + maxError)
+					SoccerDuels.mapTimerTick()
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "MatchOver")
+					assert(Client1:GetUserInterfaceMode() == "MatchOver")
+					assert(Client2:GetUserInterfaceMode() == "MatchOver")
+
+					SoccerDuels.addExtraSecondsForTesting(matchOverDuration + maxError)
+					SoccerDuels.mapTimerTick()
+				end
+
+				s = pcall(SoccerDuels.teleportPlayerToMatchPad, Player2, "1v1 #2", 2)
+				assert(not s)
+
+				assert(SoccerDuels.getMapInstanceState(mapId) == "GameOver")
+				assert(Client1:GetUserInterfaceMode() == "GameOver")
+				assert(Client2:GetUserInterfaceMode() == "GameOver")
+
+				SoccerDuels.addExtraSecondsForTesting(gameOverDuration + maxError)
+				SoccerDuels.mapTimerTick()
+
+				assert(#SoccerDuels.getAllMapInstances() == 0)
+				assert(SoccerDuels.getPlayerConnectedMapInstance(Player1) == nil)
+				assert(SoccerDuels.getPlayerConnectedMapInstance(Player2) == nil)
+				assert(SoccerDuels.getPlayerTeamIndex(Player1) == nil)
+				assert(SoccerDuels.getPlayerTeamIndex(Player2) == nil)
+				assert(SoccerDuels.playerIsInLobby(Player1))
+				assert(SoccerDuels.playerIsInLobby(Player2))
+
+				assert(Client1:GetUserInterfaceMode() == "Lobby")
+				assert(Client2:GetUserInterfaceMode() == "Lobby")
+
+				SoccerDuels.teleportPlayerToMatchPad(Player1, "1v1 #1", 1)
+
+				Client1:Destroy()
+				Client2:Destroy()
+			end
+		)
 	end)
 end

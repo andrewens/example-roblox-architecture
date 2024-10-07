@@ -72,6 +72,10 @@
     {
       "Name": "ReplicatePlayerPing",
       "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "MapStateChanged",
+      "ClassName": "RemoteEvent"
     }
   ]
 }

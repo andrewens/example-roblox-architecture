@@ -140,7 +140,10 @@ return function()
 					SoccerDuels.addExtraSecondsForTesting(countdownDuration + maxError)
 					SoccerDuels.matchPadTimerTick()
 
-					assert(SoccerDuels.getMatchPadWinningMapVote("1v1 #1") == nil)
+					local shouldBeRandomMap = SoccerDuels.getMatchPadWinningMapVote("1v1 #1")
+
+					assert(typeof(shouldBeRandomMap) == "string")
+					assert(SoccerDuels.getEnum("Map", shouldBeRandomMap) ~= nil)
 
 					Client1:VoteForMap("Stadium")
 
@@ -165,7 +168,10 @@ return function()
 					SoccerDuels.addExtraSecondsForTesting(mapVotingDuration + maxError)
 					SoccerDuels.matchPadTimerTick()
 
-					assert(SoccerDuels.getMatchPadWinningMapVote("1v1 #1") == nil)
+					shouldBeRandomMap = SoccerDuels.getMatchPadWinningMapVote("1v1 #1")
+
+					assert(typeof(shouldBeRandomMap) == "string")
+					assert(SoccerDuels.getEnum("Map", shouldBeRandomMap) ~= nil)
 
 					Client1:Destroy()
 					Client2:Destroy()

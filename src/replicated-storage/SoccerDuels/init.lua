@@ -61,6 +61,7 @@ return {
 
 	-- enums
 	iterateEnumsOfType = Enums.iterateEnumsOfType,
+	getEnum = Enums.getEnum,
 
 	-- maps
 	disconnectPlayerFromAllMapInstances = SoccerDuelsServer.disconnectPlayerFromAllMapInstances,
@@ -70,10 +71,12 @@ return {
 	playerIsInLobby = SoccerDuelsServer.playerIsInLobby,
 
 	destroyAllMapInstances = SoccerDuelsServer.destroyAllMapInstances,
+	getAllMapInstances = SoccerDuelsServer.getAllMapInstances,
+
+	getMapInstanceMapName = SoccerDuelsServer.getMapInstanceMapName,
 	getMapInstanceFolder = SoccerDuelsServer.getMapInstanceFolder,
 	getMapInstanceOrigin = SoccerDuelsServer.getMapInstanceOrigin,
 	destroyMapInstance = SoccerDuelsServer.destroyMapInstance,
-	getAllMapInstances = SoccerDuelsServer.getAllMapInstances,
 	newMapInstance = SoccerDuelsServer.newMapInstance,
 
 	-- map state
