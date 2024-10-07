@@ -646,8 +646,38 @@ return function()
 				end
 			)
 			it("Players in a map are automatically returned to the lobby when the map is destroyed", function()
-				-- ... playerIsInLobby
-				-- position?
+				SoccerDuels.disconnectAllPlayers()
+				SoccerDuels.destroyAllMapInstances()
+				SoccerDuels.resetTestingVariables()
+
+				local Player1 = MockInstance.new("Player")
+				local Player2 = MockInstance.new("Player")
+
+				local Client1 = SoccerDuels.newClient(Player1)
+				local Client2 = SoccerDuels.newClient(Player2)
+
+				Client1:LoadPlayerDataAsync()
+				Client2:LoadPlayerDataAsync()
+
+				local mapId = SoccerDuels.newMapInstance("Stadium")
+
+				SoccerDuels.connectPlayerToMapInstance(Player1, mapId, 1)
+				SoccerDuels.connectPlayerToMapInstance(Player2, mapId, 2)
+
+				assert(SoccerDuels.getMapInstanceState(mapId) == "Loading")
+				assert(not SoccerDuels.playerIsInLobby(Player1))
+				assert(not SoccerDuels.playerIsInLobby(Player2))
+
+				SoccerDuels.destroyMapInstance(mapId)
+
+				assert(SoccerDuels.playerIsInLobby(Player1))
+				assert(SoccerDuels.playerIsInLobby(Player2))
+
+				assert(Client1:GetUserInterfaceMode() == "Lobby")
+				assert(Client2:GetUserInterfaceMode() == "Lobby")
+
+				Client1:Destroy()
+				Client2:Destroy()
 			end)
 		end)
 	end)
