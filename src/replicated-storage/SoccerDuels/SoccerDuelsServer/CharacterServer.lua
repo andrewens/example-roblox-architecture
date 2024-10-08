@@ -1,10 +1,13 @@
 -- dependency
 local PhysicsService = game:GetService("PhysicsService")
+
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
+local SoccerDuelsServerModule = script:FindFirstAncestor("SoccerDuelsServer")
 
 local Config = require(SoccerDuelsModule.Config)
 local Network = require(SoccerDuelsModule.Network)
 local Utility = require(SoccerDuelsModule.Utility)
+local SoccerDuelsServer -- required in initialize()
 
 -- const
 local TESTING_MODE = Config.getConstant("TestingMode")
@@ -23,6 +26,10 @@ local function lobbyCharacterDespawned(Player)
 	Network.fireAllClients("CharacterSpawnedInLobby", Player, nil)
 end
 local function lobbyCharacterSpawned(Player, Character)
+	if not SoccerDuelsServer.playerIsInLobby(Player) then
+		return
+	end
+
 	CharactersInLobby[Player] = Character
 
 	Character.Humanoid.Died:Connect(function()
@@ -42,7 +49,7 @@ local function lobbyCharacterSpawned(Player, Character)
 
 	Network.fireAllClients("CharacterSpawnedInLobby", Player, Character)
 end
-local function spawnCharacterInLobby(Player)
+local function loadPlayerCharacter(Player)
 	Player:LoadCharacter()
 
 	-- TODO ideally there should be a mock Players service so that the connection is the same...
@@ -64,18 +71,52 @@ local function onPlayerRequestCharactersInLobby(RequestingPlayer)
 end
 
 -- public
+local function removeCharacter(Player)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+
+	if Player.Character then
+		Player.Character:Destroy()
+		Player.Character = nil
+	end
+
+	lobbyCharacterDespawned(Player)
+end
+local function spawnPlayerCharacterAtPosition(Player, position)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+	if not (typeof(position) == "Vector3") then
+		error(`{position} is not a Vector3!`)
+	end
+
+	if Player.Character == nil or Player.Character.Parent == nil then
+		loadPlayerCharacter(Player)
+	end
+
+	-- TODO this won't work with lag
+	Player.Character:PivotTo(CFrame.new(position))
+end
+local function spawnCharacterInLobby(Player)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+
+	loadPlayerCharacter(Player)
+end
+
 local function initializePlayer(Player)
-	-- TODO I think a client could invoke this twice, which would be bad
+	-- TODO I think a client could invoke this twice, which would be bad because the number of callbacks would duplicate
 	Utility.onPlayerDiedConnect(Player, function()
 		spawnCharacterInLobby(Player)
 	end)
 
 	spawnCharacterInLobby(Player)
 end
-local function disconnectPlayer(Player)
-	lobbyCharacterDespawned(Player)
-end
 local function initializeLobbyCharacterServer()
+	SoccerDuelsServer = require(SoccerDuelsServerModule)
+
 	PhysicsService:RegisterCollisionGroup(LOBBY_CHARACTER_COLLISION_GROUP)
 	PhysicsService:CollisionGroupSetCollidable(LOBBY_CHARACTER_COLLISION_GROUP, LOBBY_CHARACTER_COLLISION_GROUP, false)
 
@@ -84,7 +125,11 @@ local function initializeLobbyCharacterServer()
 end
 
 return {
-	playerDataLoaded = initializePlayer,
-	disconnectPlayer = disconnectPlayer,
+	spawnPlayerCharacterAtPosition = spawnPlayerCharacterAtPosition,
+	spawnPlayerCharacterInLobby = spawnCharacterInLobby,
+	removePlayerCharacter = removeCharacter,
+
 	initialize = initializeLobbyCharacterServer,
+	disconnectPlayer = lobbyCharacterDespawned,
+	playerDataLoaded = initializePlayer,
 }

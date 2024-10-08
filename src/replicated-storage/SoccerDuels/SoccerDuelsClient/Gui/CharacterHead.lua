@@ -84,7 +84,7 @@ local function newCharacterHeadGui(self)
 		-- update saved player data gui when it changes
 		local PlayerSaveData = self:GetPlayerSaveData(Player)
 		if PlayerSaveData == nil then
-			warn(`Player "{Player}" has no cached save data!`)
+			warn(`Player "{Player.Name}" has no cached save data!`)
 			return
 		end
 

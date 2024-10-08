@@ -14,6 +14,7 @@ do
 	function serverFinishedTests()
 		SoccerDuels.resetTestingVariables()
 		SoccerDuels.disconnectAllPlayers()
+		SoccerDuels.destroyAllMapInstances()
 
 		TestRemoteEvents.TestsFinished.OnServerEvent:Connect(function(Player)
 			TestRemoteEvents.TestsFinished:FireClient(Player)
@@ -34,6 +35,21 @@ do
 end
 
 -- public
+local function playerCharacterIsWithinDistanceOfPoint(Player, point, distance)
+	local Character = Player.Character
+	if Character == nil then
+		return false, `{Player.Name} has no character!`
+	end
+
+	local offset = Character.HumanoidRootPart.Position - point
+	local isWithinDistance = offset:Dot(offset) <= (distance or 0.001) ^ 2
+
+	if not isWithinDistance then
+		return false, `{Player.Name} is {math.round(offset.Magnitude)} studs away from {point}`
+	end
+
+	return true
+end
 local function isInteger(value)
 	return typeof(value) == "number" and math.floor(value) == value
 end
@@ -116,6 +132,8 @@ local function tableDeepEqual(Table1, Table2)
 end
 
 return {
+	playerCharacterIsWithinDistanceOfPoint = playerCharacterIsWithinDistanceOfPoint,
+
 	isInteger = isInteger,
 
 	tableIsSubsetOfTable = tableIsSubsetOfTable,

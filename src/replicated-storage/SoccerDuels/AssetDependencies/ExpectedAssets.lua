@@ -1,6 +1,11 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
+
+local Config = require(SoccerDuelsModule.Config)
 local Enums = require(SoccerDuelsModule.Enums)
+
+-- const
+local MAX_PLAYERS_PER_TEAM = Config.getConstant("MaxPlayersPerTeam")
 
 -- init
 local ExpectedAssets = {}
@@ -299,6 +304,18 @@ do
 			Path = `ServerStorage/MapTemplates/{mapName}/Origin`,
 			ClassName = "BasePart",
 		}
+		ExpectedAssets[`{mapName} TeamStartingPositions`] = {
+			Path = `ServerStorage/MapTemplates/{mapName}/TeamStartingPositions`,
+		}
+
+		for teamIndex = 1, 2 do
+			for i = 1, MAX_PLAYERS_PER_TEAM do
+				ExpectedAssets[`{mapName} Team{teamIndex} StartPosition{i}`] = {
+					Path = `ServerStorage/MapTemplates/{mapName}/TeamStartingPositions/Team{teamIndex}/{i}`,
+					ClassName = "BasePart",
+				}
+			end
+		end
 	end
 end
 

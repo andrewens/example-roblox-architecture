@@ -73,6 +73,7 @@ return {
 	destroyAllMapInstances = SoccerDuelsServer.destroyAllMapInstances,
 	getAllMapInstances = SoccerDuelsServer.getAllMapInstances,
 
+	getMapInstanceStartingLocation = SoccerDuelsServer.getMapInstanceStartingLocation,
 	getMapInstanceMapName = SoccerDuelsServer.getMapInstanceMapName,
 	getMapInstanceFolder = SoccerDuelsServer.getMapInstanceFolder,
 	getMapInstanceOrigin = SoccerDuelsServer.getMapInstanceOrigin,

@@ -9,7 +9,7 @@ local Network = require(SoccerDuelsModule.Network)
 local Utility = require(SoccerDuelsModule.Utility)
 
 local Database = require(script.Database)
-local LobbyCharacterServer = require(script.LobbyCharacterServer)
+local CharacterServer = require(script.CharacterServer)
 local MapsServer = require(script.MapsServer)
 local MatchJoiningPadsServer = require(script.MatchJoiningPadsServer)
 local NotifyPlayerServer = require(script.NotifyPlayerServer)
@@ -101,7 +101,7 @@ local function getPlayerSaveData(Player)
 
 	-- other systems
 	PlayerPingServer.playerDataLoaded(Player)
-	LobbyCharacterServer.playerDataLoaded(Player)
+	CharacterServer.playerDataLoaded(Player)
 	MatchJoiningPadsServer.playerDataLoaded(Player)
 
 	return true, PlayerSaveData:ToJson()
@@ -160,7 +160,7 @@ local function disconnectPlayer(Player, kickPlayer)
 
 	PlayerControllerTypeServer.disconnectPlayer(Player)
 	MatchJoiningPadsServer.disconnectPlayer(Player)
-	LobbyCharacterServer.disconnectPlayer(Player)
+	CharacterServer.disconnectPlayer(Player)
 	PlayerPingServer.disconnectPlayer(Player)
 	MapsServer.disconnectPlayer(Player)
 
@@ -219,7 +219,7 @@ local function initializeServer()
 
 	PlayerControllerTypeServer.initialize()
 	MatchJoiningPadsServer.initialize()
-	LobbyCharacterServer.initialize()
+	CharacterServer.initialize()
 	PlayerPingServer.initialize()
 	MapsServer.initialize()
 
@@ -242,6 +242,7 @@ return {
 	destroyAllMapInstances = MapsServer.destroyAllMapInstances,
 	getAllMapInstances = MapsServer.getAllMapInstances,
 
+	getMapInstanceStartingLocation = MapsServer.getMapInstanceStartingLocation,
 	getMapInstanceMapName = MapsServer.getMapInstanceMapName,
 	getMapInstanceFolder = MapsServer.getMapInstanceFolder,
 	getMapInstanceOrigin = MapsServer.getMapInstanceOrigin,

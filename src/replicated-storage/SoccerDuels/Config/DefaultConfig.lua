@@ -175,6 +175,7 @@ DefaultConfig.MapThumbnailImages = {
 }
 DefaultConfig.MaxMapInstancesPerGridRow = 5
 DefaultConfig.DistanceBetweenMapInstancesStuds = 1E3
+DefaultConfig.MaxPlayersPerTeam = 5
 
 -- match state
 DefaultConfig.MapStateTickRateSeconds = 0.33

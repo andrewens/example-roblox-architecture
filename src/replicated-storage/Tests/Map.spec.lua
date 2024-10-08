@@ -680,5 +680,100 @@ return function()
 				Client2:Destroy()
 			end)
 		end)
+		describe("Player characters during a match", function()
+			it("Players have no characters during the 'Loading' or 'GameOver' states; characters are frozen during 'MatchCountdown', but not during 'MatchGameplay'; characters are teleported to starting positions for 'MatchCountdown'", function()
+				SoccerDuels.disconnectAllPlayers()
+				SoccerDuels.destroyAllMapInstances()
+				SoccerDuels.resetTestingVariables()
+
+				local maxError = 0.010
+				local mapLoadingDuration = SoccerDuels.getConstant("MapLoadingDurationSeconds")
+				local matchCountdownDuration = SoccerDuels.getConstant("MatchCountdownDurationSeconds")
+				local matchGameplayDuration = SoccerDuels.getConstant("MatchGameplayDurationSeconds")
+				local matchOverDuration = SoccerDuels.getConstant("MatchOverDurationSeconds")
+				local gameOverDuration = SoccerDuels.getConstant("GameOverDurationSeconds")
+				local numMatchesPerGame = SoccerDuels.getConstant("NumberOfMatchesPerGame")
+
+				local lobbySpawnLocation = SoccerDuels.getExpectedAsset("LobbySpawnLocation").Position
+
+				local Player1 = MockInstance.new("Player")
+				local Player2 = MockInstance.new("Player")
+
+				local Client1 = SoccerDuels.newClient(Player1)
+				local Client2 = SoccerDuels.newClient(Player2)
+
+				Client1:LoadPlayerDataAsync()
+				Client2:LoadPlayerDataAsync()
+
+				assert(Player1.Character)
+				assert(Player2.Character)
+				assert(Utility.playerCharacterIsWithinDistanceOfPoint(Player1, lobbySpawnLocation, 10))
+				assert(Utility.playerCharacterIsWithinDistanceOfPoint(Player2, lobbySpawnLocation, 10))
+
+				local mapId = SoccerDuels.newMapInstance("Stadium")
+
+				SoccerDuels.connectPlayerToMapInstance(Player1, mapId, 1)
+				SoccerDuels.connectPlayerToMapInstance(Player2, mapId, 2)
+
+				assert(SoccerDuels.getMapInstanceState(mapId) == "Loading")
+				assert(Player1.Character == nil or Player1.Character.Parent == nil)
+				assert(Player2.Character == nil or Player2.Character.Parent == nil)
+
+				SoccerDuels.addExtraSecondsForTesting(mapLoadingDuration + maxError)
+				SoccerDuels.mapTimerTick()
+
+				for i = 1, numMatchesPerGame do
+					assert(SoccerDuels.getMapInstanceState(mapId) == "MatchCountdown")
+					assert(Player1.Character.Parent)
+					assert(Player2.Character.Parent)
+					assert(Player1.Character.HumanoidRootPart.Anchored)
+					assert(Player2.Character.HumanoidRootPart.Anchored)
+
+					local startPosition1 = SoccerDuels.getMapInstanceStartingLocation(mapId, 1, 1) -- (teamIndex, teamPositionIndex)
+					local startPosition2 = SoccerDuels.getMapInstanceStartingLocation(mapId, 2, 1)
+
+					assert(Player1.Character.HumanoidRootPart.Position:FuzzyEq(startPosition1))
+					assert(Player2.Character.HumanoidRootPart.Position:FuzzyEq(startPosition2))
+					assert(not Utility.playerCharacterIsWithinDistanceOfPoint(Player1, lobbySpawnLocation, 10))
+					assert(not Utility.playerCharacterIsWithinDistanceOfPoint(Player2, lobbySpawnLocation, 10))
+
+					SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration + maxError)
+					SoccerDuels.mapTimerTick()
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "MatchGameplay")
+					assert(not Player1.Character.HumanoidRootPart.Anchored)
+					assert(not Player2.Character.HumanoidRootPart.Anchored)
+
+					Player1.Character:MoveTo(startPosition2) -- move characters off their starting positions
+					Player2.Character:MoveTo(startPosition1)
+
+					SoccerDuels.addExtraSecondsForTesting(matchGameplayDuration + maxError)
+					SoccerDuels.mapTimerTick()
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "MatchOver")
+					assert(not Player1.Character.HumanoidRootPart.Anchored)
+					assert(not Player2.Character.HumanoidRootPart.Anchored)
+
+					SoccerDuels.addExtraSecondsForTesting(matchOverDuration + maxError)
+					SoccerDuels.mapTimerTick()
+				end
+
+				assert(SoccerDuels.getMapInstanceState(mapId) == "GameOver")
+				assert(Player1.Character == nil or Player1.Character.Parent == nil)
+				assert(Player2.Character == nil or Player2.Character.Parent == nil)
+
+				SoccerDuels.addExtraSecondsForTesting(gameOverDuration + maxError)
+				SoccerDuels.mapTimerTick()
+
+				assert(SoccerDuels.getMapInstanceState(mapId) == nil)
+				assert(Player1.Character.Parent)
+				assert(Player2.Character.Parent)
+				assert(Utility.playerCharacterIsWithinDistanceOfPoint(Player1, lobbySpawnLocation, 10))
+				assert(Utility.playerCharacterIsWithinDistanceOfPoint(Player2, lobbySpawnLocation, 10))
+
+				Client1:Destroy()
+				Client2:Destroy()
+			end)
+		end)
 	end)
 end

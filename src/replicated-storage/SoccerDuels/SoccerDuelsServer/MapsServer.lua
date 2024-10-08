@@ -1,5 +1,6 @@
 -- dependency
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
+local SoccerDuelsServerModule = script:FindFirstAncestor("SoccerDuelsServer")
 
 local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Config = require(SoccerDuelsModule.Config)
@@ -9,12 +10,15 @@ local Time = require(SoccerDuelsModule.Time)
 local Utility = require(SoccerDuelsModule.Utility)
 local SoccerDuelsServer -- required in initialize()
 
+local CharacterServer = require(SoccerDuelsServerModule.CharacterServer)
+
 -- const
 local MAX_NUM_MAP_INSTANCES_PER_GRID_ROW = Config.getConstant("MaxMapInstancesPerGridRow")
 local STUDS_BETWEEN_MAP_INSTANCES = Config.getConstant("DistanceBetweenMapInstancesStuds")
 
 local MAP_STATE_TICK_RATE_SECONDS = Config.getConstant("MapStateTickRateSeconds")
 local NUMBER_OF_MATCHES_PER_GAME = Config.getConstant("NumberOfMatchesPerGame")
+local MAX_PLAYERS_PER_TEAM = Config.getConstant("MaxPlayersPerTeam")
 
 local MAP_LOADING_DURATION_SECONDS = Config.getConstant("MapLoadingDurationSeconds")
 local MATCH_COUNTDOWN_DURATION_SECONDS = Config.getConstant("MatchCountdownDurationSeconds")
@@ -53,20 +57,65 @@ local function replicateMapStateToPlayer(Player)
 
 	Network.fireClient("MapStateChanged", Player, mapStateEnum)
 end
+local function getMapInstanceStartingLocationUnprotected(mapInstanceId, teamIndex, teamPositionIndex)
+	local mapPositionIndex = MapInstanceIdToMapPositionIndex[mapInstanceId]
+	local MapFolder = MapInstanceFolder[mapPositionIndex]
+	local mapName = Enums.enumToName("Map", MapInstanceMapEnum[mapInstanceId])
+	local StartPositionPart = Assets.getExpectedAsset(
+		`{mapName} Team{teamIndex} StartPosition{teamPositionIndex}`,
+		`{mapName} MapFolder`,
+		MapFolder
+	)
+
+	return StartPositionPart.Position + Vector3.new(0, 3, 0)
+end
 
 local destroyMapInstance
 local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
-	MapInstanceState[mapInstanceId] = mapStateEnum
-
+	-- store and replicate new map state
 	local stateChangeTimestamp
 	if durationSeconds then
 		stateChangeTimestamp = Time.getUnixTimestampMilliseconds() + 1E3 * durationSeconds
 	end
 
+	MapInstanceState[mapInstanceId] = mapStateEnum
 	MapInstanceStateChangeTimestamp[mapInstanceId] = stateChangeTimestamp
 
 	for Player, teamIndex in MapInstancePlayers[mapInstanceId] do
 		replicateMapStateToPlayer(Player)
+	end
+
+	-- 'MatchCountdown' - spawn characters at their starting positions (and freeze them)
+	if mapStateEnum == MATCH_COUNTDOWN_STATE_ENUM then
+		local TeamPositionIndex = { 0, 0 } -- int teamIndex --> int teamPositionIndex
+		for Player, teamIndex in MapInstancePlayers[mapInstanceId] do
+			TeamPositionIndex[teamIndex] += 1
+			local startingPosition =
+				getMapInstanceStartingLocationUnprotected(mapInstanceId, teamIndex, TeamPositionIndex[teamIndex])
+
+			CharacterServer.spawnPlayerCharacterAtPosition(Player, startingPosition)
+			Utility.setPlayerCharacterAnchored(Player, true)
+		end
+
+		return
+	end
+
+	-- 'MatchGameplay' - unfreeze player characters
+	if mapStateEnum == MATCH_GAMEPLAY_STATE_ENUM then
+		for Player, teamIndex in MapInstancePlayers[mapInstanceId] do
+			Utility.setPlayerCharacterAnchored(Player, false)
+		end
+
+		return
+	end
+
+	-- 'Loading' | 'GameOver' - remove player characters
+	if mapStateEnum == MAP_LOADING_STATE_ENUM or mapStateEnum == GAME_OVER_STATE_ENUM then
+		for Player, teamIndex in MapInstancePlayers[mapInstanceId] do
+			CharacterServer.removePlayerCharacter(Player)
+		end
+
+		return
 	end
 end
 local function mapInstanceHasNoPlayersOnATeam(mapInstanceId)
@@ -197,6 +246,25 @@ local function mapPositionIndexToOriginPosition(mapPositionIndex)
 end
 
 -- public
+local function getMapInstanceStartingLocation(mapInstanceId, teamIndex, teamPositionIndex)
+	if not Utility.isInteger(mapInstanceId) then
+		error(`{mapInstanceId} is not an integer!`)
+	end
+	if MapInstanceIdToMapPositionIndex[mapInstanceId] == nil then
+		error(`Map {mapInstanceId} doesn't exist!`)
+	end
+	if not (teamIndex == 1 or teamIndex == 2) then
+		error(`{teamIndex} is not 1 or 2!`)
+	end
+	if not (Utility.isInteger(teamPositionIndex)) then
+		error(`{teamPositionIndex} is not an integer!`)
+	end
+	if not (1 <= teamPositionIndex and teamPositionIndex <= MAX_PLAYERS_PER_TEAM) then
+		error(`{teamPositionIndex} is out of range!`)
+	end
+
+	return getMapInstanceStartingLocationUnprotected(mapInstanceId, teamIndex, teamPositionIndex)
+end
 local function getMapInstanceState(mapInstanceId)
 	if not Utility.isInteger(mapInstanceId) then
 		error(`{mapInstanceId} is not a map instance id!`)
@@ -238,6 +306,8 @@ local function disconnectPlayerFromAllMapInstances(Player)
 
 	updateMapStateAfterPlayerLeft(mapInstanceId)
 	replicateMapStateToPlayer(Player)
+
+	CharacterServer.spawnPlayerCharacterInLobby(Player)
 end
 local function getPlayersConnectedToMapInstance(mapInstanceId)
 	if not Utility.isInteger(mapInstanceId) then
@@ -276,6 +346,8 @@ local function connectPlayerToMapInstance(Player, mapInstanceId, teamIndex)
 	PlayerConnectedMapInstance[Player] = mapInstanceId
 
 	replicateMapStateToPlayer(Player)
+
+	CharacterServer.removePlayerCharacter(Player)
 end
 local function playerIsInLobby(Player)
 	if not Utility.isA(Player, "Player") then
@@ -415,7 +487,7 @@ local function destroyAllMapInstances()
 end
 
 local function initializeMapsServer()
-	SoccerDuelsServer = require(script.Parent)
+	SoccerDuelsServer = require(SoccerDuelsServerModule)
 
 	local MapGridOriginPart = Assets.getExpectedAsset("MapGridOriginPart")
 	mapGridOrigin = MapGridOriginPart.Position
@@ -443,6 +515,7 @@ return {
 	destroyAllMapInstances = destroyAllMapInstances,
 	getAllMapInstances = getAllMapInstances,
 
+	getMapInstanceStartingLocation = getMapInstanceStartingLocation,
 	getMapInstanceMapName = getMapInstanceMapName,
 	getMapInstanceFolder = getMapInstanceFolder,
 	getMapInstanceOrigin = getMapInstanceOrigin,

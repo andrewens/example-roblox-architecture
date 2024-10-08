@@ -19,6 +19,9 @@ local MockPartMetatable = {
 local function isA(self, className)
 	return className == "Part" or className == "BasePart"
 end
+local function destroy(self)
+
+end
 
 -- MockPart constructor
 return function()
@@ -30,6 +33,7 @@ return function()
 
 		-- methods
 		IsA = isA,
+		Destroy = destroy,
 	}
 
 	setmetatable(self, MockPartMetatable)
