@@ -304,6 +304,8 @@ local function disconnectPlayerFromAllMapInstances(Player)
 	MapInstancePlayers[mapInstanceId][Player] = nil
 	PlayerConnectedMapInstance[Player] = nil
 
+	Network.fireAllClients("PlayerConnectedMapChanged", Player, nil, nil)
+
 	updateMapStateAfterPlayerLeft(mapInstanceId)
 	replicateMapStateToPlayer(Player)
 
@@ -344,6 +346,8 @@ local function connectPlayerToMapInstance(Player, mapInstanceId, teamIndex)
 
 	MapInstancePlayers[mapInstanceId][Player] = teamIndex
 	PlayerConnectedMapInstance[Player] = mapInstanceId
+
+	Network.fireAllClients("PlayerConnectedMapChanged", Player, MapInstanceMapEnum[mapInstanceId], teamIndex)
 
 	replicateMapStateToPlayer(Player)
 

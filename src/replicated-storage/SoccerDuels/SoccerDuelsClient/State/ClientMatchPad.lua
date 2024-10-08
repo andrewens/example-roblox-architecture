@@ -388,7 +388,7 @@ end
 
 return {
 	onClientConnectedMatchPadVoteChangedConnect = onClientConnectedMatchPadVoteChangedConnect,
-	getAnyPlayerTeamIndex = getClientConnectedMatchPadTeam,
+	--getAnyPlayerTeamIndex = getClientConnectedMatchPadTeam,
 	clientVoteForMap = clientVoteForMap,
 
 	onPlayerConnectedMatchPadStateChangedConnect = onPlayerConnectedMatchPadStateChangedConnect,

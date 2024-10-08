@@ -12,6 +12,7 @@ local Utility = require(SoccerDuelsModule.Utility)
 local Gui = require(script.Gui)
 
 local ClientInput = require(SoccerDuelsClientStateFolder.ClientInput)
+local ClientMapState = require(SoccerDuelsClientStateFolder.ClientMapState)
 local ClientMatchPad = require(SoccerDuelsClientStateFolder.ClientMatchPad)
 local ClientModalState = require(SoccerDuelsClientStateFolder.ClientModalState)
 local ClientPing = require(SoccerDuelsClientStateFolder.ClientPing)
@@ -48,6 +49,10 @@ local function destroyClient(self) -- TODO this isn't really tested
 end
 
 -- public
+local function getAnyPlayerTeamIndex(self, Player)
+	Player = Player or self.Player
+	return self._PlayerTeamIndex[Player] or self._PlayerConnectedMatchPadTeam[Player]
+end
 local function newClient(Player)
 	if not (Utility.isA(Player, "Player")) then
 		error(`{Player} is not a Player Instance!`)
@@ -97,6 +102,9 @@ local function newClient(Player)
 	self._PlayerPingMilliseconds = {} -- Player --> int playerPingMilliseconds
 	self._PlayerPingQualityChangedCallbacks = {} -- function callback(Player, string pingQuality) --> true
 
+	self._PlayerConnectedMapEnum = {} -- Player --> int mapEnum
+	self._PlayerTeamIndex = {} -- Player -- int teamIndex (for when players are in a match)
+
 	-- init
 	setmetatable(self, ClientMetatable)
 
@@ -107,21 +115,21 @@ local function newClient(Player)
 end
 local function initializeClients()
 	local ClientMethods = {
-		-- ping
-		OnPlayerPingQualityChangedConnect = ClientPing.onPlayerPingQualityChangeConnect,
-		GetPlayerPingMilliseconds = ClientPing.getPlayerPingMilliseconds,
-		GetPlayerPingQuality = ClientPing.getPlayerPingQuality,
+		-- lobby characters
+		OnCharacterSpawnedInLobbyConnect = LobbyCharacters.clientOnCharacterSpawnedInLobbyConnect,
+		LobbyCharacterTouchedPart = LobbyCharacters.partTouchedClientLobbyCharacter,
+		GetCharactersInLobby = LobbyCharacters.getCharactersInLobby,
 
-		-- client user interface mode
-		OnUserInterfaceModeChangedConnect = ClientUserInterfaceMode.onClientUserInterfaceModeChangedConnect,
-		GetUserInterfaceMode = ClientUserInterfaceMode.getClientUserInterfaceMode,
+		-- map state
+		GetConnectedMapName = ClientMapState.getClientConnectedMapName,
+		-- GetPlayerTeamIndex = getAnyPlayerTeamIndex,
 
 		-- map voting
 		VoteForMap = ClientMatchPad.clientVoteForMap,
 		OnConnectedMatchPadVoteChangedConnect = ClientMatchPad.onClientConnectedMatchPadVoteChangedConnect,
-		GetPlayerTeamIndex = ClientMatchPad.getAnyPlayerTeamIndex,
+		GetPlayerTeamIndex = getAnyPlayerTeamIndex,
 
-		-- client match pad
+		-- match joining pad
 		DisconnectFromMatchJoiningPadIfCharacterSteppedOffAsync = ClientMatchPad.disconnectClientFromMatchPadIfCharacterSteppedOffAsync,
 		OnPlayerMatchPadStateChangedConnect = ClientMatchPad.onPlayerConnectedMatchPadStateChangedConnect,
 		OnLobbyCharacterTouchedMatchPadConnect = ClientMatchPad.onLobbyCharacterTouchedMatchPadConnect,
@@ -138,38 +146,42 @@ local function initializeClients()
 		GetConnectedMatchPadName = ClientMatchPad.getClientConnectedMatchPadName,
 		GetConnectedMatchPadTeam = ClientMatchPad.getClientConnectedMatchPadTeam,
 
-		-- client input
-		OnControllerTypeChangedConnect = ClientInput.onClientControllerTypeChangedConnect,
-		GetControllerType = ClientInput.getClientControllerType,
-		TapInput = ClientInput.clientTapInput,
-
-		-- lobby characters
-		OnCharacterSpawnedInLobbyConnect = LobbyCharacters.clientOnCharacterSpawnedInLobbyConnect,
-		LobbyCharacterTouchedPart = LobbyCharacters.partTouchedClientLobbyCharacter,
-		GetCharactersInLobby = LobbyCharacters.getCharactersInLobby,
-
-		-- toast notification
-		OnToastNotificationConnect = ClientToastNotificationState.onClientToastNotificationConnect,
-
 		-- modal state
 		OnVisibleModalChangedConnect = ClientModalState.clientOnVisibleModalChangedConnect,
 		ToggleModalVisibility = ClientModalState.toggleClientModalVisibility,
 		GetVisibleModalName = ClientModalState.getClientVisibleModalName,
 		SetVisibleModalName = ClientModalState.setClientVisibleModal,
 
-		-- client settings
-		OnSettingChangedConnect = ClientSettings.onClientSettingChangedConnect,
-		ToggleBooleanSetting = ClientSettings.clientToggleBooleanSetting,
-		ChangeSetting = ClientSettings.clientChangeSetting,
-		GetSetting = ClientSettings.getClientSettingValue,
-		GetSettings = ClientSettings.getClientSettingsJson,
+		-- ping
+		OnPlayerPingQualityChangedConnect = ClientPing.onPlayerPingQualityChangeConnect,
+		GetPlayerPingMilliseconds = ClientPing.getPlayerPingMilliseconds,
+		GetPlayerPingQuality = ClientPing.getPlayerPingQuality,
 
-		-- loading player save data
+		-- toast notification
+		OnToastNotificationConnect = ClientToastNotificationState.onClientToastNotificationConnect,
+
+		-- user input
+		OnControllerTypeChangedConnect = ClientInput.onClientControllerTypeChangedConnect,
+		GetControllerType = ClientInput.getClientControllerType,
+		TapInput = ClientInput.clientTapInput,
+
+		-- user interface mode
+		OnUserInterfaceModeChangedConnect = ClientUserInterfaceMode.onClientUserInterfaceModeChangedConnect,
+		GetUserInterfaceMode = ClientUserInterfaceMode.getClientUserInterfaceMode,
+
+		-- save data
 		OnPlayerSaveDataLoadedConnect = LoadClientSaveData.onClientPlayerDataLoadedConnect,
 		GetAnyPlayerDataValue = LoadClientSaveData.getAnyPlayerDataCachedValue,
 		LoadPlayerDataAsync = LoadClientSaveData.loadClientPlayerDataAsync,
 		PlayerDataIsLoaded = LoadClientSaveData.clientPlayerDataIsLoaded,
 		GetPlayerSaveData = LoadClientSaveData.getAnyPlayerCachedSaveData,
+
+		-- settings
+		OnSettingChangedConnect = ClientSettings.onClientSettingChangedConnect,
+		ToggleBooleanSetting = ClientSettings.clientToggleBooleanSetting,
+		ChangeSetting = ClientSettings.clientChangeSetting,
+		GetSetting = ClientSettings.getClientSettingValue,
+		GetSettings = ClientSettings.getClientSettingsJson,
 
 		-- client root
 		Destroy = destroyClient,
