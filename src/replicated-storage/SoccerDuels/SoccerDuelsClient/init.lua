@@ -64,6 +64,7 @@ local function newClient(Player)
 
 	-- private properties (don't use outside of client modules)
 	self._Maid = Maid.new() -- cleans on self:Destroy() and self:LoadPlayerDataAsync()
+	self._MainGui = nil -- ScreenGui
 
 	self._VisibleModalEnum = nil -- int | nil
 	self._VisibleModalChangedCallbacks = {} -- function callback(string visibleModalName) --> true
@@ -94,8 +95,6 @@ local function newClient(Player)
 	self._PlayerMapVotes = {} -- Player --> mapEnum | nil (only players in client's connected match joining pad!)
 	self._PlayerVotedOnMapCallbacks = {} -- function callback(Player AnyPlayer, string | nil mapName) --> true
 
-	self._MainGui = nil -- ScreenGui
-
 	self._CachedPlayerAvatarImages = {} -- int userId --> string imageContent
 	self._ImageLabelsWaitingForAvatarImages = {} -- int userId --> [ ImageLabel, ... ]
 
@@ -103,7 +102,11 @@ local function newClient(Player)
 	self._PlayerPingQualityChangedCallbacks = {} -- function callback(Player, string pingQuality) --> true
 
 	self._PlayerConnectedMapEnum = {} -- Player --> int mapEnum
-	self._PlayerTeamIndex = {} -- Player -- int teamIndex (for when players are in a match)
+	self._PlayerTeamIndex = {} -- Player --> int teamIndex (for when players are in a match)
+	self._PlayerGoals = {} -- Player --> int numGoalsScored (only players in same map as self.Player)
+	self._PlayerAssists = {} -- Player --> int numAssists (only players in same map as self.Player)
+	self._PlayerTackles = {} -- Player --> int numTackles (only players in same map as self.Player)
+	self._PlayerLeaderstatsChangedCallbacks = {} -- function callback(Player, int | nil teamIndex, int | nil numGoals, ...) --> true
 
 	-- init
 	setmetatable(self, ClientMetatable)
@@ -121,6 +124,7 @@ local function initializeClients()
 		GetCharactersInLobby = LobbyCharacters.getCharactersInLobby,
 
 		-- map state
+		OnPlayerLeaderstatsChangedConnect = ClientMapState.onPlayerLeaderstatsChangedConnect,
 		GetConnectedMapName = ClientMapState.getClientConnectedMapName,
 		-- GetPlayerTeamIndex = getAnyPlayerTeamIndex,
 

@@ -80,6 +80,10 @@
     {
       "Name": "PlayerConnectedMapChanged",
       "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "PlayerLeaderstatsChanged",
+      "ClassName": "RemoteEvent"
     }
   ]
 }

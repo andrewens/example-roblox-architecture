@@ -48,7 +48,77 @@ local MapInstanceStateChangeTimestamp = {} -- int mapInstanceId --> int unixTime
 local MapInstanceMatchesPlayed = {} -- int mapInstanceId --> int numberOfMatchesPlayed
 local MapInstanceMapEnum = {} -- int mapInstanceId --> int mapEnum
 
+local PlayerGoals = {} -- Player --> int | nil numGoals
+local PlayerAssists = {} -- Player --> int | nil numAssists
+local PlayerTackles = {} -- Player --> int | nil numTackles
+
 -- private
+local function addPlayerToLeaderstats(Player, mapInstanceId)
+	PlayerGoals[Player] = 0
+	PlayerAssists[Player] = 0
+	PlayerTackles[Player] = 0
+
+	for OtherPlayer, otherTeamIndex in MapInstancePlayers[mapInstanceId] do
+		local goals = PlayerGoals[OtherPlayer]
+		local assists = PlayerAssists[OtherPlayer]
+		local tackles = PlayerTackles[OtherPlayer]
+
+		Network.fireClient("PlayerLeaderstatsChanged", Player, OtherPlayer, otherTeamIndex, goals, assists, tackles)
+	end
+end
+local function replicatePlayerLeaderstats(Player)
+	local mapInstanceId = PlayerConnectedMapInstance[Player]
+	if mapInstanceId == nil then
+		return
+	end
+
+	local goals = PlayerGoals[Player]
+	local assists = PlayerAssists[Player]
+	local tackles = PlayerTackles[Player]
+	local teamIndex = if goals then MapInstancePlayers[mapInstanceId][Player] else nil
+
+	for OtherPlayer, otherTeamIndex in MapInstancePlayers[mapInstanceId] do
+		Network.fireClient("PlayerLeaderstatsChanged", OtherPlayer, Player, teamIndex, goals, assists, tackles)
+	end
+end
+local function incrementPlayerLeaderstats(Player, newGoals, newAssists, newTackles)
+	local mapInstanceId = PlayerConnectedMapInstance[Player]
+	if mapInstanceId == nil then
+		return
+	end
+
+	local mapStateEnum = MapInstanceState[mapInstanceId]
+	if not (mapStateEnum == MATCH_GAMEPLAY_STATE_ENUM or mapStateEnum == PERPETUAL_GAMEPLAY_STATE_ENUM) then
+		return
+	end
+
+	if newGoals and newGoals > 0 then
+		PlayerGoals[Player] += newGoals
+	end
+	if newAssists and newAssists > 0 then
+		PlayerAssists[Player] += newAssists
+	end
+	if newTackles and newTackles > 0 then
+		PlayerTackles[Player] += newTackles
+	end
+
+	replicatePlayerLeaderstats(Player)
+end
+local function deletePlayerLeaderstats(Player)
+	PlayerGoals[Player] = nil
+	PlayerAssists[Player] = nil
+	PlayerTackles[Player] = nil
+
+	replicatePlayerLeaderstats(Player)
+end
+local function resetPlayerLeaderstats(Player)
+	PlayerGoals[Player] = 0
+	PlayerAssists[Player] = 0
+	PlayerTackles[Player] = 0
+
+	replicatePlayerLeaderstats(Player)
+end
+
 local function replicateMapStateToPlayer(Player)
 	local mapStateEnum
 	if PlayerConnectedMapInstance[Player] then
@@ -85,16 +155,20 @@ local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
 		replicateMapStateToPlayer(Player)
 	end
 
-	-- 'MatchCountdown' - spawn characters at their starting positions (and freeze them)
+	-- 'MatchCountdown' - spawn characters at their starting positions (and freeze them) + reset leaderstats
 	if mapStateEnum == MATCH_COUNTDOWN_STATE_ENUM then
 		local TeamPositionIndex = { 0, 0 } -- int teamIndex --> int teamPositionIndex
 		for Player, teamIndex in MapInstancePlayers[mapInstanceId] do
+			-- move their character to a starting position
 			TeamPositionIndex[teamIndex] += 1
 			local startingPosition =
 				getMapInstanceStartingLocationUnprotected(mapInstanceId, teamIndex, TeamPositionIndex[teamIndex])
 
 			CharacterServer.spawnPlayerCharacterAtPosition(Player, startingPosition)
 			Utility.setPlayerCharacterAnchored(Player, true)
+
+			-- reset their leaderstats
+			resetPlayerLeaderstats(Player)
 		end
 
 		return
@@ -246,6 +320,28 @@ local function mapPositionIndexToOriginPosition(mapPositionIndex)
 end
 
 -- public
+local function playerTackledAnotherPlayer(Player)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+
+	incrementPlayerLeaderstats(Player, 0, 0, 1)
+end
+local function playerAssistedGoal(Player)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+
+	incrementPlayerLeaderstats(Player, 0, 1, 0)
+end
+local function playerScoredGoal(Player)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+
+	incrementPlayerLeaderstats(Player, 1, 0, 0)
+end
+
 local function getMapInstanceStartingLocation(mapInstanceId, teamIndex, teamPositionIndex)
 	if not Utility.isInteger(mapInstanceId) then
 		error(`{mapInstanceId} is not an integer!`)
@@ -301,6 +397,8 @@ local function disconnectPlayerFromAllMapInstances(Player)
 		return
 	end
 
+	deletePlayerLeaderstats(Player) --> must happen before the player's connected map instance & teamIndex are nil
+
 	MapInstancePlayers[mapInstanceId][Player] = nil
 	PlayerConnectedMapInstance[Player] = nil
 
@@ -350,6 +448,7 @@ local function connectPlayerToMapInstance(Player, mapInstanceId, teamIndex)
 	Network.fireAllClients("PlayerConnectedMapChanged", Player, MapInstanceMapEnum[mapInstanceId], teamIndex)
 
 	replicateMapStateToPlayer(Player)
+	addPlayerToLeaderstats(Player, mapInstanceId)
 
 	CharacterServer.removePlayerCharacter(Player)
 end
@@ -508,6 +607,10 @@ return {
 	getMapInstanceState = getMapInstanceState,
 	getPlayerTeamIndex = getPlayerTeamIndex,
 	mapTimerTick = mapTimerTick,
+
+	playerTackledAnotherPlayer = playerTackledAnotherPlayer,
+	playerAssistedGoal = playerAssistedGoal,
+	playerScoredGoal = playerScoredGoal,
 
 	-- map instances
 	disconnectPlayerFromAllMapInstances = disconnectPlayerFromAllMapInstances,

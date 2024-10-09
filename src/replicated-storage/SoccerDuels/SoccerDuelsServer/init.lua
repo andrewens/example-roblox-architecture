@@ -254,6 +254,10 @@ return {
 	getPlayerTeamIndex = MapsServer.getPlayerTeamIndex,
 	mapTimerTick = MapsServer.mapTimerTick,
 
+	playerTackledAnotherPlayer = MapsServer.playerTackledAnotherPlayer,
+	playerAssistedGoal = MapsServer.playerAssistedGoal,
+	playerScoredGoal = MapsServer.playerScoredGoal,
+
 	-- map voting
 	getMatchPadWinningMapVote = MatchJoiningPadsServer.getMatchPadWinningMapVote,
 	getMatchPadMapVotes = MatchJoiningPadsServer.getMatchPadMapVotes,

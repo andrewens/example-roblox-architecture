@@ -85,6 +85,10 @@ return {
 	getPlayerTeamIndex = SoccerDuelsServer.getPlayerTeamIndex,
 	mapTimerTick = SoccerDuelsServer.mapTimerTick,
 
+	playerTackledAnotherPlayer = SoccerDuelsServer.playerTackledAnotherPlayer,
+	playerAssistedGoal = SoccerDuelsServer.playerAssistedGoal,
+	playerScoredGoal = SoccerDuelsServer.playerScoredGoal,
+
 	-- map voting
 	getMatchPadWinningMapVote = SoccerDuelsServer.getMatchPadWinningMapVote,
 	getMatchPadMapVotes = SoccerDuelsServer.getMatchPadMapVotes,
