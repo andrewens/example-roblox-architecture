@@ -14,7 +14,7 @@ local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 local TouchSensorLights = require(script.TouchSensorLights)
 
 -- const
-local COUNTDOWN_TIMER_POLL_RATE_SECONDS = Config.getConstant("MatchJoiningPadCountdownTimerPollRateSeconds")
+local COUNTDOWN_TIMER_POLL_RATE_SECONDS = Config.getConstant("UserInterfaceCountdownTimerPollRateSeconds")
 local MATCH_JOINING_PAD_GUI_X_SCALE_PER_TEAM_PLAYER = Config.getConstant("MatchJoiningPadGuiXScalePerTeamPlayer")
 local MATCH_JOINING_PAD_GUI_BASE_X_SCALE = Config.getConstant("MatchJoiningPadGuiBaseXScale")
 

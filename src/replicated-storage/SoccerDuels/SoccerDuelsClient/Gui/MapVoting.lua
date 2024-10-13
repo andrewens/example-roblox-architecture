@@ -15,7 +15,7 @@ local AvatarHeadshotImages = require(SoccerDuelsClientModule.AvatarHeadshotImage
 local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 
 -- const
-local COUNTDOWN_TIMER_POLL_RATE_SECONDS = Config.getConstant("MatchJoiningPadCountdownTimerPollRateSeconds")
+local COUNTDOWN_TIMER_POLL_RATE_SECONDS = Config.getConstant("UserInterfaceCountdownTimerPollRateSeconds")
 
 -- public
 local function newMapVotingGui(self)

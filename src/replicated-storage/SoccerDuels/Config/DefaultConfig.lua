@@ -118,6 +118,8 @@ DefaultConfig.BufferingAnimationRestDurationSeconds = 0.5
 DefaultConfig.BufferingAnimationFirstTweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 DefaultConfig.BufferingAnimationLastTweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
 
+DefaultConfig.UserInterfaceCountdownTimerPollRateSeconds = 0.1
+
 -- avatar headshots
 DefaultConfig.AvatarHeadshotImageThumbnailType = Enum.ThumbnailType.AvatarBust
 DefaultConfig.AvatarHeadshotImageThumbnailResolution = Enum.ThumbnailSize.Size100x100
@@ -155,7 +157,6 @@ DefaultConfig.MatchJoiningPadIdentifierAttributeName = "MatchJoiningPad"
 DefaultConfig.MatchJoiningPadCountdownDurationSeconds = 3
 DefaultConfig.MatchJoiningPadMapVotingDurationSeconds = 5
 DefaultConfig.MatchJoiningPadStateChangePollRateSeconds = 0.2
-DefaultConfig.MatchJoiningPadCountdownTimerPollRateSeconds = 0.1
 
 -- lobby characters interacting with match joining pads & etc ("LobbyDevices")
 DefaultConfig.CharacterTeleportVerticalOffset = 3
