@@ -319,4 +319,15 @@ do
 	end
 end
 
+-- loading screen
+do
+	ExpectedAssets.MapLoadingScreen = {
+		Path = "ReplicatedStorage/UserInterface/LoadingScreen",
+		ClassName = "ScreenGui"
+	}
+	ExpectedAssets.MapLoadingScreenBufferingIcon = {
+		Path = "ReplicatedStorage/UserInterface/LoadingScreen/Buffering"
+	}
+end
+
 return ExpectedAssets

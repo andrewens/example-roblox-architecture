@@ -18,7 +18,6 @@ local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 local COUNTDOWN_TIMER_POLL_RATE_SECONDS = Config.getConstant("MatchJoiningPadCountdownTimerPollRateSeconds")
 
 -- public
-local function destroyMapVotingGui(self) end
 local function newMapVotingGui(self)
 	local MapVotingModal = Assets.getExpectedAsset("MapVotingModal", "MainGui", self._MainGui)
 	local MapContainer = Assets.getExpectedAsset("MapVotingMapContainer", "MapVotingModal", MapVotingModal)
@@ -145,6 +144,5 @@ local function newMapVotingGui(self)
 end
 
 return {
-	destroy = destroyMapVotingGui,
 	new = newMapVotingGui,
 }

@@ -19,9 +19,6 @@ local MATCH_JOINING_PAD_GUI_X_SCALE_PER_TEAM_PLAYER = Config.getConstant("MatchJ
 local MATCH_JOINING_PAD_GUI_BASE_X_SCALE = Config.getConstant("MatchJoiningPadGuiBaseXScale")
 
 -- public / Client class methods
-local function destroyMatchJoiningPadGui(self)
-	TouchSensorLights.destroy(self)
-end
 local function newMatchJoiningPadGui(self)
 	local MatchJoiningPadGui = Assets.getExpectedAsset("MatchJoiningPadGui", "MainGui", self._MainGui)
 	local Team1Container =
@@ -186,6 +183,5 @@ local function newMatchJoiningPadGui(self)
 end
 
 return {
-	destroy = destroyMatchJoiningPadGui,
 	new = newMatchJoiningPadGui,
 }

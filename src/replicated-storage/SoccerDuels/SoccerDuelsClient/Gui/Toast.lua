@@ -13,7 +13,6 @@ local Sounds = require(SoccerDuelsClientModule.Sounds)
 local TOAST_NOTIFICATION_DURATION = Config.getConstant("ToastNotificationDurationSeconds")
 
 -- public / Client class methods
-local function destroyToastGui(self) end
 local function newToastGui(self)
 	local ToastContainer = Assets.getExpectedAsset("ToastContainer", "MainGui", self._MainGui)
 	local ToastMessageTemplate = Assets.getExpectedAsset("ToastMessage", "ToastContainer", ToastContainer)
@@ -32,6 +31,5 @@ local function newToastGui(self)
 end
 
 return {
-	destroy = destroyToastGui,
 	new = newToastGui,
 }

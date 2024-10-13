@@ -66,6 +66,8 @@ local TWEEN_6_FRAME_INDEX = FRAMES_PER_BUFFERING_ANIMATION_FIRST_TWEEN + 2 * FRA
 local MAX_SIZE_TWEEN_GOAL = { Size = BUFFERING_ANIMATION_MAX_SOCCER_BALL_SIZE }
 local MIN_SIZE_TWEEN_GOAL = { Size = BUFFERING_ANIMATION_MIN_SOCCER_BALL_SIZE }
 
+local SOCCER_BALL_ANIMATION_ICON_NAME = "AnimatedSoccerBall"
+
 -- var
 local BufferingImageLabels = {} -- BufferingImage --> true
 local frameIndex = 0
@@ -106,7 +108,8 @@ local function wrapGuiObjectInFramePreservingOriginalSizeValue(GuiObject)
 
 	return ContainerFrame
 end
-local function playSoccerBallAnimationTween(imageName, tweenInfo, TweenGoal)
+local function playSoccerBallAnimationTween(soccerBallIndex, tweenInfo, TweenGoal)
+	local imageName = SOCCER_BALL_ANIMATION_ICON_NAME .. tostring(soccerBallIndex)
 	for BufferingImage, _ in BufferingImageLabels do
 		if BufferingImage.Parent == nil then
 			BufferingImageLabels[BufferingImage] = nil
@@ -124,32 +127,21 @@ local function runBufferingAnimations(dt)
 	end
 
 	if frameIndex == TWEEN_1_FRAME_INDEX then
-		playSoccerBallAnimationTween("SoccerBall1", BUFFERING_ANIMATION_FIRST_TWEEN_INFO, MAX_SIZE_TWEEN_GOAL)
+		playSoccerBallAnimationTween(1, BUFFERING_ANIMATION_FIRST_TWEEN_INFO, MAX_SIZE_TWEEN_GOAL)
 	elseif frameIndex == TWEEN_2_FRAME_INDEX then
-		playSoccerBallAnimationTween("SoccerBall2", BUFFERING_ANIMATION_FIRST_TWEEN_INFO, MAX_SIZE_TWEEN_GOAL)
+		playSoccerBallAnimationTween(2, BUFFERING_ANIMATION_FIRST_TWEEN_INFO, MAX_SIZE_TWEEN_GOAL)
 	elseif frameIndex == TWEEN_3_FRAME_INDEX then
-		playSoccerBallAnimationTween("SoccerBall3", BUFFERING_ANIMATION_FIRST_TWEEN_INFO, MAX_SIZE_TWEEN_GOAL)
+		playSoccerBallAnimationTween(3, BUFFERING_ANIMATION_FIRST_TWEEN_INFO, MAX_SIZE_TWEEN_GOAL)
 	elseif frameIndex == TWEEN_4_FRAME_INDEX then
-		playSoccerBallAnimationTween("SoccerBall1", BUFFERING_ANIMATION_LAST_TWEEN_INFO, MIN_SIZE_TWEEN_GOAL)
+		playSoccerBallAnimationTween(1, BUFFERING_ANIMATION_LAST_TWEEN_INFO, MIN_SIZE_TWEEN_GOAL)
 	elseif frameIndex == TWEEN_5_FRAME_INDEX then
-		playSoccerBallAnimationTween("SoccerBall2", BUFFERING_ANIMATION_LAST_TWEEN_INFO, MIN_SIZE_TWEEN_GOAL)
+		playSoccerBallAnimationTween(2, BUFFERING_ANIMATION_LAST_TWEEN_INFO, MIN_SIZE_TWEEN_GOAL)
 	elseif frameIndex == TWEEN_6_FRAME_INDEX then
-		playSoccerBallAnimationTween("SoccerBall3", BUFFERING_ANIMATION_LAST_TWEEN_INFO, MIN_SIZE_TWEEN_GOAL)
+		playSoccerBallAnimationTween(3, BUFFERING_ANIMATION_LAST_TWEEN_INFO, MIN_SIZE_TWEEN_GOAL)
 	end
 end
 
 -- public / Client class methods
-local function flashNeonPart(self, Part)
-	if not (typeof(Part) == "Instance" and Part:IsA("BasePart")) then
-		error(`{Part} is not a BasePart!`)
-	end
-
-	Part.Transparency = PART_FLASH_TRANSPARENCY
-
-	TweenService:Create(Part, PART_FLASHING_TWEEN_INFO, {
-		Transparency = 1,
-	}):Play()
-end
 local function initializeBufferingAnimation(self, BufferingImage)
 	if not (typeof(BufferingImage) == "Instance") then
 		error(`{BufferingImage} is not an Instance!`)
@@ -185,9 +177,9 @@ local function initializeBufferingAnimation(self, BufferingImage)
 	SoccerBall2.LayoutOrder = 2
 	SoccerBall3.LayoutOrder = 3
 
-	SoccerBall1.Name = "SoccerBall1"
-	SoccerBall2.Name = "SoccerBall2"
-	SoccerBall3.Name = "SoccerBall3"
+	SoccerBall1.Name = SOCCER_BALL_ANIMATION_ICON_NAME .. '1'
+	SoccerBall2.Name = SOCCER_BALL_ANIMATION_ICON_NAME .. '2'
+	SoccerBall3.Name = SOCCER_BALL_ANIMATION_ICON_NAME .. '3'
 
 	SoccerBall1.Parent = BufferingImage
 	SoccerBall2.Parent = BufferingImage
@@ -195,6 +187,34 @@ local function initializeBufferingAnimation(self, BufferingImage)
 
 	BufferingImageLabels[BufferingImage] = true
 end
+local function destroyBufferingAnimation(self, BufferingImage)
+	if BufferingImageLabels[BufferingImage] == nil then
+		return
+	end
+
+	BufferingImageLabels[BufferingImage] = nil
+
+	for _, SoccerBallIcon in BufferingImage:GetChildren() do
+		if string.find(SoccerBallIcon.Name, SOCCER_BALL_ANIMATION_ICON_NAME) == nil then
+			continue
+		end
+
+		SoccerBallIcon:Destroy()
+	end
+end
+
+local function flashNeonPart(self, Part)
+	if not (typeof(Part) == "Instance" and Part:IsA("BasePart")) then
+		error(`{Part} is not a BasePart!`)
+	end
+
+	Part.Transparency = PART_FLASH_TRANSPARENCY
+
+	TweenService:Create(Part, PART_FLASHING_TWEEN_INFO, {
+		Transparency = 1,
+	}):Play()
+end
+
 local function initializeCountdownTimerAnimations(self, TextLabel)
 	if not (typeof(TextLabel) == "Instance") then
 		error(`{TextLabel} is not an Instance!`)
@@ -322,6 +342,8 @@ return {
 	flashNeonPart = flashNeonPart,
 
 	initializeBufferingAnimation = initializeBufferingAnimation,
+	destroyBufferingAnimation = destroyBufferingAnimation,
+
 	initializeTimer = initializeCountdownTimerAnimations,
 	initializePopup = initializePopupVisibilityAnimations,
 	initializeButton = initializeButtonAnimations,

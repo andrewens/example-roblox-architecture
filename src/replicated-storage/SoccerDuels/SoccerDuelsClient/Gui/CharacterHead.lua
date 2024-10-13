@@ -12,7 +12,6 @@ local Maid = require(SoccerDuelsModule.Maid)
 local OVERHEAD_NAME_SCALE_PER_CHARACTER = Config.getConstant("OverheadNameXScalePerCharacter")
 
 -- public / Client class methods
-local function destroyCharacterHeadGui(self) end
 local function newCharacterHeadGui(self)
 	-- TODO this whole thing would be simplified a lot (no maids, no tables, etc)
 	-- if there was a "OnAnyPlayerSaveDataChangedConnect" method and a "IsPlayerInLobby" method
@@ -117,6 +116,5 @@ local function newCharacterHeadGui(self)
 end
 
 return {
-	destroy = destroyCharacterHeadGui,
 	new = newCharacterHeadGui,
 }

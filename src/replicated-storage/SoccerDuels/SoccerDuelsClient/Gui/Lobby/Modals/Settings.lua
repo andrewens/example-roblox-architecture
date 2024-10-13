@@ -13,7 +13,6 @@ local BOOLEAN_SETTING_ON_COLOR3 = Config.getConstant("BooleanSettingOnColor3")
 local BOOLEAN_SETTING_OFF_COLOR3 = Config.getConstant("BooleanSettingOffColor3")
 
 -- public / Client class methods
-local function destroySettingsModal(self) end
 local function newSettingsModal(self)
     -- assets
 	local SettingsModalFrame = Assets.getExpectedAsset("SettingsModal", "MainGui", self._MainGui)
@@ -92,5 +91,4 @@ end
 
 return {
 	new = newSettingsModal,
-	destroy = destroySettingsModal,
 }

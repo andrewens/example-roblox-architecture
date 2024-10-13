@@ -10,9 +10,6 @@ local SettingsModalGui = require(ModalGuiFolder.Settings)
 local AvailableMatchJoiningPadsGui = require(script.AvailableMatchJoiningPads)
 
 -- public / Client class methods
-local function destroyLobbyGui(self)
-	SettingsModalGui.destroy(self)
-end
 local function newLobbyGui(self)
 	local LobbyGui = Assets.getExpectedAsset("LobbyGui", "MainGui", self._MainGui)
 	local LobbyButtons = Assets.getExpectedAsset("LobbyButtons", "LobbyGui", LobbyGui)
@@ -44,6 +41,5 @@ local function newLobbyGui(self)
 end
 
 return {
-	destroy = destroyLobbyGui,
 	new = newLobbyGui,
 }

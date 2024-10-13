@@ -9,7 +9,6 @@ local Sounds = require(SoccerDuelsClientModule.Sounds)
 local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 
 -- public / Client class methods
-local function destroyTouchSensorLights(self) end
 local function newTouchSensorLights(self)
 	self:OnLobbyCharacterTouchedMatchPadConnect(function(matchPadName, teamIndex)
 		Sounds.playSound(self, "StepOnMatchJoiningPadSound")
@@ -19,5 +18,4 @@ end
 
 return {
 	new = newTouchSensorLights,
-	destroy = destroyTouchSensorLights,
 }
