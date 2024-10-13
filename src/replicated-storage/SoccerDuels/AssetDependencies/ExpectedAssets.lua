@@ -319,14 +319,26 @@ do
 	end
 end
 
--- loading screen
+-- map loading screen
 do
 	ExpectedAssets.MapLoadingScreen = {
 		Path = "ReplicatedStorage/UserInterface/LoadingScreen",
-		ClassName = "ScreenGui"
+		ClassName = "ScreenGui",
 	}
 	ExpectedAssets.MapLoadingScreenBufferingIcon = {
-		Path = "ReplicatedStorage/UserInterface/LoadingScreen/Buffering"
+		Path = "ReplicatedStorage/UserInterface/LoadingScreen/Buffering",
+	}
+end
+
+-- match gameplay gui
+do
+	ExpectedAssets.MatchGameplayGui = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay",
+		ClassName = "Frame",
+	}
+	ExpectedAssets.MatchCountdownTimerLabel = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Countdown",
+		ClassName = "TextLabel",
 	}
 end
 

@@ -29,7 +29,7 @@ local function newLobbyGui(self)
 	end
 
 	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
-		LobbyButtons.Visible = userInterfaceMode == "Lobby"
+		LobbyButtons.Visible = (userInterfaceMode == "Lobby")
 	end)
 
 	UIAnimations.initializePopup(self, LobbyButtons)
@@ -38,6 +38,7 @@ local function newLobbyGui(self)
 	AvailableMatchJoiningPadsGui.new(self)
 
 	LobbyGui.Visible = true
+	LobbyGui.Parent.Visible = true -- 'Middle' (should be a frame)
 end
 
 return {
