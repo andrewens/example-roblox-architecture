@@ -340,6 +340,10 @@ do
 		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Countdown",
 		ClassName = "TextLabel",
 	}
+	ExpectedAssets.MatchScoreboardTimerLabel = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Scoreboard/Countdown/Timer",
+		ClassName = "TextLabel",
+	}
 end
 
 return ExpectedAssets

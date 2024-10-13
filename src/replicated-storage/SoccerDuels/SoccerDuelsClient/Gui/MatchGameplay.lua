@@ -17,34 +17,44 @@ local GAMEPLAY_GUI_IS_VISIBLE_DURING_UI_MODE = {
 	["Gameplay"] = true,
 }
 local TIMER_POLL_RATE = Config.getConstant("UserInterfaceCountdownTimerPollRateSeconds")
+local ONE_SIXTIETH = 1 / 60
 
 -- public / Client class methods
 local function newMatchLoadingScreenGui(self)
 	local GameplayGui = Assets.getExpectedAsset("MatchGameplayGui", "MainGui", self._MainGui)
 	local MatchCounterTextLabel = Assets.getExpectedAsset("MatchCountdownTimerLabel", "MatchGameplayGui", GameplayGui)
+	local ScoreboardTimerTextLabel =
+		Assets.getExpectedAsset("MatchScoreboardTimerLabel", "MatchGameplayGui", GameplayGui)
 
 	local UIMaid = Maid.new()
 
-    self._Maid:GiveTask(UIMaid)
+	self._Maid:GiveTask(UIMaid)
 
-	local function updateCountdownTimer(dt)
-		local timestamp = self:GetConnectedMapStateChangeTimestamp()
+	local function updateTimer(dt)
 		local now = Time.getUnixTimestampMilliseconds()
-		local deltaTime = math.ceil(math.max((timestamp - now) * 0.001, 0))
+		local stateChangeTimestamp = self:GetConnectedMapStateChangeTimestamp()
+		local deltaTime = math.ceil(math.max((stateChangeTimestamp - now) * 0.001, 0)) -- seconds
 
-		MatchCounterTextLabel.Text = if deltaTime > 0 then deltaTime else ""
+		if MatchCounterTextLabel.Visible then
+			MatchCounterTextLabel.Text = if deltaTime > 0 then deltaTime else ""
+		end
+
+		local mins = math.floor(deltaTime * ONE_SIXTIETH)
+		local secs = deltaTime % 60
+
+		secs = (if secs < 10 then "0" else "") .. secs
+
+		ScoreboardTimerTextLabel.Text = `{mins}:{secs}`
 	end
 
 	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
 		UIMaid:DoCleaning()
 
 		GameplayGui.Visible = GAMEPLAY_GUI_IS_VISIBLE_DURING_UI_MODE[userInterfaceMode] or false
+		MatchCounterTextLabel.Visible = (userInterfaceMode == "MatchCountdown")
 
-		-- match countdown timer
-		MatchCounterTextLabel.Visible = userInterfaceMode == "MatchCountdown"
-
-		if MatchCounterTextLabel.Visible then
-			UIMaid:GiveTask(Utility.runServiceRenderSteppedConnect(TIMER_POLL_RATE, updateCountdownTimer))
+		if GameplayGui.Visible then
+			UIMaid:GiveTask(Utility.runServiceRenderSteppedConnect(TIMER_POLL_RATE, updateTimer))
 		end
 	end)
 
