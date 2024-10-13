@@ -237,4 +237,105 @@ return function()
 			Client4:Destroy()
 		end
 	)
+	it("Client can read the timestamp when when the match state will change", function()
+		SoccerDuels.disconnectAllPlayers()
+		SoccerDuels.destroyAllMapInstances()
+		SoccerDuels.resetTestingVariables()
+
+		local maxError = 0.010
+		local mapLoadingDuration = SoccerDuels.getConstant("MapLoadingDurationSeconds")
+		local matchCountdownDuration = SoccerDuels.getConstant("MatchCountdownDurationSeconds")
+		local matchGameplayDuration = SoccerDuels.getConstant("MatchGameplayDurationSeconds")
+		local matchOverDuration = SoccerDuels.getConstant("MatchOverDurationSeconds")
+		local gameOverDuration = SoccerDuels.getConstant("GameOverDurationSeconds")
+
+		-- connect Players to map
+		local Player1 = MockInstance.new("Player")
+		local Player2 = MockInstance.new("Player")
+
+		local Client1 = SoccerDuels.newClient(Player1)
+		local Client2 = SoccerDuels.newClient(Player2)
+
+		Client1:LoadPlayerDataAsync()
+		Client2:LoadPlayerDataAsync()
+
+		local mapId = SoccerDuels.newMapInstance("Stadium")
+		local serverTimestamp = SoccerDuels.getUnixTimestampMilliseconds() + 1E3 * mapLoadingDuration
+
+		assert(Client1:GetConnectedMapStateChangeTimestamp() == nil)
+		assert(Client2:GetConnectedMapStateChangeTimestamp() == nil)
+
+		-- 'LoadingMap'
+		SoccerDuels.connectPlayerToMapInstance(Player1, mapId, 2)
+		SoccerDuels.connectPlayerToMapInstance(Player2, mapId, 1)
+
+		assert(Client1:GetUserInterfaceMode() == "LoadingMap")
+
+		local client1Timestamp = Client1:GetConnectedMapStateChangeTimestamp()
+		local client2Timestamp = Client2:GetConnectedMapStateChangeTimestamp()
+
+		assert(client1Timestamp == client2Timestamp)
+		assert(math.abs(serverTimestamp - client1Timestamp) < 1E3 * maxError)
+
+		SoccerDuels.addExtraSecondsForTesting(mapLoadingDuration + maxError)
+		SoccerDuels.mapTimerTick()
+
+		-- 'MatchCountdown'
+		assert(Client1:GetUserInterfaceMode() == "MatchCountdown")
+
+		serverTimestamp = SoccerDuels.getUnixTimestampMilliseconds() + 1E3 * matchCountdownDuration
+		client1Timestamp = Client1:GetConnectedMapStateChangeTimestamp()
+		client2Timestamp = Client2:GetConnectedMapStateChangeTimestamp()
+
+		assert(client1Timestamp == client2Timestamp)
+		assert(math.abs(serverTimestamp - client1Timestamp) < 1E3 * maxError)
+
+		SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration + maxError)
+		SoccerDuels.mapTimerTick()
+
+		-- 'MatchGameplay'
+		assert(Client1:GetUserInterfaceMode() == "MatchGameplay")
+
+		serverTimestamp = SoccerDuels.getUnixTimestampMilliseconds() + 1E3 * matchGameplayDuration
+		client1Timestamp = Client1:GetConnectedMapStateChangeTimestamp()
+		client2Timestamp = Client2:GetConnectedMapStateChangeTimestamp()
+
+		assert(client1Timestamp == client2Timestamp)
+		assert(math.abs(serverTimestamp - client1Timestamp) < 1E3 * maxError)
+
+		SoccerDuels.addExtraSecondsForTesting(matchGameplayDuration + maxError)
+		SoccerDuels.mapTimerTick()
+
+		-- 'MatchOver'
+		assert(Client1:GetUserInterfaceMode() == "MatchOver")
+
+		serverTimestamp = SoccerDuels.getUnixTimestampMilliseconds() + 1E3 * matchOverDuration
+		client1Timestamp = Client1:GetConnectedMapStateChangeTimestamp()
+		client2Timestamp = Client2:GetConnectedMapStateChangeTimestamp()
+
+		assert(client1Timestamp == client2Timestamp)
+		assert(math.abs(serverTimestamp - client1Timestamp) < 1E3 * maxError)
+
+		SoccerDuels.disconnectPlayer(Player2)
+		SoccerDuels.addExtraSecondsForTesting(matchOverDuration + maxError)
+		SoccerDuels.mapTimerTick()
+
+		-- 'GameOver'
+		assert(Client1:GetUserInterfaceMode() == "GameOver")
+
+		serverTimestamp = SoccerDuels.getUnixTimestampMilliseconds() + 1E3 * gameOverDuration
+		client1Timestamp = Client1:GetConnectedMapStateChangeTimestamp()
+		client2Timestamp = Client2:GetConnectedMapStateChangeTimestamp()
+
+		assert(client2Timestamp == nil)
+		assert(math.abs(serverTimestamp - client1Timestamp) < 1E3 * maxError)
+
+		SoccerDuels.destroyMapInstance(mapId)
+
+		-- no connected map
+		assert(Client1:GetConnectedMapStateChangeTimestamp() == nil)
+
+		Client1:Destroy()
+		Client2:Destroy()
+	end)
 end

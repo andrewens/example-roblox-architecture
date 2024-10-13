@@ -25,8 +25,11 @@ local function playerConnectedMapChanged(self, Player, mapEnum, teamIndex)
 	self._PlayerConnectedMapEnum[Player] = mapEnum
 	self._PlayerTeamIndex[Player] = teamIndex
 end
-local function playerConnectedMapStateChanged(self, mapStateEnum)
-    -- mapState: 'nil' (map was destroyed) --> userInterfaceMode: 'Lobby'
+local function playerConnectedMapStateChanged(self, mapStateEnum, stateEndTimestamp)
+	self._ConnectedMapStateEnum = mapStateEnum
+	self._ConnectedMapStateEndTimestamp = stateEndTimestamp
+
+	-- mapState: 'nil' (map was destroyed) --> userInterfaceMode: 'Lobby'
 	if mapStateEnum == nil then
 		self._PlayerGoals = {}
 		self._PlayerAssists = {}
@@ -36,30 +39,33 @@ local function playerConnectedMapStateChanged(self, mapStateEnum)
 		return
 	end
 
-    -- mapState: 'Loading' --> userInterfaceMode: 'LoadingMap'
+	-- mapState: 'Loading' --> userInterfaceMode: 'LoadingMap'
 	if mapStateEnum == LOADING_MAP_ENUM then
 		ClientUserInterfaceMode.setClientUserInterfaceMode(self, "LoadingMap")
 		return
 	end
 
-    -- userInterfaceMode = <mapState>
+	-- userInterfaceMode = <mapState>
 	local mapStateName = Enums.enumToName("MapState", mapStateEnum)
 	ClientUserInterfaceMode.setClientUserInterfaceMode(self, mapStateName)
 end
 
--- public
+-- public / Client class methods
+local function getClientMapStateChangeTimestamp(self)
+	return self._ConnectedMapStateEndTimestamp
+end
 local function onPlayerLeaderstatsChangedConnect(self, callback)
 	if not (typeof(callback) == "function") then
 		error(`{callback} is not a function!`)
 	end
 
-    for Player, numGoals in self._PlayerGoals do
-        local teamIndex = self._PlayerTeamIndex[Player]
-        local numAssists = self._PlayerAssists[Player]
-        local numTackles = self._PlayerTackles[Player]
+	for Player, numGoals in self._PlayerGoals do
+		local teamIndex = self._PlayerTeamIndex[Player]
+		local numAssists = self._PlayerAssists[Player]
+		local numTackles = self._PlayerTackles[Player]
 
-        callback(Player, teamIndex, numGoals, numAssists, numTackles)
-    end
+		callback(Player, teamIndex, numGoals, numAssists, numTackles)
+	end
 
 	self._PlayerLeaderstatsChangedCallbacks[callback] = true
 
@@ -89,6 +95,7 @@ end
 
 return {
 	onPlayerLeaderstatsChangedConnect = onPlayerLeaderstatsChangedConnect,
+	getClientMapStateChangeTimestamp = getClientMapStateChangeTimestamp,
 	getClientConnectedMapName = getClientConnectedMapName,
 
 	initialize = initializeClientMapState,

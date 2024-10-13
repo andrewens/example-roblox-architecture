@@ -108,6 +108,9 @@ local function newClient(Player)
 	self._PlayerTackles = {} -- Player --> int numTackles (only players in same map as self.Player)
 	self._PlayerLeaderstatsChangedCallbacks = {} -- function callback(Player, int | nil teamIndex, int | nil numGoals, ...) --> true
 
+	self._ConnectedMapStateEnum = nil -- int | nil mapStateEnum
+	self._ConnectedMapStateEndTimestamp = nil -- int | nil unixTimestampMilliseconds
+
 	-- init
 	setmetatable(self, ClientMetatable)
 
@@ -124,6 +127,7 @@ local function initializeClients()
 		GetCharactersInLobby = LobbyCharacters.getCharactersInLobby,
 
 		-- map state
+		GetConnectedMapStateChangeTimestamp = ClientMapState.getClientMapStateChangeTimestamp,
 		OnPlayerLeaderstatsChangedConnect = ClientMapState.onPlayerLeaderstatsChangedConnect,
 		GetConnectedMapName = ClientMapState.getClientConnectedMapName,
 		-- GetPlayerTeamIndex = getAnyPlayerTeamIndex,

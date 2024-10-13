@@ -120,12 +120,15 @@ local function resetPlayerLeaderstats(Player)
 end
 
 local function replicateMapStateToPlayer(Player)
-	local mapStateEnum
-	if PlayerConnectedMapInstance[Player] then
-		mapStateEnum = MapInstanceState[PlayerConnectedMapInstance[Player]]
+	local mapStateEnum, stateEndTimestamp
+
+	local connectedMapId = PlayerConnectedMapInstance[Player]
+	if connectedMapId then
+		mapStateEnum = MapInstanceState[connectedMapId]
+		stateEndTimestamp = MapInstanceStateChangeTimestamp[connectedMapId]
 	end
 
-	Network.fireClient("MapStateChanged", Player, mapStateEnum)
+	Network.fireClient("MapStateChanged", Player, mapStateEnum, stateEndTimestamp)
 end
 local function getMapInstanceStartingLocationUnprotected(mapInstanceId, teamIndex, teamPositionIndex)
 	local mapPositionIndex = MapInstanceIdToMapPositionIndex[mapInstanceId]
