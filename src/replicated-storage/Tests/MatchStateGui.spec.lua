@@ -338,4 +338,135 @@ return function()
 		Client1:Destroy()
 		Client2:Destroy()
 	end)
+	it("An event fires on the client when someone in their map joins or leaves", function()
+		SoccerDuels.disconnectAllPlayers()
+		SoccerDuels.destroyAllMapInstances()
+		SoccerDuels.resetTestingVariables()
+
+		local maxError = 0.010
+		local mapLoadingDuration = SoccerDuels.getConstant("MapLoadingDurationSeconds")
+		local matchCountdownDuration = SoccerDuels.getConstant("MatchCountdownDurationSeconds")
+		local matchGameplayDuration = SoccerDuels.getConstant("MatchGameplayDurationSeconds")
+		local matchOverDuration = SoccerDuels.getConstant("MatchOverDurationSeconds")
+
+		local Player1 = MockInstance.new("Player")
+		local Player2 = MockInstance.new("Player")
+		local Player3 = MockInstance.new("Player")
+		local Player4 = MockInstance.new("Player")
+
+		local Client1 = SoccerDuels.newClient(Player1)
+		local Client2 = SoccerDuels.newClient(Player2)
+		local Client3 = SoccerDuels.newClient(Player3)
+		local Client4 = SoccerDuels.newClient(Player4)
+
+		Client1:LoadPlayerDataAsync()
+		Client2:LoadPlayerDataAsync()
+		Client3:LoadPlayerDataAsync()
+		Client4:LoadPlayerDataAsync()
+
+		local mapId1 = SoccerDuels.newMapInstance("Stadium")
+		local mapId2 = SoccerDuels.newMapInstance("Map2")
+
+		SoccerDuels.connectPlayerToMapInstance(Player1, mapId1, 1)
+		SoccerDuels.connectPlayerToMapInstance(Player2, mapId1, 2)
+		SoccerDuels.connectPlayerToMapInstance(Player3, mapId2, 1)
+		SoccerDuels.connectPlayerToMapInstance(Player4, mapId2, 2)
+
+		local joinedCount, leftCount = 0, 0
+		local LastPlayerThatJoined, LastPlayerThatLeft
+		local callback1 = function(...)
+			joinedCount += 1
+			LastPlayerThatJoined = ...
+		end
+		local callback2 = function(...)
+			leftCount += 1
+			LastPlayerThatLeft = ...
+		end
+
+		local conn1 = Client1:OnPlayerJoinedConnectedMap(callback1)
+		local conn2 = Client1:OnPlayerLeftConnectedMap(callback2)
+
+		-- joined callback fires for players already in the map when connected
+		if not (joinedCount == 2) then
+			error(`{joinedCount} != 2`)
+		end
+		assert(LastPlayerThatJoined == Player1 or LastPlayerThatJoined == Player2)
+		assert(leftCount == 0)
+		assert(LastPlayerThatLeft == nil)
+
+		-- left callback fires when another player disconnects from the map
+		SoccerDuels.disconnectPlayerFromAllMapInstances(Player2)
+
+		assert(joinedCount == 2)
+		assert(LastPlayerThatJoined == Player1 or LastPlayerThatJoined == Player2)
+		if not (leftCount == 1) then
+			error(`{leftCount} != 1`)
+		end
+		assert(LastPlayerThatLeft == Player2)
+
+		-- left callback fires when map instance is destroyed (for all players)
+		SoccerDuels.destroyMapInstance(mapId1)
+
+		assert(joinedCount == 2)
+		assert(LastPlayerThatJoined == Player1 or LastPlayerThatJoined == Player2)
+		assert(leftCount == 2)
+		assert(LastPlayerThatLeft == Player1)
+
+		-- joined callback fires for players already in the map when connected
+		joinedCount, leftCount = 0, 0
+		LastPlayerThatJoined, LastPlayerThatLeft = nil, nil
+
+		SoccerDuels.connectPlayerToMapInstance(Player1, mapId2, 1)
+
+		if not (joinedCount == 3) then
+			error(`{joinedCount} != 3`)
+		end
+		if not (LastPlayerThatJoined == Player1 or LastPlayerThatJoined == Player3 or LastPlayerThatJoined == Player4) then
+			error(`{LastPlayerThatJoined} is not a Player in the map!`)
+		end
+		assert(leftCount == 0)
+		assert(LastPlayerThatLeft == nil)
+
+		-- joined callback fires when another player joins the map
+		SoccerDuels.connectPlayerToMapInstance(Player2, mapId2, 2)
+
+		if not (joinedCount == 4) then
+			error(`{joinedCount} != 4`)
+		end
+		assert(LastPlayerThatJoined == Player2)
+		assert(leftCount == 0)
+		assert(LastPlayerThatLeft == nil)
+
+		-- left callback fires for all players when the client disconnects from the match
+		SoccerDuels.disconnectPlayerFromAllMapInstances(Player1)
+
+		if not (joinedCount == 4) then
+			error(`{joinedCount} != 4`)
+		end
+		assert(LastPlayerThatJoined == Player2)
+		if not (leftCount == 4) then
+			error(`{leftCount} != 4`)
+		end
+		assert(LastPlayerThatLeft == Player1 or LastPlayerThatLeft == Player2 or LastPlayerThatLeft == Player3 or LastPlayerThatLeft == Player4)
+
+		-- callbacks don't fire after they get disconnected
+		conn1:Disconnect()
+		conn2:Disconnect()
+
+		joinedCount, leftCount = 0, 0
+		LastPlayerThatJoined, LastPlayerThatLeft = nil, nil
+
+		SoccerDuels.connectPlayerToMapInstance(Player1, mapId2, 1)
+		SoccerDuels.disconnectPlayerFromAllMapInstances(Player3)
+		SoccerDuels.destroyMapInstance(mapId2)
+
+		assert(joinedCount == 0)
+		assert(leftCount == 0)
+
+		-- cleanup
+		Client1:Destroy()
+		Client2:Destroy()
+		Client3:Destroy()
+		Client4:Destroy()
+	end)
 end

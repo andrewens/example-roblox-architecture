@@ -20,10 +20,46 @@ local function playerLeaderstatsChanged(self, Player, teamIndex, goalsScored, nu
 	for callback, _ in self._PlayerLeaderstatsChangedCallbacks do
 		callback(Player, teamIndex, goalsScored, numAssists, numTackles)
 	end
+
+	if teamIndex == nil then
+		for callback, _ in self._PlayerLeftConnectedMapCallbacks do
+			callback(Player)
+		end
+	end
 end
 local function playerConnectedMapChanged(self, Player, mapEnum, teamIndex)
 	self._PlayerConnectedMapEnum[Player] = mapEnum
 	self._PlayerTeamIndex[Player] = teamIndex
+
+	if Player == self.Player then
+		-- invoke joined callback for all players in the match when we join it (RETURNS)
+		if mapEnum then
+			for callback, _ in self._PlayerJoinedConnectedMapCallbacks do
+				for OtherPlayer, _ in self._PlayerGoals do
+					local otherTeamIndex = self._PlayerTeamIndex[OtherPlayer]
+					callback(OtherPlayer, otherTeamIndex)
+				end
+			end
+
+			return
+		end
+
+		-- invoke left callback for all players in the match when we leave (not including us, b/c that already happened)
+		for callback, _ in self._PlayerLeftConnectedMapCallbacks do
+			for OtherPlayer, _ in self._PlayerGoals do
+				callback(OtherPlayer)
+			end
+		end
+
+		return
+	end
+
+	-- invoke joined callbacks for other players that join our match after we did
+	if mapEnum and mapEnum == self._PlayerConnectedMapEnum[self.Player] then
+		for callback, _ in self._PlayerJoinedConnectedMapCallbacks do
+			callback(Player, teamIndex)
+		end
+	end
 end
 local function playerConnectedMapStateChanged(self, mapStateEnum, stateEndTimestamp)
 	self._ConnectedMapStateEnum = mapStateEnum
@@ -51,6 +87,37 @@ local function playerConnectedMapStateChanged(self, mapStateEnum, stateEndTimest
 end
 
 -- public / Client class methods
+local function onPlayerLeftConnectedMap(self, callback)
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	self._PlayerLeftConnectedMapCallbacks[callback] = true
+
+	return {
+		Disconnect = function()
+			self._PlayerLeftConnectedMapCallbacks[callback] = nil
+		end,
+	}
+end
+local function onPlayerJoinedConnectedMap(self, callback)
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	for Player, goals in self._PlayerGoals do
+		local teamIndex = self._PlayerTeamIndex[Player]
+		callback(Player, teamIndex)
+	end
+
+	self._PlayerJoinedConnectedMapCallbacks[callback] = true
+
+	return {
+		Disconnect = function()
+			self._PlayerJoinedConnectedMapCallbacks[callback] = nil
+		end,
+	}
+end
 local function getClientMapStateChangeTimestamp(self)
 	return self._ConnectedMapStateEndTimestamp
 end
@@ -97,6 +164,9 @@ return {
 	onPlayerLeaderstatsChangedConnect = onPlayerLeaderstatsChangedConnect,
 	getClientMapStateChangeTimestamp = getClientMapStateChangeTimestamp,
 	getClientConnectedMapName = getClientConnectedMapName,
+
+	onPlayerJoinedConnectedMap = onPlayerJoinedConnectedMap,
+	onPlayerLeftConnectedMap = onPlayerLeftConnectedMap,
 
 	initialize = initializeClientMapState,
 }

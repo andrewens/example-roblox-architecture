@@ -53,12 +53,20 @@ local PlayerAssists = {} -- Player --> int | nil numAssists
 local PlayerTackles = {} -- Player --> int | nil numTackles
 
 -- private
-local function addPlayerToLeaderstats(Player, mapInstanceId)
+local function addPlayerToLeaderstats(Player, mapInstanceId, teamIndex)
 	PlayerGoals[Player] = 0
 	PlayerAssists[Player] = 0
 	PlayerTackles[Player] = 0
 
 	for OtherPlayer, otherTeamIndex in MapInstancePlayers[mapInstanceId] do
+		-- replicate new player's stats to the other players
+		Network.fireClient("PlayerLeaderstatsChanged", OtherPlayer, Player, teamIndex, 0, 0, 0)
+
+		-- replicate other players' stats to this new player
+		if OtherPlayer == Player then
+			continue
+		end
+
 		local goals = PlayerGoals[OtherPlayer]
 		local assists = PlayerAssists[OtherPlayer]
 		local tackles = PlayerTackles[OtherPlayer]
@@ -448,10 +456,10 @@ local function connectPlayerToMapInstance(Player, mapInstanceId, teamIndex)
 	MapInstancePlayers[mapInstanceId][Player] = teamIndex
 	PlayerConnectedMapInstance[Player] = mapInstanceId
 
-	Network.fireAllClients("PlayerConnectedMapChanged", Player, MapInstanceMapEnum[mapInstanceId], teamIndex)
-
 	replicateMapStateToPlayer(Player)
-	addPlayerToLeaderstats(Player, mapInstanceId)
+	addPlayerToLeaderstats(Player, mapInstanceId, teamIndex)
+
+	Network.fireAllClients("PlayerConnectedMapChanged", Player, MapInstanceMapEnum[mapInstanceId], teamIndex)
 
 	CharacterServer.removePlayerCharacter(Player)
 end

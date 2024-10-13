@@ -29,7 +29,9 @@ local ClientMetatable
 local function destroyClient(self) -- TODO this isn't really tested
 	self._Maid:DoCleaning()
 
+	self._PlayerJoinedConnectedMapCallbacks = nil
 	self._UserInterfaceModeChangedCallbacks = nil
+	self._PlayerLeftConnectedMapCallbacks = nil
 	self._ControllerTypeChangedCallbacks = nil
 	self._LobbyCharacterSpawnedCallbacks = nil
 	self._VisibleModalChangedCallbacks = nil
@@ -111,6 +113,9 @@ local function newClient(Player)
 	self._ConnectedMapStateEnum = nil -- int | nil mapStateEnum
 	self._ConnectedMapStateEndTimestamp = nil -- int | nil unixTimestampMilliseconds
 
+	self._PlayerLeftConnectedMapCallbacks = {} -- function callback(Player) --> true
+	self._PlayerJoinedConnectedMapCallbacks = {} -- function callback(Player, int teamIndex) --> true
+
 	-- init
 	setmetatable(self, ClientMetatable)
 
@@ -131,6 +136,9 @@ local function initializeClients()
 		OnPlayerLeaderstatsChangedConnect = ClientMapState.onPlayerLeaderstatsChangedConnect,
 		GetConnectedMapName = ClientMapState.getClientConnectedMapName,
 		-- GetPlayerTeamIndex = getAnyPlayerTeamIndex,
+
+		OnPlayerJoinedConnectedMap = ClientMapState.onPlayerJoinedConnectedMap,
+		OnPlayerLeftConnectedMap = ClientMapState.onPlayerLeftConnectedMap,
 
 		-- map voting
 		VoteForMap = ClientMatchPad.clientVoteForMap,
