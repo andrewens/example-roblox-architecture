@@ -5,6 +5,7 @@ local SoccerDuelsClientStateFolder = script:FindFirstAncestor("State")
 local Enums = require(SoccerDuelsModule.Enums)
 local Network = require(SoccerDuelsModule.Network)
 
+local ClientModalState = require(SoccerDuelsClientStateFolder.ClientModalState)
 local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserInterfaceMode)
 
 -- const
@@ -32,6 +33,9 @@ local function playerConnectedMapChanged(self, Player, mapEnum, teamIndex)
 	self._PlayerTeamIndex[Player] = teamIndex
 
 	if Player == self.Player then
+		-- make any modals go away
+		ClientModalState.setClientVisibleModal(self, nil)
+
 		-- invoke joined callback for all players in the match when we join it (RETURNS)
 		if mapEnum then
 			for callback, _ in self._PlayerJoinedConnectedMapCallbacks do

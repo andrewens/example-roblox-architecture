@@ -152,6 +152,9 @@ DefaultConfig.UserInputTypeToControllerType = {
 	["TextInput"] = nil,
 	["InputMethod"] = nil,
 }
+DefaultConfig.DefaultKeybinds = {
+	Leaderboard = Enum.KeyCode.Tab,
+}
 
 -- match joining pads
 DefaultConfig.MatchJoiningPadRadiusPaddingStuds = 1

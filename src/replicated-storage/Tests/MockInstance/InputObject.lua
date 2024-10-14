@@ -12,7 +12,9 @@ return function(Properties)
 	end
 	if Properties.KeyCode then
 		assert(typeof(Properties.KeyCode) == "EnumItem")
-		assert(Properties.KeyCode.EnumType == "KeyCode")
+		if not (Properties.KeyCode.EnumType == Enum.KeyCode) then
+			error(`{Properties.KeyCode.EnumType} is not Enum.KeyCode!`)
+		end
 	end
 	if Properties.Position then
 		assert(typeof(Properties.Position) == "Vector3")

@@ -36,6 +36,7 @@ do
 		ExpectedAssets[`{modalName}Modal`] = {
 			Path = ExpectedAssets.ModalFrames.Path .. "/" .. modalName,
 		}
+		-- note that 'LeaderboardModal' has a different path and gets overwritten later in this script
 	end
 end
 
@@ -381,6 +382,14 @@ do
 			ClassName = "GuiObject",
 		}
 	end
+end
+
+-- match gameplay leaderboard
+do
+	ExpectedAssets.LeaderboardModal = { -- must be named 'LeaderboardModal' to overwrite the default modal path for it (see lobby modals above)
+		Path = "ReplicatedStorage/UserInterface/Leaderboard",
+		ClassName = "ScreenGui"
+	}
 end
 
 return ExpectedAssets

@@ -421,7 +421,9 @@ return function()
 		if not (joinedCount == 3) then
 			error(`{joinedCount} != 3`)
 		end
-		if not (LastPlayerThatJoined == Player1 or LastPlayerThatJoined == Player3 or LastPlayerThatJoined == Player4) then
+		if
+			not (LastPlayerThatJoined == Player1 or LastPlayerThatJoined == Player3 or LastPlayerThatJoined == Player4)
+		then
 			error(`{LastPlayerThatJoined} is not a Player in the map!`)
 		end
 		assert(leftCount == 0)
@@ -447,7 +449,12 @@ return function()
 		if not (leftCount == 4) then
 			error(`{leftCount} != 4`)
 		end
-		assert(LastPlayerThatLeft == Player1 or LastPlayerThatLeft == Player2 or LastPlayerThatLeft == Player3 or LastPlayerThatLeft == Player4)
+		assert(
+			LastPlayerThatLeft == Player1
+				or LastPlayerThatLeft == Player2
+				or LastPlayerThatLeft == Player3
+				or LastPlayerThatLeft == Player4
+		)
 
 		-- callbacks don't fire after they get disconnected
 		conn1:Disconnect()
@@ -468,5 +475,80 @@ return function()
 		Client2:Destroy()
 		Client3:Destroy()
 		Client4:Destroy()
+	end)
+	it("Client can bring up the leaderboard by pressing a key while they're connected to a map", function()
+		SoccerDuels.disconnectAllPlayers()
+		SoccerDuels.destroyAllMapInstances()
+		SoccerDuels.resetTestingVariables()
+
+		local defaultLeaderboardKey = SoccerDuels.getConstant("DefaultKeybinds", "Leaderboard")
+		local notDefaultLeaderboardKey = if defaultLeaderboardKey == Enum.KeyCode.X
+			then Enum.KeyCode.Y
+			else Enum.KeyCode.X
+
+		local LeaderboardKeyInputObject = MockInstance.new("InputObject", {
+			KeyCode = defaultLeaderboardKey,
+		})
+		local NotLeaderboardInputObject = MockInstance.new("InputObject", {
+			KeyCode = notDefaultLeaderboardKey,
+		})
+
+		local Player1 = MockInstance.new("Player")
+		local Player2 = MockInstance.new("Player")
+
+		local Client1 = SoccerDuels.newClient(Player1)
+		local Client2 = SoccerDuels.newClient(Player2)
+
+		Client1:LoadPlayerDataAsync()
+		Client2:LoadPlayerDataAsync()
+
+		-- client must be connected to a map to bring up leaderboard
+		Client1:BeginInput(LeaderboardKeyInputObject)
+
+		assert(Client1:GetVisibleModalName() == nil)
+
+		-- any other modals go away when we join a map
+		Client1:SetVisibleModalName("Settings")
+
+		local mapId1 = SoccerDuels.newMapInstance("Stadium")
+
+		SoccerDuels.connectPlayerToMapInstance(Player1, mapId1, 1)
+		SoccerDuels.connectPlayerToMapInstance(Player2, mapId1, 2)
+
+		assert(Client1:GetVisibleModalName() == nil)
+
+		-- by holding leaderboard key, client can bring up the leaderboard
+		Client1:BeginInput(LeaderboardKeyInputObject)
+		assert(Client1:GetVisibleModalName() == "Leaderboard")
+
+		Client1:EndInput(LeaderboardKeyInputObject)
+		assert(Client1:GetVisibleModalName() == nil)
+
+		-- tapping an input doesn't do anything here
+		Client1:TapInput(LeaderboardKeyInputObject)
+		assert(Client1:GetVisibleModalName() == nil)
+
+		-- holding a different key doesn't work
+		Client1:BeginInput(NotLeaderboardInputObject)
+		assert(Client1:GetVisibleModalName() == nil)
+
+		-- we can bring up the modal with SetVisibleModalName()
+		Client1:SetVisibleModalName("Leaderboard")
+		assert(Client1:GetVisibleModalName() == "Leaderboard")
+
+		Client1:SetVisibleModalName(nil)
+		assert(Client1:GetVisibleModalName() == nil)
+
+		-- disconnecting from the map makes leaderboard go away
+		Client1:SetVisibleModalName("Leaderboard")
+		SoccerDuels.destroyMapInstance(mapId1)
+		assert(Client1:GetVisibleModalName() == nil)
+
+		-- client can't bring up leaderboard outside of a map
+		Client1:BeginInput(LeaderboardKeyInputObject)
+		assert(Client1:GetVisibleModalName() == nil)
+
+		Client1:Destroy()
+		Client2:Destroy()
 	end)
 end

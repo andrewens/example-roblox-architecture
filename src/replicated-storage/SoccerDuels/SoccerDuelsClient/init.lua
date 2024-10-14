@@ -26,7 +26,8 @@ local LobbyCharacters = require(SoccerDuelsClientStateFolder.LobbyCharacters)
 local ClientMetatable
 
 -- public / Client class methods
-local function destroyClient(self) -- TODO this isn't really tested
+local function destroyClient(self)
+	-- TODO this isn't really tested
 	self._Maid:DoCleaning()
 
 	self._PlayerJoinedConnectedMapCallbacks = nil
@@ -179,6 +180,8 @@ local function initializeClients()
 		-- user input
 		OnControllerTypeChangedConnect = ClientInput.onClientControllerTypeChangedConnect,
 		GetControllerType = ClientInput.getClientControllerType,
+		BeginInput = ClientInput.clientBeginInput,
+		EndInput = ClientInput.clientEndInput,
 		TapInput = ClientInput.clientTapInput,
 
 		-- user interface mode
