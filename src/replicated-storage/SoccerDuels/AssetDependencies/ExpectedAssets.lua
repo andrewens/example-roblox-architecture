@@ -427,6 +427,17 @@ do
 		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Tackles",
 		ClassName = "TextLabel",
 	}
+
+	ExpectedAssets.LeaderboardRowPingContainer = {
+		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Ping",
+	}
+
+	for _, pingQualityName in Enums.iterateEnumsOfType("PingQuality") do
+		ExpectedAssets[`LeaderboardRow{pingQualityName}PingFrame`] = {
+			Path = `ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Ping/{pingQualityName}`,
+			ClassName = "GuiObject",
+		}
+	end
 end
 
 return ExpectedAssets

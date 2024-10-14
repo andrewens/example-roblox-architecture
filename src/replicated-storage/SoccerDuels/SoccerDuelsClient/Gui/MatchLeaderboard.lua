@@ -14,6 +14,12 @@ local AvatarHeadshotImages = require(SoccerDuelsClientModule.AvatarHeadshotImage
 -- const
 local ROBLOX_LEADERBOARD_ENABLED_FOR_UI_MODE = Config.getConstant("RobloxLeaderboardEnabledForTheseUserInterfaceModes")
 
+local BAD_PING_FRAME_TRANSPARENCY = Config.getConstant("LeaderboardBadPingFrameTransparency")
+local GOOD_PING_FRAME_TRANSPARENCY = Config.getConstant("LeaderboardGoodPingFrameTransparency")
+
+local BAD_PING_FRAME_COLOR = Config.getConstant("LeaderboardBadPingFrameColor")
+local GOOD_PING_FRAME_COLOR = Config.getConstant("LeaderboardGoodPingFrameColor")
+
 -- public / Client class methods
 local function newMatchLeaderboardGui(self)
 	local LeaderboardScreenGui = Assets.cloneExpectedAsset("LeaderboardModal")
@@ -30,12 +36,61 @@ local function newMatchLeaderboardGui(self)
 
 	self._Maid:GiveTask(LeaderboardScreenGui)
 
+	local function setFrameAppearance(Frame, transparency, backgroundColor)
+		Frame.Transparency = transparency
+		Frame.BackgroundColor3 = backgroundColor
+	end
+	local function renderPlayerPingQuality(Player, pingQuality)
+		local LeaderstatRow = PlayerLeaderstatRows[Player]
+		if LeaderstatRow == nil then
+			return
+		end
+
+		local PingContainer =
+			Assets.getExpectedAsset("LeaderboardRowPingContainer", "LeaderboardTeam1RowTemplate", LeaderstatRow)
+
+		local BadPingFrame = PingContainer.Bad
+		local OkayPingFrame = PingContainer.Okay
+		local GoodPingFrame = PingContainer.Good
+
+		-- 'nil'
+		if pingQuality == nil then
+			setFrameAppearance(BadPingFrame, BAD_PING_FRAME_TRANSPARENCY, BAD_PING_FRAME_COLOR)
+			setFrameAppearance(OkayPingFrame, BAD_PING_FRAME_TRANSPARENCY, BAD_PING_FRAME_COLOR)
+			setFrameAppearance(GoodPingFrame, BAD_PING_FRAME_TRANSPARENCY, BAD_PING_FRAME_COLOR)
+
+			return
+		end
+
+		-- 'Bad'
+		if pingQuality == "Bad" then
+			setFrameAppearance(BadPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
+			setFrameAppearance(OkayPingFrame, BAD_PING_FRAME_TRANSPARENCY, BAD_PING_FRAME_COLOR)
+			setFrameAppearance(GoodPingFrame, BAD_PING_FRAME_TRANSPARENCY, BAD_PING_FRAME_COLOR)
+
+			return
+		end
+
+		-- 'Okay'
+		if pingQuality == "Okay" then
+			setFrameAppearance(BadPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
+			setFrameAppearance(OkayPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
+			setFrameAppearance(GoodPingFrame, BAD_PING_FRAME_TRANSPARENCY, BAD_PING_FRAME_COLOR)
+
+			return
+		end
+
+		-- 'Good'
+		setFrameAppearance(BadPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
+		setFrameAppearance(OkayPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
+		setFrameAppearance(GoodPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
+	end
+
 	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
+		-- note that the default roblox leaderboard coregui must be disabled for Tab to work as a leaderboard keybind
 		Utility.setDefaultRobloxLeaderboardEnabled(ROBLOX_LEADERBOARD_ENABLED_FOR_UI_MODE[userInterfaceMode] or false)
 	end)
 	self:OnVisibleModalChangedConnect(function(visibleModalName)
-		-- note that the default roblox leaderboard coregui must be disabled for Tab to work as a leaderboard keybind
-
 		UIMaid:DoCleaning()
 		LeaderboardScreenGui.Enabled = (visibleModalName == "Leaderboard")
 
@@ -85,6 +140,8 @@ local function newMatchLeaderboardGui(self)
 			LeaderstatRow.Parent = LeaderstatsContainer
 
 			PlayerLeaderstatRows[Player] = LeaderstatRow
+
+			renderPlayerPingQuality(Player, self:GetPlayerPingQuality(Player))
 		end
 
 		-- update stats
@@ -99,6 +156,7 @@ local function newMatchLeaderboardGui(self)
 		AssistsTextLabel.Text = assists
 		TacklesTextLabel.Text = tackles
 	end)
+	self:OnPlayerPingQualityChangedConnect(renderPlayerPingQuality)
 
 	LeaderstatsTeam1RowTemplate.Parent = nil -- note: if there are extra row templates, they don't get destroyed
 	LeaderstatsTeam2RowTemplate.Parent = nil

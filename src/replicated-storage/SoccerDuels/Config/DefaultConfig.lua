@@ -128,6 +128,11 @@ DefaultConfig.RobloxLeaderboardEnabledForTheseUserInterfaceModes = {
 	["MatchJoiningPad"] = true,
 }
 
+DefaultConfig.LeaderboardBadPingFrameTransparency = 0.4
+DefaultConfig.LeaderboardGoodPingFrameTransparency = 0
+DefaultConfig.LeaderboardBadPingFrameColor = Color3.new(0, 0, 0)
+DefaultConfig.LeaderboardGoodPingFrameColor = Color3.new(1, 1, 1)
+
 -- avatar headshots
 DefaultConfig.AvatarHeadshotImageThumbnailType = Enum.ThumbnailType.AvatarBust
 DefaultConfig.AvatarHeadshotImageThumbnailResolution = Enum.ThumbnailSize.Size100x100
