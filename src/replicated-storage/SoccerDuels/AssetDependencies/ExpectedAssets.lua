@@ -386,9 +386,46 @@ end
 
 -- match gameplay leaderboard
 do
-	ExpectedAssets.LeaderboardModal = { -- must be named 'LeaderboardModal' to overwrite the default modal path for it (see lobby modals above)
+	ExpectedAssets.LeaderboardModal = {
+		-- must be named 'LeaderboardModal' to overwrite the default modal path for it (see lobby modals above)
 		Path = "ReplicatedStorage/UserInterface/Leaderboard",
-		ClassName = "ScreenGui"
+		ClassName = "ScreenGui",
+	}
+
+	ExpectedAssets.LeaderboardRowContainer = {
+		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards",
+	}
+	ExpectedAssets.LeaderboardTeam1RowTemplate = {
+		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red",
+	}
+	ExpectedAssets.LeaderboardTeam2RowTemplate = {
+		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Blue",
+	}
+
+	ExpectedAssets.LeaderboardRowPlayerProfilePicture = {
+		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Player/Pfp",
+		ClassName = "ImageLabel",
+	}
+	ExpectedAssets.LeaderboardRowPlayerLevelLabel = {
+		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Player/Level/Value",
+		ClassName = "TextLabel",
+	}
+	ExpectedAssets.LeaderboardRowPlayerNameLabel = {
+		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/User",
+		ClassName = "TextLabel",
+	}
+
+	ExpectedAssets.LeaderboardRowGoalsLabel = {
+		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Goals",
+		ClassName = "TextLabel",
+	}
+	ExpectedAssets.LeaderboardRowAssistsLabel = {
+		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Assists",
+		ClassName = "TextLabel",
+	}
+	ExpectedAssets.LeaderboardRowTacklesLabel = {
+		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Tackles",
+		ClassName = "TextLabel",
 	}
 end
 
