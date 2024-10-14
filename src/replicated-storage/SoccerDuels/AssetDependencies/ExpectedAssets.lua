@@ -369,6 +369,18 @@ do
 			ClassName = "ImageLabel",
 		}
 	end
+
+	-- scoreboard
+	do
+		ExpectedAssets.MatchScoreboardTeam1BackgroundBar = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Scoreboard/Red/BackgroundBar",
+			ClassName = "GuiObject",
+		}
+		ExpectedAssets.MatchScoreboardTeam2BackgroundBar = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Scoreboard/Blue/BackgroundBar",
+			ClassName = "GuiObject",
+		}
+	end
 end
 
 return ExpectedAssets

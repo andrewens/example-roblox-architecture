@@ -12,25 +12,35 @@ local AvatarHeadshotImages = require(SoccerDuelsClientModule.AvatarHeadshotImage
 local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 
 -- const
+local TIMER_POLL_RATE = Config.getConstant("UserInterfaceCountdownTimerPollRateSeconds")
+local BACKGROUND_BAR_SIZE_SCALE_PER_PLAYER = Config.getConstant("MatchScoreboardBarSizeScalePerPlayer")
+local BACKGROUND_BAR_DEFAULT_SIZE_SCALE = Config.getConstant("MatchScoreboardBarSizeScaleDefault")
+
 local GAMEPLAY_GUI_IS_VISIBLE_DURING_UI_MODE = {
 	["MatchCountdown"] = true,
 	["MatchGameplay"] = true,
 	["Gameplay"] = true,
 }
-local TIMER_POLL_RATE = Config.getConstant("UserInterfaceCountdownTimerPollRateSeconds")
 local ONE_SIXTIETH = 1 / 60
 
 -- public / Client class methods
 local function newMatchLoadingScreenGui(self)
 	local GameplayGui = Assets.getExpectedAsset("MatchGameplayGui", "MainGui", self._MainGui)
+
 	local MatchCounterTextLabel = Assets.getExpectedAsset("MatchCountdownTimerLabel", "MatchGameplayGui", GameplayGui)
 	local ScoreboardTimerTextLabel =
 		Assets.getExpectedAsset("MatchScoreboardTimerLabel", "MatchGameplayGui", GameplayGui)
+
 	local Team1PlayersContainer =
 		Assets.getExpectedAsset("MatchScoreboardTeam1PlayersContainer", "MatchGameplayGui", GameplayGui)
 	local Team2PlayersContainer =
 		Assets.getExpectedAsset("MatchScoreboardTeam2PlayersContainer", "MatchGameplayGui", GameplayGui)
 	local PlayerIconTemplate = Assets.getExpectedAsset("MatchScoreboardPlayerIcon", "MatchGameplayGui", GameplayGui)
+
+	local Team1BackgroundBar =
+		Assets.getExpectedAsset("MatchScoreboardTeam1BackgroundBar", "MatchGameplayGui", GameplayGui)
+	local Team2BackgroundBar =
+		Assets.getExpectedAsset("MatchScoreboardTeam2BackgroundBar", "MatchGameplayGui", GameplayGui)
 
 	local UIMaid = Maid.new()
 	local PlayerIcons = {} -- Player --> PlayerIcon (GuiObject)
@@ -53,6 +63,21 @@ local function newMatchLoadingScreenGui(self)
 
 		ScoreboardTimerTextLabel.Text = `{mins}:{secs}`
 	end
+	local function updateTeamScoreboardBarLength(ScoreboardBackgroundBar, PlayersContainer)
+		local numPlayerIcons = 0
+		for Player, PlayerIcon in PlayerIcons do
+			if PlayerIcon.Parent == PlayersContainer then
+				numPlayerIcons += 1
+			end
+		end
+
+		ScoreboardBackgroundBar.Size = UDim2.new(
+			BACKGROUND_BAR_DEFAULT_SIZE_SCALE + BACKGROUND_BAR_SIZE_SCALE_PER_PLAYER * numPlayerIcons,
+			0,
+			1,
+			0
+		)
+	end
 
 	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
 		UIMaid:DoCleaning()
@@ -65,6 +90,9 @@ local function newMatchLoadingScreenGui(self)
 		end
 	end)
 	self:OnPlayerJoinedConnectedMap(function(Player, teamIndex)
+		local ScoreboardBackgroundBar = if teamIndex == 1 then Team1BackgroundBar else Team2BackgroundBar
+		local PlayersContainer = if teamIndex == 1 then Team1PlayersContainer else Team2PlayersContainer
+
 		local PlayerIcon = PlayerIcons[Player]
 		if PlayerIcon then
 			PlayerIcon:Destroy()
@@ -80,16 +108,27 @@ local function newMatchLoadingScreenGui(self)
 
 		AvatarHeadshotImages.setImageLabelImageToAvatarHeadshot(self, ProfilePictureImageLabel, Player)
 		LevelTextLabel.Text = self:GetAnyPlayerDataValue("Level", Player)
-		PlayerIcon.Parent = if teamIndex == 1 then Team1PlayersContainer else Team2PlayersContainer
+		PlayerIcon.Parent = PlayersContainer
 
 		PlayerIcons[Player] = PlayerIcon
+
+		updateTeamScoreboardBarLength(ScoreboardBackgroundBar, PlayersContainer)
 	end)
 	self:OnPlayerLeftConnectedMap(function(Player)
 		local PlayerIcon = PlayerIcons[Player]
-		if PlayerIcon then
-			PlayerIcon:Destroy()
-			PlayerIcons[Player] = nil
+		if PlayerIcon == nil then
+			return
 		end
+
+		local PlayersContainer = PlayerIcon.Parent
+		local ScoreboardBackgroundBar = if PlayersContainer == Team1PlayersContainer
+			then Team1BackgroundBar
+			else Team2BackgroundBar
+
+		PlayerIcon:Destroy()
+		PlayerIcons[Player] = nil
+
+		updateTeamScoreboardBarLength(ScoreboardBackgroundBar, PlayersContainer)
 	end)
 
 	GameplayGui.Visible = false

@@ -120,6 +120,9 @@ DefaultConfig.BufferingAnimationLastTweenInfo = TweenInfo.new(0.2, Enum.EasingSt
 
 DefaultConfig.UserInterfaceCountdownTimerPollRateSeconds = 0.1
 
+DefaultConfig.MatchScoreboardBarSizeScalePerPlayer = 0.5
+DefaultConfig.MatchScoreboardBarSizeScaleDefault = 0.5
+
 -- avatar headshots
 DefaultConfig.AvatarHeadshotImageThumbnailType = Enum.ThumbnailType.AvatarBust
 DefaultConfig.AvatarHeadshotImageThumbnailResolution = Enum.ThumbnailSize.Size100x100
