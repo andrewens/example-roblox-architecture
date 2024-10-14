@@ -5,6 +5,7 @@ local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Enums = require(SoccerDuelsModule.Enums)
 
 local MatchLoadingScreenGui = require(script.MatchLoadingScreen)
+local MatchLeaderboardGui = require(script.MatchLeaderboard)
 local MatchJoiningPadGui = require(script.MatchJoiningPad)
 local MatchGameplayGui = require(script.MatchGameplay)
 local CharacterHeadGui = require(script.CharacterHead)
@@ -30,6 +31,7 @@ local function newClientGui(self)
 		self._MainGui.Parent = self.Player.PlayerGui
 
 		MatchLoadingScreenGui.new(self)
+		MatchLeaderboardGui.new(self)
 		MatchJoiningPadGui.new(self)
 		MatchGameplayGui.new(self)
 		CharacterHeadGui.new(self)

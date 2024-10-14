@@ -123,6 +123,11 @@ DefaultConfig.UserInterfaceCountdownTimerPollRateSeconds = 0.1
 DefaultConfig.MatchScoreboardBarSizeScalePerPlayer = 0.5
 DefaultConfig.MatchScoreboardBarSizeScaleDefault = 0.5
 
+DefaultConfig.RobloxLeaderboardEnabledForTheseUserInterfaceModes = {
+	["Lobby"] = true,
+	["MatchJoiningPad"] = true,
+}
+
 -- avatar headshots
 DefaultConfig.AvatarHeadshotImageThumbnailType = Enum.ThumbnailType.AvatarBust
 DefaultConfig.AvatarHeadshotImageThumbnailResolution = Enum.ThumbnailSize.Size100x100

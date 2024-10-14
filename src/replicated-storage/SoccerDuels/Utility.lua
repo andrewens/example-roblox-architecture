@@ -1,8 +1,19 @@
 -- dependency
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
 
 -- public
+local function setDefaultRobloxLeaderboardEnabled(isEnabled)
+	if not (typeof(isEnabled) == "boolean") then
+		error(`{isEnabled} is not a boolean!`)
+	end
+	if RunService:IsServer() then
+		return
+	end
+
+	StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, isEnabled)
+end
 local function convertInstanceIntoModel(RbxInstance)
 	if not (typeof(RbxInstance) == "Instance") then
 		error(`{RbxInstance} is not an Instance!`)
@@ -258,6 +269,8 @@ local function onPlayerDiedConnect(Player, callback)
 end
 
 return {
+	setDefaultRobloxLeaderboardEnabled = setDefaultRobloxLeaderboardEnabled,
+
 	convertInstanceIntoModel = convertInstanceIntoModel,
 
 	dictionaryToArray = dictionaryToArray,
