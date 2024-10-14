@@ -8,6 +8,7 @@ local Maid = require(SoccerDuelsModule.Maid)
 local Time = require(SoccerDuelsModule.Time)
 local Utility = require(SoccerDuelsModule.Utility)
 
+local AvatarHeadshotImages = require(SoccerDuelsClientModule.AvatarHeadshotImages)
 local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 
 -- const
@@ -25,8 +26,14 @@ local function newMatchLoadingScreenGui(self)
 	local MatchCounterTextLabel = Assets.getExpectedAsset("MatchCountdownTimerLabel", "MatchGameplayGui", GameplayGui)
 	local ScoreboardTimerTextLabel =
 		Assets.getExpectedAsset("MatchScoreboardTimerLabel", "MatchGameplayGui", GameplayGui)
+	local Team1PlayersContainer =
+		Assets.getExpectedAsset("MatchScoreboardTeam1PlayersContainer", "MatchGameplayGui", GameplayGui)
+	local Team2PlayersContainer =
+		Assets.getExpectedAsset("MatchScoreboardTeam2PlayersContainer", "MatchGameplayGui", GameplayGui)
+	local PlayerIconTemplate = Assets.getExpectedAsset("MatchScoreboardPlayerIcon", "MatchGameplayGui", GameplayGui)
 
 	local UIMaid = Maid.new()
+	local PlayerIcons = {} -- Player --> PlayerIcon (GuiObject)
 
 	self._Maid:GiveTask(UIMaid)
 
@@ -57,8 +64,51 @@ local function newMatchLoadingScreenGui(self)
 			UIMaid:GiveTask(Utility.runServiceRenderSteppedConnect(TIMER_POLL_RATE, updateTimer))
 		end
 	end)
+	self:OnPlayerJoinedConnectedMap(function(Player, teamIndex)
+		local PlayerIcon = PlayerIcons[Player]
+		if PlayerIcon then
+			PlayerIcon:Destroy()
+			PlayerIcons[Player] = nil -- (just in case)
+		end
+
+		PlayerIcon = PlayerIconTemplate:Clone()
+
+		local ProfilePictureImageLabel =
+			Assets.getExpectedAsset("MatchScoreboardPlayerIconProfilePicture", "MatchScoreboardPlayerIcon", PlayerIcon)
+		local LevelTextLabel =
+			Assets.getExpectedAsset("MatchScoreboardPlayerIconLevelLabel", "MatchScoreboardPlayerIcon", PlayerIcon)
+
+		AvatarHeadshotImages.setImageLabelImageToAvatarHeadshot(self, ProfilePictureImageLabel, Player)
+		LevelTextLabel.Text = self:GetAnyPlayerDataValue("Level", Player)
+		PlayerIcon.Parent = if teamIndex == 1 then Team1PlayersContainer else Team2PlayersContainer
+
+		PlayerIcons[Player] = PlayerIcon
+	end)
+	self:OnPlayerLeftConnectedMap(function(Player)
+		local PlayerIcon = PlayerIcons[Player]
+		if PlayerIcon then
+			PlayerIcon:Destroy()
+			PlayerIcons[Player] = nil
+		end
+	end)
 
 	GameplayGui.Visible = false
+	PlayerIconTemplate.Parent = nil
+
+	for _, PlayerIcon in Team1PlayersContainer:GetChildren() do
+		if not PlayerIcon:IsA(PlayerIconTemplate.ClassName) then
+			continue
+		end
+
+		PlayerIcon:Destroy()
+	end
+	for _, PlayerIcon in Team2PlayersContainer:GetChildren() do
+		if not PlayerIcon:IsA(PlayerIconTemplate.ClassName) then
+			continue
+		end
+
+		PlayerIcon:Destroy()
+	end
 
 	UIAnimations.initializeTimer(self, MatchCounterTextLabel)
 end

@@ -50,6 +50,10 @@ local function lobbyCharacterSpawned(Player, Character)
 	Network.fireAllClients("CharacterSpawnedInLobby", Player, Character)
 end
 local function loadPlayerCharacter(Player)
+	if not Utility.playerIsInGame(Player) then
+		return
+	end
+
 	Player:LoadCharacter()
 
 	-- TODO ideally there should be a mock Players service so that the connection is the same...

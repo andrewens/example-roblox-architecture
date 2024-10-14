@@ -336,14 +336,39 @@ do
 		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay",
 		ClassName = "Frame",
 	}
-	ExpectedAssets.MatchCountdownTimerLabel = {
-		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Countdown",
-		ClassName = "TextLabel",
-	}
-	ExpectedAssets.MatchScoreboardTimerLabel = {
-		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Scoreboard/Countdown/Timer",
-		ClassName = "TextLabel",
-	}
+
+	-- timers
+	do
+		ExpectedAssets.MatchCountdownTimerLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Countdown",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.MatchScoreboardTimerLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Scoreboard/Countdown/Timer",
+			ClassName = "TextLabel",
+		}
+	end
+
+	-- team players
+	do
+		ExpectedAssets.MatchScoreboardTeam1PlayersContainer = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Scoreboard/Red/Players",
+		}
+		ExpectedAssets.MatchScoreboardTeam2PlayersContainer = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Scoreboard/Blue/Players",
+		}
+		ExpectedAssets.MatchScoreboardPlayerIcon = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Scoreboard/Red/Players/Player",
+		}
+		ExpectedAssets.MatchScoreboardPlayerIconLevelLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Scoreboard/Red/Players/Player/Level/Value",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.MatchScoreboardPlayerIconProfilePicture = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Scoreboard/Red/Players/Player/Pfp",
+			ClassName = "ImageLabel",
+		}
+	end
 end
 
 return ExpectedAssets

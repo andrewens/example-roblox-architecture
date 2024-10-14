@@ -153,6 +153,12 @@ local function isA(value, className)
 		and (typeof(value.IsA) == "function")
 		and value:IsA(className)
 end
+local function playerIsInGame(Player)
+	if not isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+	return typeof(Player) == "table" or Players:FindFirstChild(Player.Name) ~= nil
+end
 local function setPlayerCharacterAnchored(Player, isAnchored)
 	if not isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
@@ -263,6 +269,7 @@ return {
 	playerCharacterIsInsideSpherePart = playerCharacterIsInsideSpherePart,
 	getPlayerCharacterPosition = getPlayerCharacterPosition,
 	setPlayerCharacterAnchored = setPlayerCharacterAnchored,
+	playerIsInGame = playerIsInGame,
 	weldPartToPart = weldPartToPart,
 
 	runServiceRenderSteppedConnect = runServiceRenderSteppedConnect,
