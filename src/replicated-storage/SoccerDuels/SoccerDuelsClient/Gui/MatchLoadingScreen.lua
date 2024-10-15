@@ -25,9 +25,8 @@ local function newMatchLoadingScreenGui(self)
 	self._Maid:GiveTask(UIMaid)
 
 	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
-		UIMaid:DoCleaning()
-
 		if userInterfaceMode == "LoadingMap" then
+			UIMaid:DoCleaning()
 			LoadingScreenGui.Enabled = true
 
 			UIAnimations.initializeBufferingAnimation(self, BufferingImage)
@@ -42,6 +41,7 @@ local function newMatchLoadingScreenGui(self)
 		if LoadingScreenGui.Enabled then
 			task.delay(DELAY_BEFORE_REMOVING_LOADING_SCREEN, function()
 				LoadingScreenGui.Enabled = false
+				UIMaid:DoCleaning()
 			end)
 		end
 	end)
