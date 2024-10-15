@@ -15,6 +15,7 @@ local MatchJoiningPadsServer = require(script.MatchJoiningPadsServer)
 local NotifyPlayerServer = require(script.NotifyPlayerServer)
 local PlayerControllerTypeServer = require(script.PlayerControllerTypeServer)
 local PlayerPingServer = require(script.PlayerPingServer)
+local PracticeFieldServer = require(script.PracticeFieldServer)
 local TestingVariables = require(script.TestingVariables)
 
 -- const
@@ -219,8 +220,9 @@ local function initializeServer()
 
 	PlayerControllerTypeServer.initialize()
 	MatchJoiningPadsServer.initialize()
-	CharacterServer.initialize()
+	PracticeFieldServer.initialize()
 	PlayerPingServer.initialize()
+	CharacterServer.initialize()
 	MapsServer.initialize()
 
 	script.Parent = ServerScriptService -- prevent exploiters from accessing server code

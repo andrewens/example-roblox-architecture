@@ -7,6 +7,7 @@ local Network = require(SoccerDuelsModule.Network)
 local Utility = require(SoccerDuelsModule.Utility)
 
 local ClientMatchPad = require(SoccerDuelsClientStateFolder.ClientMatchPad)
+local ClientPracticeField = require(SoccerDuelsClientStateFolder.ClientPracticeField)
 
 -- const
 local TESTING_MODE = Config.getConstant("TestingMode")
@@ -58,6 +59,7 @@ end
 -- public / Client class methods
 function partTouchedClientLobbyCharacter(self, TouchingPart)
 	ClientMatchPad.touchedMatchJoiningPadPartAsync(self, TouchingPart)
+	ClientPracticeField.touchedPracticeFieldTeleportPart(self, TouchingPart)
 end
 local function getCharactersInLobby(self)
 	return table.clone(self._CharactersInLobby)

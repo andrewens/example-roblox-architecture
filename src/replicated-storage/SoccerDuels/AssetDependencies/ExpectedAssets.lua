@@ -468,4 +468,10 @@ do
 	end
 end
 
+-- practice field teleport
+ExpectedAssets.PracticeFieldTeleportPart = {
+	Path = "Workspace/TeleportToPracticeField",
+	ClassName = "BasePart",
+}
+
 return ExpectedAssets

@@ -232,6 +232,16 @@ local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
 
 		return
 	end
+
+	-- 'Gameplay' - spawn characters
+	if mapStateEnum == PERPETUAL_GAMEPLAY_STATE_ENUM then
+		for Player, teamIndex in MapInstancePlayers[mapInstanceId] do
+			-- move their character to a starting position
+			local startingPosition = getMapInstanceStartingLocationUnprotected(mapInstanceId, teamIndex, 1)
+
+			CharacterServer.spawnPlayerCharacterAtPosition(Player, startingPosition)
+		end
+	end
 end
 local function mapInstanceHasNoPlayersOnATeam(mapInstanceId)
 	local team1HasPlayers = false
@@ -507,6 +517,12 @@ local function connectPlayerToMapInstance(Player, mapInstanceId, teamIndex)
 	Network.fireAllClients("PlayerConnectedMapChanged", Player, MapInstanceMapEnum[mapInstanceId], teamIndex)
 
 	CharacterServer.removePlayerCharacter(Player)
+
+	-- spawn characters into practice fields
+	if MapInstanceState[mapInstanceId] == PERPETUAL_GAMEPLAY_STATE_ENUM then
+		local startingPosition = getMapInstanceStartingLocationUnprotected(mapInstanceId, teamIndex, 1)
+		CharacterServer.spawnPlayerCharacterAtPosition(Player, startingPosition)
+	end
 end
 local function playerIsInLobby(Player)
 	if not Utility.isA(Player, "Player") then

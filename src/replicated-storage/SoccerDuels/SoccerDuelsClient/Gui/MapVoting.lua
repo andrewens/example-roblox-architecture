@@ -126,11 +126,12 @@ local function newMapVotingGui(self)
 	end
 
 	-- create map buttons
-	for mapEnum, mapName in Enums.iterateEnumsOfType("Map") do
+	for mapName, mapImageContentString in Config.getConstant("MapThumbnailImages") do
+		local mapEnum = Enums.getEnum("Map", mapName)
 		local MapButton = MapButtonTemplate:Clone()
 		MapButton.LayoutOrder = mapEnum
 		MapButton.Name = mapName
-		MapButton.Image = Config.getConstant("MapThumbnailImages", mapName)
+		MapButton.Image = mapImageContentString
 		MapButton.Parent = MapContainer
 
 		MapButton.Activated:Connect(function()

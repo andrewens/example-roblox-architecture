@@ -88,6 +88,10 @@
     {
       "Name": "MatchScoreChanged",
       "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "PlayerRequestToJoinPracticeField",
+      "ClassName": "RemoteEvent"
     }
   ]
 }

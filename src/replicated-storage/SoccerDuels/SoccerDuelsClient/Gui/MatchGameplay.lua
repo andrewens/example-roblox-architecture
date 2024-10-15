@@ -51,8 +51,14 @@ local function newMatchLoadingScreenGui(self)
 	self.Maid:GiveTask(UIMaid)
 
 	local function updateTimer(dt)
-		local now = Time.getUnixTimestampMilliseconds()
 		local stateChangeTimestamp = self:GetConnectedMapStateChangeTimestamp()
+		if stateChangeTimestamp == nil then
+			ScoreboardTimerTextLabel.Text = ""
+			MatchCounterTextLabel.Text = ""
+			return
+		end
+
+		local now = Time.getUnixTimestampMilliseconds()
 		local deltaTime = math.ceil(math.max((stateChangeTimestamp - now) * 0.001, 0)) -- seconds
 
 		if MatchCounterTextLabel.Visible then
