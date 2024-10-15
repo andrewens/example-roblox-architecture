@@ -53,10 +53,19 @@ local function newMatchLeaderboardGui(self)
 		local OkayPingFrame = PingContainer.Okay
 		local GoodPingFrame = PingContainer.Good
 
-		-- 'nil'
-		if pingQuality == nil then
-			setFrameAppearance(BadPingFrame, BAD_PING_FRAME_TRANSPARENCY, BAD_PING_FRAME_COLOR)
-			setFrameAppearance(OkayPingFrame, BAD_PING_FRAME_TRANSPARENCY, BAD_PING_FRAME_COLOR)
+		-- 'Good'
+		if pingQuality == "Good" then
+			setFrameAppearance(BadPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
+			setFrameAppearance(OkayPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
+			setFrameAppearance(GoodPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
+
+			return
+		end
+
+		-- 'Okay'
+		if pingQuality == "Okay" then
+			setFrameAppearance(BadPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
+			setFrameAppearance(OkayPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
 			setFrameAppearance(GoodPingFrame, BAD_PING_FRAME_TRANSPARENCY, BAD_PING_FRAME_COLOR)
 
 			return
@@ -71,19 +80,10 @@ local function newMatchLeaderboardGui(self)
 			return
 		end
 
-		-- 'Okay'
-		if pingQuality == "Okay" then
-			setFrameAppearance(BadPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
-			setFrameAppearance(OkayPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
-			setFrameAppearance(GoodPingFrame, BAD_PING_FRAME_TRANSPARENCY, BAD_PING_FRAME_COLOR)
-
-			return
-		end
-
-		-- 'Good'
-		setFrameAppearance(BadPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
-		setFrameAppearance(OkayPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
-		setFrameAppearance(GoodPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
+		-- literally anything else
+		setFrameAppearance(BadPingFrame, BAD_PING_FRAME_TRANSPARENCY, BAD_PING_FRAME_COLOR)
+		setFrameAppearance(OkayPingFrame, BAD_PING_FRAME_TRANSPARENCY, BAD_PING_FRAME_COLOR)
+		setFrameAppearance(GoodPingFrame, BAD_PING_FRAME_TRANSPARENCY, BAD_PING_FRAME_COLOR)
 	end
 	local function renderPlayerControllerType(Player, controllerType)
 		local LeaderstatRow = PlayerLeaderstatRows[Player]
