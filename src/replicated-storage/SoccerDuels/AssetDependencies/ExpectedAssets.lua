@@ -399,7 +399,6 @@ do
 		Path = "ReplicatedStorage/UserInterface/Leaderboard",
 		ClassName = "ScreenGui",
 	}
-
 	ExpectedAssets.LeaderboardRowContainer = {
 		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards",
 	}
@@ -410,41 +409,62 @@ do
 		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Blue",
 	}
 
-	ExpectedAssets.LeaderboardRowPlayerProfilePicture = {
-		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Player/Pfp",
-		ClassName = "ImageLabel",
-	}
-	ExpectedAssets.LeaderboardRowPlayerLevelLabel = {
-		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Player/Level/Value",
-		ClassName = "TextLabel",
-	}
-	ExpectedAssets.LeaderboardRowPlayerNameLabel = {
-		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/User",
-		ClassName = "TextLabel",
-	}
-
-	ExpectedAssets.LeaderboardRowGoalsLabel = {
-		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Goals",
-		ClassName = "TextLabel",
-	}
-	ExpectedAssets.LeaderboardRowAssistsLabel = {
-		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Assists",
-		ClassName = "TextLabel",
-	}
-	ExpectedAssets.LeaderboardRowTacklesLabel = {
-		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Tackles",
-		ClassName = "TextLabel",
-	}
-
-	ExpectedAssets.LeaderboardRowPingContainer = {
-		Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Ping",
-	}
-
-	for _, pingQualityName in Enums.iterateEnumsOfType("PingQuality") do
-		ExpectedAssets[`LeaderboardRow{pingQualityName}PingFrame`] = {
-			Path = `ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Ping/{pingQualityName}`,
-			ClassName = "GuiObject",
+	-- profile pic + level
+	do
+		ExpectedAssets.LeaderboardRowPlayerProfilePicture = {
+			Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Player/Pfp",
+			ClassName = "ImageLabel",
 		}
+		ExpectedAssets.LeaderboardRowPlayerLevelLabel = {
+			Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Player/Level/Value",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.LeaderboardRowPlayerNameLabel = {
+			Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/User",
+			ClassName = "TextLabel",
+		}
+	end
+
+	-- leaderstats
+	do
+		ExpectedAssets.LeaderboardRowGoalsLabel = {
+			Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Goals",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.LeaderboardRowAssistsLabel = {
+			Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Assists",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.LeaderboardRowTacklesLabel = {
+			Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Tackles",
+			ClassName = "TextLabel",
+		}
+	end
+
+	-- ping
+	do
+		ExpectedAssets.LeaderboardRowPingContainer = {
+			Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Ping",
+		}
+		for _, pingQualityName in Enums.iterateEnumsOfType("PingQuality") do
+			ExpectedAssets[`LeaderboardRow{pingQualityName}PingFrame`] = {
+				Path = `ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Ping/{pingQualityName}`,
+				ClassName = "GuiObject",
+			}
+		end
+	end
+
+	-- device
+	do
+		ExpectedAssets.LeaderboardRowDeviceIconContainer = {
+			Path = "ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Device",
+		}
+		for _, controllerType in Enums.iterateEnumsOfType("ControllerType") do
+			ExpectedAssets[`LeaderboardRow{controllerType}Icon`] = {
+				Path = `ReplicatedStorage/UserInterface/Leaderboard/Board/Frames/Leaderboards/Red/Device/{controllerType}`,
+				ClassName = "ImageLabel",
+			}
+		end
 	end
 end
 

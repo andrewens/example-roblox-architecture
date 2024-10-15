@@ -85,6 +85,32 @@ local function newMatchLeaderboardGui(self)
 		setFrameAppearance(OkayPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
 		setFrameAppearance(GoodPingFrame, GOOD_PING_FRAME_TRANSPARENCY, GOOD_PING_FRAME_COLOR)
 	end
+	local function renderPlayerControllerType(Player, controllerType)
+		local LeaderstatRow = PlayerLeaderstatRows[Player]
+		if LeaderstatRow == nil then
+			return
+		end
+
+		local DeviceIconContainer =
+			Assets.getExpectedAsset("LeaderboardRowDeviceIconContainer", "LeaderboardTeam1RowTemplate", LeaderstatRow)
+
+		for _, DeviceIcon in DeviceIconContainer:GetChildren() do
+			if DeviceIcon:IsA("ImageLabel") then
+				DeviceIcon.Visible = false
+			end
+		end
+
+		if controllerType == nil then
+			return
+		end
+
+		local VisibleDeviceIcon = Assets.getExpectedAsset(
+			`LeaderboardRow{controllerType}Icon`,
+			"LeaderboardRowDeviceIconContainer",
+			DeviceIconContainer
+		)
+		VisibleDeviceIcon.Visible = true
+	end
 
 	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
 		-- note that the default roblox leaderboard coregui must be disabled for Tab to work as a leaderboard keybind
@@ -142,6 +168,7 @@ local function newMatchLeaderboardGui(self)
 			PlayerLeaderstatRows[Player] = LeaderstatRow
 
 			renderPlayerPingQuality(Player, self:GetPlayerPingQuality(Player))
+			renderPlayerControllerType(Player, self:GetControllerType(Player))
 		end
 
 		-- update stats
@@ -157,6 +184,7 @@ local function newMatchLeaderboardGui(self)
 		TacklesTextLabel.Text = tackles
 	end)
 	self:OnPlayerPingQualityChangedConnect(renderPlayerPingQuality)
+	self:OnControllerTypeChangedConnect(renderPlayerControllerType)
 
 	LeaderstatsTeam1RowTemplate.Parent = nil -- note: if there are extra row templates, they don't get destroyed
 	LeaderstatsTeam2RowTemplate.Parent = nil
