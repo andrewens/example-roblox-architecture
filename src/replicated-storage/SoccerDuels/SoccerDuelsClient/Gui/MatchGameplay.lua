@@ -25,7 +25,7 @@ local ONE_SIXTIETH = 1 / 60
 
 -- public / Client class methods
 local function newMatchLoadingScreenGui(self)
-	local GameplayGui = Assets.getExpectedAsset("MatchGameplayGui", "MainGui", self._MainGui)
+	local GameplayGui = Assets.getExpectedAsset("MatchGameplayGui", "MainGui", self.MainGui)
 
 	local MatchCounterTextLabel = Assets.getExpectedAsset("MatchCountdownTimerLabel", "MatchGameplayGui", GameplayGui)
 	local ScoreboardTimerTextLabel =
@@ -42,10 +42,13 @@ local function newMatchLoadingScreenGui(self)
 	local Team2BackgroundBar =
 		Assets.getExpectedAsset("MatchScoreboardTeam2BackgroundBar", "MatchGameplayGui", GameplayGui)
 
+	local Team1ScoreLabel = Assets.getExpectedAsset("MatchScoreboardTeam1Score", "MatchGameplayGui", GameplayGui)
+	local Team2ScoreLabel = Assets.getExpectedAsset("MatchScoreboardTeam2Score", "MatchGameplayGui", GameplayGui)
+
 	local UIMaid = Maid.new()
 	local PlayerIcons = {} -- Player --> PlayerIcon (GuiObject)
 
-	self._Maid:GiveTask(UIMaid)
+	self.Maid:GiveTask(UIMaid)
 
 	local function updateTimer(dt)
 		local now = Time.getUnixTimestampMilliseconds()
@@ -129,6 +132,10 @@ local function newMatchLoadingScreenGui(self)
 		PlayerIcons[Player] = nil
 
 		updateTeamScoreboardBarLength(ScoreboardBackgroundBar, PlayersContainer)
+	end)
+	self:OnConnectedMapScoreChanged(function(team1Score, team2Score)
+		Team1ScoreLabel.Text = team1Score
+		Team2ScoreLabel.Text = team2Score
 	end)
 
 	GameplayGui.Visible = false

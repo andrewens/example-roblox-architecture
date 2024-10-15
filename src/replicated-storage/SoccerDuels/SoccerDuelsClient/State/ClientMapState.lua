@@ -12,6 +12,23 @@ local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserI
 local LOADING_MAP_ENUM = Enums.getEnum("MapState", "Loading")
 
 -- protected / Network methods
+local function clientConnectedMapScoreChanged(self, team1Score, team2Score)
+	if team1Score == nil then
+		self._ClientConnectedMatchScore = nil
+
+		for callback, _ in self._ClientConnectedMatchScoreChangedCallbacks do
+			callback(0, 0)
+		end
+
+		return
+	end
+
+	self._ClientConnectedMatchScore = { team1Score, team2Score }
+
+	for callback, _ in self._ClientConnectedMatchScoreChangedCallbacks do
+		callback(team1Score, team2Score)
+	end
+end
 local function playerLeaderstatsChanged(self, Player, teamIndex, goalsScored, numAssists, numTackles)
 	self._PlayerTeamIndex[Player] = teamIndex
 	self._PlayerGoals[Player] = goalsScored
@@ -91,6 +108,46 @@ local function playerConnectedMapStateChanged(self, mapStateEnum, stateEndTimest
 end
 
 -- public / Client class methods
+local function getClientConnectedMapTeamScore(self, teamIndex)
+	if not (teamIndex == 1 or teamIndex == 2) then
+		error(`{teamIndex} is not 1 or 2!`)
+	end
+
+	if self._ClientConnectedMatchScore == nil then
+		return 0
+	end
+
+	return self._ClientConnectedMatchScore[teamIndex]
+end
+local function getClientConnectedMapWinningTeamIndex(self)
+	if self._ClientConnectedMatchScore == nil then
+		return nil
+	end
+
+	local team1Score, team2Score = table.unpack(self._ClientConnectedMatchScore)
+	if team1Score == team2Score then
+		return nil
+	end
+
+	return if team1Score > team2Score then 1 else 2
+end
+local function onClientMapScoreChangedConnect(self, callback)
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	if self._ClientConnectedMatchScore then
+		callback(table.unpack(self._ClientConnectedMatchScore))
+	end
+
+	self._ClientConnectedMatchScoreChangedCallbacks[callback] = true
+
+	return {
+		Disconnect = function()
+			self._ClientConnectedMatchScoreChangedCallbacks[callback] = nil
+		end,
+	}
+end
 local function onPlayerLeftConnectedMap(self, callback)
 	if not (typeof(callback) == "function") then
 		error(`{callback} is not a function!`)
@@ -153,20 +210,26 @@ local function getClientConnectedMapName(self, Player)
 	end
 end
 local function initializeClientMapState(self)
-	self._Maid:GiveTask(Network.onClientEventConnect("MapStateChanged", self.Player, function(...)
+	self.Maid:GiveTask(Network.onClientEventConnect("MapStateChanged", self.Player, function(...)
 		playerConnectedMapStateChanged(self, ...)
 	end))
-	self._Maid:GiveTask(Network.onClientEventConnect("PlayerConnectedMapChanged", self.Player, function(...)
+	self.Maid:GiveTask(Network.onClientEventConnect("PlayerConnectedMapChanged", self.Player, function(...)
 		playerConnectedMapChanged(self, ...)
 	end))
-	self._Maid:GiveTask(Network.onClientEventConnect("PlayerLeaderstatsChanged", self.Player, function(...)
+	self.Maid:GiveTask(Network.onClientEventConnect("PlayerLeaderstatsChanged", self.Player, function(...)
 		playerLeaderstatsChanged(self, ...)
+	end))
+	self.Maid:GiveTask(Network.onClientEventConnect("MatchScoreChanged", self.Player, function(...)
+		clientConnectedMapScoreChanged(self, ...)
 	end))
 end
 
 return {
+	getClientConnectedMapWinningTeamIndex = getClientConnectedMapWinningTeamIndex,
 	onPlayerLeaderstatsChangedConnect = onPlayerLeaderstatsChangedConnect,
 	getClientMapStateChangeTimestamp = getClientMapStateChangeTimestamp,
+	getClientConnectedMapTeamScore = getClientConnectedMapTeamScore,
+	onClientMapScoreChangedConnect = onClientMapScoreChangedConnect,
 	getClientConnectedMapName = getClientConnectedMapName,
 
 	onPlayerJoinedConnectedMap = onPlayerJoinedConnectedMap,

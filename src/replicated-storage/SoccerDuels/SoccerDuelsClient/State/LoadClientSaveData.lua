@@ -88,9 +88,9 @@ local function getAnyPlayerCachedSaveData(self, Player)
 	return self._PlayerSaveData[Player or self.Player]
 end
 local function loadClientPlayerDataAsync(self)
-	self._Maid:DoCleaning()
+	self.Maid:DoCleaning()
 
-	self._Maid:GiveTask(Network.onClientEventConnect("UpdatePlayerSaveData", self.Player, function(...)
+	self.Maid:GiveTask(Network.onClientEventConnect("UpdatePlayerSaveData", self.Player, function(...)
 		updateCachedPlayerSaveData(self, ...)
 	end))
 

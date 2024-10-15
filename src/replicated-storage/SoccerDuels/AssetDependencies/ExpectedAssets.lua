@@ -381,6 +381,14 @@ do
 			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Scoreboard/Blue/BackgroundBar",
 			ClassName = "GuiObject",
 		}
+		ExpectedAssets.MatchScoreboardTeam1Score = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Scoreboard/Red/Score",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.MatchScoreboardTeam2Score = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Scoreboard/Blue/Score",
+			ClassName = "TextLabel",
+		}
 	end
 end
 

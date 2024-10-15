@@ -21,8 +21,8 @@ local function newMatchLoadingScreenGui(self)
 
 	local UIMaid = Maid.new()
 
-	self._Maid:GiveTask(LoadingScreenGui)
-	self._Maid:GiveTask(UIMaid)
+	self.Maid:GiveTask(LoadingScreenGui)
+	self.Maid:GiveTask(UIMaid)
 
 	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
 		if userInterfaceMode == "LoadingMap" then

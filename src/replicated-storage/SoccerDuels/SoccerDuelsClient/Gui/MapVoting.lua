@@ -19,7 +19,7 @@ local COUNTDOWN_TIMER_POLL_RATE_SECONDS = Config.getConstant("UserInterfaceCount
 
 -- public
 local function newMapVotingGui(self)
-	local MapVotingModal = Assets.getExpectedAsset("MapVotingModal", "MainGui", self._MainGui)
+	local MapVotingModal = Assets.getExpectedAsset("MapVotingModal", "MainGui", self.MainGui)
 	local MapContainer = Assets.getExpectedAsset("MapVotingMapContainer", "MapVotingModal", MapVotingModal)
 	local MapButtonTemplate = Assets.getExpectedAsset("MapVotingMapButton", "MapVotingMapContainer", MapContainer)
 	local PlayerIconTemplate = Assets.getExpectedAsset("MapVotingPlayerIcon", "MapVotingMapButton", MapButtonTemplate)
@@ -41,7 +41,7 @@ local function newMapVotingGui(self)
 		CountdownTimerLabel.Visible = (mapVotingEndsTimestamp ~= nil)
 	end
 
-	self._Maid:GiveTask(UIMaid)
+	self.Maid:GiveTask(UIMaid)
 
 	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
 		UIMaid:DoCleaning()

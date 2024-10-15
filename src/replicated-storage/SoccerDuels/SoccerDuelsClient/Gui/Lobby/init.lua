@@ -11,7 +11,7 @@ local AvailableMatchJoiningPadsGui = require(script.AvailableMatchJoiningPads)
 
 -- public / Client class methods
 local function newLobbyGui(self)
-	local LobbyGui = Assets.getExpectedAsset("LobbyGui", "MainGui", self._MainGui)
+	local LobbyGui = Assets.getExpectedAsset("LobbyGui", "MainGui", self.MainGui)
 	local LobbyButtons = Assets.getExpectedAsset("LobbyButtons", "LobbyGui", LobbyGui)
 
 	for _, LobbyButton in LobbyButtons:GetChildren() do

@@ -20,7 +20,7 @@ local MATCH_JOINING_PAD_GUI_BASE_X_SCALE = Config.getConstant("MatchJoiningPadGu
 
 -- public / Client class methods
 local function newMatchJoiningPadGui(self)
-	local MatchJoiningPadGui = Assets.getExpectedAsset("MatchJoiningPadGui", "MainGui", self._MainGui)
+	local MatchJoiningPadGui = Assets.getExpectedAsset("MatchJoiningPadGui", "MainGui", self.MainGui)
 	local Team1Container =
 		Assets.getExpectedAsset("MatchJoiningPadTeam1Container", "MatchJoiningPadGui", MatchJoiningPadGui)
 	local Team2Container =
@@ -165,7 +165,7 @@ local function newMatchJoiningPadGui(self)
 		UIModeMaid:GiveTask(clearMatchJoiningGui)
 	end)
 
-	self._Maid:GiveTask(UIModeMaid)
+	self.Maid:GiveTask(UIModeMaid)
 
 	-- clear out templates
 	CountdownTimerLabel.Visible = false

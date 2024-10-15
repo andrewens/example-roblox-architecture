@@ -79,10 +79,10 @@ local function getCachedPlayerPingMilliseconds(self, Player)
 	return self._PlayerPingMilliseconds[Player]
 end
 local function initializeClientPing(self)
-	self._Maid:GiveTask(Network.onClientEventConnect("PingPlayer", self.Player, function(...)
+	self.Maid:GiveTask(Network.onClientEventConnect("PingPlayer", self.Player, function(...)
 		onPingPlayer(self, ...)
 	end))
-	self._Maid:GiveTask(Network.onClientEventConnect("ReplicatePlayerPing", self.Player, function(...)
+	self.Maid:GiveTask(Network.onClientEventConnect("ReplicatePlayerPing", self.Player, function(...)
 		playerPingReplicated(self, ...)
 	end))
 end

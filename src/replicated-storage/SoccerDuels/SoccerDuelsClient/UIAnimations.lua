@@ -335,7 +335,7 @@ local function initializeButtonAnimations(self, GuiButton, Options)
 	-- TODO also MouseLeave is not very reliable on xbox and the xbox virtual cursor is really fat
 end
 local function initializeUIAnimationsModule(self)
-	self._Maid:GiveTask(Utility.runServiceRenderSteppedConnect(runBufferingAnimations))
+	self.Maid:GiveTask(Utility.runServiceRenderSteppedConnect(runBufferingAnimations))
 end
 
 return {

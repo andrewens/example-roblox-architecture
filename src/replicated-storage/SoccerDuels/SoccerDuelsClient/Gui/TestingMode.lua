@@ -6,7 +6,7 @@ local Config = require(SoccerDuelsModule.Config)
 
 -- public / Client class methods
 local function newTestingModeGui(self)
-	local TestingModeLabel = Assets.getExpectedAsset("TestingModeLabel", "MainGui", self._MainGui)
+	local TestingModeLabel = Assets.getExpectedAsset("TestingModeLabel", "MainGui", self.MainGui)
 	TestingModeLabel.Visible = Config.getConstant("TestingMode")
 end
 

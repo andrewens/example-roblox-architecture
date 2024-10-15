@@ -16,19 +16,19 @@ local ToastGui = require(script.Toast)
 
 -- public / Client class methods
 local function destroyClientGui(self)
-	if self._MainGui then
-		self._MainGui:Destroy()
-		self._MainGui = nil
+	if self.MainGui then
+		self.MainGui:Destroy()
+		self.MainGui = nil
 	end
 end
 local function newClientGui(self)
 	self:OnPlayerSaveDataLoadedConnect(function(_)
-		if self._MainGui then
+		if self.MainGui then
 			return -- (if for some weird reason, LoadPlayerDataAsync() gets called more than once)
 		end
 
-		self._MainGui = Assets.cloneExpectedAsset("MainGui")
-		self._MainGui.Parent = self.Player.PlayerGui
+		self.MainGui = Assets.cloneExpectedAsset("MainGui")
+		self.MainGui.Parent = self.Player.PlayerGui
 
 		MatchLoadingScreenGui.new(self)
 		MatchLeaderboardGui.new(self)

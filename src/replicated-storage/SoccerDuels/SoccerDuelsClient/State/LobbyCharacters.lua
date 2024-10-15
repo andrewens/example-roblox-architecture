@@ -80,7 +80,7 @@ local function clientOnCharacterSpawnedInLobbyConnect(self, callback)
 	}
 end
 local function initializeLobbyCharactersCache(self)
-	self._Maid:GiveTask(Network.onClientEventConnect("CharacterSpawnedInLobby", self.Player, function(...)
+	self.Maid:GiveTask(Network.onClientEventConnect("CharacterSpawnedInLobby", self.Player, function(...)
 		characterSpawnedInLobby(self, ...)
 	end))
 

@@ -15,7 +15,7 @@ local MATCH_JOINING_PAD_GUI_BASE_X_SCALE = Config.getConstant("LobbyMatchJoining
 
 -- public / Client class methods
 local function newAvailableMatchJoiningPadsGui(self)
-	local MatchPadsListContainer = Assets.getExpectedAsset("MatchJoiningPadLobbyList", "MainGui", self._MainGui)
+	local MatchPadsListContainer = Assets.getExpectedAsset("MatchJoiningPadLobbyList", "MainGui", self.MainGui)
 	local MatchPadCardTemplate =
 		Assets.getExpectedAsset("MatchJoiningPadLobbyCard", "MatchJoiningPadLobbyList", MatchPadsListContainer)
 	local PlayerIconTemplate =
@@ -142,7 +142,7 @@ local function newAvailableMatchJoiningPadsGui(self)
 		UIMaid:GiveTask(clearMatchPadsListContainer)
 	end)
 
-    self._Maid:GiveTask(UIMaid)
+    self.Maid:GiveTask(UIMaid)
 
 	-- clear templates
 	PlayerIconTemplate.Parent = nil

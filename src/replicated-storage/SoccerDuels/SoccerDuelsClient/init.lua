@@ -28,8 +28,9 @@ local ClientMetatable
 -- public / Client class methods
 local function destroyClient(self)
 	-- TODO this isn't really tested
-	self._Maid:DoCleaning()
+	self.Maid:DoCleaning()
 
+	self._ClientConnectedMatchScoreChangedCallbacks = nil
 	self._PlayerJoinedConnectedMapCallbacks = nil
 	self._UserInterfaceModeChangedCallbacks = nil
 	self._PlayerLeftConnectedMapCallbacks = nil
@@ -42,6 +43,7 @@ local function destroyClient(self)
 
 	self._MatchJoiningPadStateChangeTimestamp = nil
 	self._ImageLabelsWaitingForAvatarImages = nil
+	self._ClientConnectedMatchScore = nil
 	self._MatchJoiningPadStateEnum = nil
 	self._CachedPlayerAvatarImages = nil
 	self._CharactersInLobby = nil
@@ -64,11 +66,10 @@ local function newClient(Player)
 	-- public properties
 	local self = {}
 	self.Player = Player
+	self.Maid = Maid.new() -- cleans on self:Destroy() and self:LoadPlayerDataAsync()
+	self.MainGui = nil -- ScreenGui
 
-	-- private properties (don't use outside of client modules)
-	self._Maid = Maid.new() -- cleans on self:Destroy() and self:LoadPlayerDataAsync()
-	self._MainGui = nil -- ScreenGui
-
+	-- private properties (don't use outside of client state modules)
 	self._VisibleModalEnum = nil -- int | nil
 	self._VisibleModalChangedCallbacks = {} -- function callback(string visibleModalName) --> true
 
@@ -117,6 +118,9 @@ local function newClient(Player)
 	self._PlayerLeftConnectedMapCallbacks = {} -- function callback(Player) --> true
 	self._PlayerJoinedConnectedMapCallbacks = {} -- function callback(Player, int teamIndex) --> true
 
+	self._ClientConnectedMatchScore = { 0, 0 } -- int teamIndex --> int teamScore
+	self._ClientConnectedMatchScoreChangedCallbacks = {} -- function callback(int team1Score, int team2Score) --> true
+
 	-- init
 	setmetatable(self, ClientMetatable)
 
@@ -135,7 +139,10 @@ local function initializeClients()
 		-- map state
 		GetConnectedMapStateChangeTimestamp = ClientMapState.getClientMapStateChangeTimestamp,
 		OnPlayerLeaderstatsChangedConnect = ClientMapState.onPlayerLeaderstatsChangedConnect,
+		OnConnectedMapScoreChanged = ClientMapState.onClientMapScoreChangedConnect,
+		GetWinningTeamIndex = ClientMapState.getClientConnectedMapWinningTeamIndex,
 		GetConnectedMapName = ClientMapState.getClientConnectedMapName,
+		GetTeamScore = ClientMapState.getClientConnectedMapTeamScore,
 		-- GetPlayerTeamIndex = getAnyPlayerTeamIndex,
 
 		OnPlayerJoinedConnectedMap = ClientMapState.onPlayerJoinedConnectedMap,

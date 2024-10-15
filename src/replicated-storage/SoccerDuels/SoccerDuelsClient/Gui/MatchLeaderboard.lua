@@ -34,7 +34,7 @@ local function newMatchLeaderboardGui(self)
 	local UIMaid = Maid.new()
 	local PlayerLeaderstatRows = {} -- Player --> Frame
 
-	self._Maid:GiveTask(LeaderboardScreenGui)
+	self.Maid:GiveTask(LeaderboardScreenGui)
 
 	local function setFrameAppearance(Frame, transparency, backgroundColor)
 		Frame.Transparency = transparency

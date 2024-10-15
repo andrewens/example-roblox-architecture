@@ -119,7 +119,7 @@ end
 local function initializeClientInput(self)
 	self._ControllerTypeEnum[self.Player] = DEFAULT_CONTROLLER_TYPE_ENUM
 
-	self._Maid:GiveTask(UserInputService.InputBegan:Connect(function(InputObject, gameProcessed)
+	self.Maid:GiveTask(UserInputService.InputBegan:Connect(function(InputObject, gameProcessed)
 		if gameProcessed then
 			return
 		end
@@ -127,14 +127,14 @@ local function initializeClientInput(self)
 		clientTapInput(self, InputObject)
 		clientBeginInput(self, InputObject)
 	end))
-	self._Maid:GiveTask(UserInputService.InputChanged:Connect(function(InputObject, gameProcessed)
+	self.Maid:GiveTask(UserInputService.InputChanged:Connect(function(InputObject, gameProcessed)
 		if gameProcessed then
 			return
 		end
 
 		clientTapInput(self, InputObject)
 	end))
-	self._Maid:GiveTask(UserInputService.InputEnded:Connect(function(InputObject, gameProcessed)
+	self.Maid:GiveTask(UserInputService.InputEnded:Connect(function(InputObject, gameProcessed)
 		if gameProcessed then
 			return
 		end
@@ -142,7 +142,7 @@ local function initializeClientInput(self)
 		clientEndInput(self, InputObject)
 	end))
 
-	self._Maid:GiveTask(Network.onClientEventConnect("PlayerControllerTypeChanged", self.Player, function(...)
+	self.Maid:GiveTask(Network.onClientEventConnect("PlayerControllerTypeChanged", self.Player, function(...)
 		onPlayerControllerTypeChanged(self, ...)
 	end))
 	Network.fireServer("GetPlayersControllerTypeEnums", self.Player)

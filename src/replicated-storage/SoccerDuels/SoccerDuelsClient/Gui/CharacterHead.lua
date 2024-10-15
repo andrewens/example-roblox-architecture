@@ -18,7 +18,7 @@ local function newCharacterHeadGui(self)
 
 	local Folder = Instance.new("Folder")
 	Folder.Name = "CharacterLevelGuis"
-	Folder.Parent = self._MainGui --> gets destroyed when MainGui gets destroyed, which is when Maid does cleaning
+	Folder.Parent = self.MainGui --> gets destroyed when MainGui gets destroyed, which is when Maid does cleaning
 
 	local OverheadGuiMaids = {} -- Player --> Maid
 	local OverheadGuis = {} -- Player --> BillboardGui
@@ -41,7 +41,7 @@ local function newCharacterHeadGui(self)
 		end
 	end
 
-	self._Maid:GiveTask(self:OnCharacterSpawnedInLobbyConnect(function(Character, Player)
+	self.Maid:GiveTask(self:OnCharacterSpawnedInLobbyConnect(function(Character, Player)
 		-- clean up last OverheadGui
 		local OverheadGuiMaid = OverheadGuiMaids[Player]
 		if OverheadGuiMaid then
@@ -96,17 +96,17 @@ local function newCharacterHeadGui(self)
 		end))
 	end))
 
-	self._Maid:GiveTask(self:OnControllerTypeChangedConnect(updatePlayerDeviceIcon))
+	self.Maid:GiveTask(self:OnControllerTypeChangedConnect(updatePlayerDeviceIcon))
 
 	-- cleanup
-	self._Maid:GiveTask(function()
+	self.Maid:GiveTask(function()
 		for Player, OverheadGuiMaid in OverheadGuiMaids do
 			OverheadGuiMaid:DoCleaning()
 		end
 		OverheadGuiMaids = nil
 	end)
 
-	self._Maid:GiveTask(Players.PlayerRemoving:Connect(function(Player)
+	self.Maid:GiveTask(Players.PlayerRemoving:Connect(function(Player)
 		local OverheadGuiMaid = OverheadGuiMaids[Player]
 		if OverheadGuiMaid then
 			OverheadGuiMaid:DoCleaning()

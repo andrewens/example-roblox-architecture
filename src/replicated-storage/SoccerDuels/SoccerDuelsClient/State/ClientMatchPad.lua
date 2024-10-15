@@ -369,19 +369,19 @@ local function touchedMatchJoiningPadPartAsync(self, MatchPadPart)
 	Network.invokeServer("PlayerJoinMatchPad", self.Player, matchPadEnum, teamIndex)
 end
 local function initializeClientMatchPad(self)
-	self._Maid:GiveTask(Network.onClientEventConnect("PlayerJoinedMatchPad", self.Player, function(...)
+	self.Maid:GiveTask(Network.onClientEventConnect("PlayerJoinedMatchPad", self.Player, function(...)
 		clientConnectedMatchPadChanged(self, ...)
 	end))
 
-	self._Maid:GiveTask(Network.onClientEventConnect("MatchPadStateChanged", self.Player, function(...)
+	self.Maid:GiveTask(Network.onClientEventConnect("MatchPadStateChanged", self.Player, function(...)
 		matchPadStateChanged(self, ...)
 	end))
 
-	self._Maid:GiveTask(Network.onClientEventConnect("PlayerVoteForMap", self.Player, function(...)
+	self.Maid:GiveTask(Network.onClientEventConnect("PlayerVoteForMap", self.Player, function(...)
 		playerVotedForMap(self, ...)
 	end))
 
-	self._Maid:GiveTask(Utility.runServiceSteppedConnect(PLAYER_STEPPED_OFF_MATCH_PAD_POLL_RATE_SECONDS, function(t, dt)
+	self.Maid:GiveTask(Utility.runServiceSteppedConnect(PLAYER_STEPPED_OFF_MATCH_PAD_POLL_RATE_SECONDS, function(t, dt)
 		task.spawn(disconnectClientFromMatchPadIfCharacterSteppedOffAsync, self)
 	end))
 end

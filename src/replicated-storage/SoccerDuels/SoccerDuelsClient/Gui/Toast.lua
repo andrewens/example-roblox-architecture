@@ -14,7 +14,7 @@ local TOAST_NOTIFICATION_DURATION = Config.getConstant("ToastNotificationDuratio
 
 -- public / Client class methods
 local function newToastGui(self)
-	local ToastContainer = Assets.getExpectedAsset("ToastContainer", "MainGui", self._MainGui)
+	local ToastContainer = Assets.getExpectedAsset("ToastContainer", "MainGui", self.MainGui)
 	local ToastMessageTemplate = Assets.getExpectedAsset("ToastMessage", "ToastContainer", ToastContainer)
 
 	ToastMessageTemplate.Parent = nil

@@ -108,10 +108,10 @@ local function setImageLabelImageToAvatarHeadshot(self, ImageLabel, Player)
 	cachePlayerAvatarImage(self, Player)
 end
 local function initializeAvatarHeadshotImages(self)
-	self._Maid:GiveTask(Network.onClientEventConnect("PlayerConnected", self.Player, function(...)
+	self.Maid:GiveTask(Network.onClientEventConnect("PlayerConnected", self.Player, function(...)
 		cachePlayerAvatarImage(self, ...)
 	end))
-	self._Maid:GiveTask(Network.onClientEventConnect("PlayerDisconnected", self.Player, function(...)
+	self.Maid:GiveTask(Network.onClientEventConnect("PlayerDisconnected", self.Player, function(...)
 		clearCachedAvatarPlayerImage(self, ...)
 	end))
 end

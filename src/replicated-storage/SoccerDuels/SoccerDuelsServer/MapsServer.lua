@@ -47,12 +47,39 @@ local MapInstanceState = {} -- int mapInstanceId --> int mapStateEnum
 local MapInstanceStateChangeTimestamp = {} -- int mapInstanceId --> int unixTimestampMilliseconds
 local MapInstanceMatchesPlayed = {} -- int mapInstanceId --> int numberOfMatchesPlayed
 local MapInstanceMapEnum = {} -- int mapInstanceId --> int mapEnum
+local MapInstanceScore = {} -- int mapInstanceId --> int teamIndex --> int numGoalsScored
 
 local PlayerGoals = {} -- Player --> int | nil numGoals
 local PlayerAssists = {} -- Player --> int | nil numAssists
 local PlayerTackles = {} -- Player --> int | nil numTackles
 
 -- private
+local function wipeClientCopyOfMatchScore(Player)
+	Network.fireClient("MatchScoreChanged", Player, nil)
+end
+local function resetMapInstanceScore(mapInstanceId)
+	MapInstanceScore[mapInstanceId] = { 0, 0 }
+
+	for Player, otherTeamIndex in MapInstancePlayers[mapInstanceId] do
+		Network.fireClient("MatchScoreChanged", Player, 0, 0)
+	end
+end
+local function incrementMapInstanceScore(mapInstanceId, teamIndex)
+	local mapStateEnum = MapInstanceState[mapInstanceId]
+	if not (mapStateEnum == MATCH_GAMEPLAY_STATE_ENUM or mapStateEnum == PERPETUAL_GAMEPLAY_STATE_ENUM) then
+		return
+	end
+
+	MapInstanceScore[mapInstanceId][teamIndex] += 1
+
+	for Player, otherTeamIndex in MapInstancePlayers[mapInstanceId] do
+		Network.fireClient("MatchScoreChanged", Player, table.unpack(MapInstanceScore[mapInstanceId]))
+	end
+end
+local function replicateMapInstanceScoreToPlayer(Player, mapInstanceId)
+	Network.fireClient("MatchScoreChanged", Player, table.unpack(MapInstanceScore[mapInstanceId]))
+end
+
 local function addPlayerToLeaderstats(Player, mapInstanceId, teamIndex)
 	PlayerGoals[Player] = 0
 	PlayerAssists[Player] = 0
@@ -182,6 +209,9 @@ local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
 			resetPlayerLeaderstats(Player)
 		end
 
+		-- reset team scores
+		resetMapInstanceScore(mapInstanceId)
+
 		return
 	end
 
@@ -296,7 +326,7 @@ local function updateMapState(mapInstanceId)
 			return
 		end
 
-		-- go to 'MatchCountdown' to repeat the oloop
+		-- go to 'MatchCountdown' to repeat the loop
 		setMapState(mapInstanceId, MATCH_COUNTDOWN_STATE_ENUM, MATCH_COUNTDOWN_DURATION_SECONDS)
 		return
 	end
@@ -335,12 +365,18 @@ local function playerTackledAnotherPlayer(Player)
 	if not Utility.isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
 	end
+	if PlayerConnectedMapInstance[Player] == nil then
+		return
+	end
 
 	incrementPlayerLeaderstats(Player, 0, 0, 1)
 end
 local function playerAssistedGoal(Player)
 	if not Utility.isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
+	end
+	if PlayerConnectedMapInstance[Player] == nil then
+		return
 	end
 
 	incrementPlayerLeaderstats(Player, 0, 1, 0)
@@ -349,7 +385,14 @@ local function playerScoredGoal(Player)
 	if not Utility.isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
 	end
+	if PlayerConnectedMapInstance[Player] == nil then
+		return
+	end
 
+	local mapInstanceId = PlayerConnectedMapInstance[Player]
+	local teamIndex = MapInstancePlayers[mapInstanceId][Player]
+
+	incrementMapInstanceScore(mapInstanceId, teamIndex)
 	incrementPlayerLeaderstats(Player, 1, 0, 0)
 end
 
@@ -408,6 +451,7 @@ local function disconnectPlayerFromAllMapInstances(Player)
 		return
 	end
 
+	wipeClientCopyOfMatchScore(Player)
 	deletePlayerLeaderstats(Player) --> must happen before the player's connected map instance & teamIndex are nil
 
 	MapInstancePlayers[mapInstanceId][Player] = nil
@@ -458,6 +502,7 @@ local function connectPlayerToMapInstance(Player, mapInstanceId, teamIndex)
 
 	replicateMapStateToPlayer(Player)
 	addPlayerToLeaderstats(Player, mapInstanceId, teamIndex)
+	replicateMapInstanceScoreToPlayer(Player, mapInstanceId)
 
 	Network.fireAllClients("PlayerConnectedMapChanged", Player, MapInstanceMapEnum[mapInstanceId], teamIndex)
 
@@ -534,6 +579,7 @@ function destroyMapInstance(mapInstanceId)
 	MapInstanceState[mapInstanceId] = nil
 	MapInstanceStateChangeTimestamp[mapInstanceId] = nil
 	MapInstanceMatchesPlayed[mapInstanceId] = nil
+	MapInstanceScore[mapInstanceId] = nil
 end
 local function newMapInstance(mapName, Options)
 	Options = Options or {}
@@ -580,6 +626,7 @@ local function newMapInstance(mapName, Options)
 		MapInstanceMatchesPlayed[mapInstanceId] = 0
 	end
 
+	resetMapInstanceScore(mapInstanceId)
 	setMapState(mapInstanceId, MAP_LOADING_STATE_ENUM, MAP_LOADING_DURATION_SECONDS)
 
 	return mapInstanceId

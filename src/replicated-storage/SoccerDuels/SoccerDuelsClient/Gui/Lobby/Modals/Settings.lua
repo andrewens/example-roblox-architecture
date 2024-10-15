@@ -15,7 +15,7 @@ local BOOLEAN_SETTING_OFF_COLOR3 = Config.getConstant("BooleanSettingOffColor3")
 -- public / Client class methods
 local function newSettingsModal(self)
     -- assets
-	local SettingsModalFrame = Assets.getExpectedAsset("SettingsModal", "MainGui", self._MainGui)
+	local SettingsModalFrame = Assets.getExpectedAsset("SettingsModal", "MainGui", self.MainGui)
 	local SettingButtonsContainer =
 		Assets.getExpectedAsset("SettingButtonsContainer", "SettingsModal", SettingsModalFrame)
 	local SettingsModalCloseButton =

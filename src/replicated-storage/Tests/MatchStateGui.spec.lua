@@ -551,4 +551,167 @@ return function()
 		Client1:Destroy()
 		Client2:Destroy()
 	end)
+	it("An event fires on the client when a team's score (total number of goals) changes", function()
+		SoccerDuels.disconnectAllPlayers()
+		SoccerDuels.destroyAllMapInstances()
+		SoccerDuels.resetTestingVariables()
+
+		local maxError = 0.010
+		local mapLoadingDuration = SoccerDuels.getConstant("MapLoadingDurationSeconds")
+		local matchCountdownDuration = SoccerDuels.getConstant("MatchCountdownDurationSeconds")
+		local matchGameplayDuration = SoccerDuels.getConstant("MatchGameplayDurationSeconds")
+		local matchOverDuration = SoccerDuels.getConstant("MatchOverDurationSeconds")
+
+		local Player1 = MockInstance.new("Player")
+		local Player2 = MockInstance.new("Player")
+		local Player3 = MockInstance.new("Player")
+		local Player4 = MockInstance.new("Player")
+
+		local Client1 = SoccerDuels.newClient(Player1)
+		local Client2 = SoccerDuels.newClient(Player2)
+		local Client3 = SoccerDuels.newClient(Player3)
+		local Client4 = SoccerDuels.newClient(Player4)
+
+		Client1:LoadPlayerDataAsync()
+		Client2:LoadPlayerDataAsync()
+		Client3:LoadPlayerDataAsync()
+		Client4:LoadPlayerDataAsync()
+
+		assert(Client1:GetTeamScore(1) == 0)
+		assert(Client1:GetTeamScore(2) == 0)
+
+		local mapId1 = SoccerDuels.newMapInstance("Stadium")
+
+		SoccerDuels.connectPlayerToMapInstance(Player1, mapId1, 1)
+		SoccerDuels.connectPlayerToMapInstance(Player2, mapId1, 2)
+		SoccerDuels.connectPlayerToMapInstance(Player3, mapId1, 1)
+		SoccerDuels.connectPlayerToMapInstance(Player4, mapId1, 2)
+
+		local changeCount = 0
+		local team1Score, team2Score
+		local callback = function(...)
+			changeCount += 1
+			team1Score, team2Score = ...
+		end
+
+		-- players cannot score during map loading or match countdown
+		SoccerDuels.playerScoredGoal(Player1)
+		SoccerDuels.addExtraSecondsForTesting(mapLoadingDuration + maxError)
+		SoccerDuels.mapTimerTick()
+
+		assert(Client1:GetWinningTeamIndex() == nil)
+		assert(Client1:GetTeamScore(1) == 0)
+		assert(Client1:GetTeamScore(2) == 0)
+
+		SoccerDuels.playerScoredGoal(Player2)
+		SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration + maxError)
+		SoccerDuels.mapTimerTick()
+
+		-- callback is invoked with current score upon connecting
+		assert(SoccerDuels.getMapInstanceState(mapId1) == "MatchGameplay")
+		if not (Client1:GetWinningTeamIndex() == nil) then
+			error(`{Client1:GetWinningTeamIndex()} != nil`)
+		end
+		assert(Client1:GetTeamScore(1) == 0)
+		assert(Client1:GetTeamScore(2) == 0)
+
+		SoccerDuels.playerTackledAnotherPlayer(Player2)
+		SoccerDuels.playerScoredGoal(Player3)
+		SoccerDuels.playerAssistedGoal(Player1)
+
+		local conn = Client1:OnConnectedMapScoreChanged(callback)
+
+		assert(changeCount == 1)
+		assert(team1Score == 1)
+		assert(team2Score == 0)
+		assert(Client1:GetWinningTeamIndex() == 1)
+		assert(Client1:GetTeamScore(1) == 1)
+		assert(Client1:GetTeamScore(2) == 0)
+
+		-- callback is invoked every time the score changes
+		SoccerDuels.playerScoredGoal(Player2)
+
+		assert(changeCount == 2)
+		assert(team1Score == 1)
+		assert(team2Score == 1)
+		assert(Client1:GetWinningTeamIndex() == nil) -- nil for ties
+		assert(Client1:GetTeamScore(1) == 1)
+		assert(Client1:GetTeamScore(2) == 1)
+
+		SoccerDuels.playerScoredGoal(Player1)
+
+		assert(changeCount == 3)
+		assert(team1Score == 2)
+		assert(team2Score == 1)
+		assert(Client1:GetWinningTeamIndex() == 1)
+		assert(Client1:GetTeamScore(1) == 2)
+		assert(Client1:GetTeamScore(2) == 1)
+
+		-- (check that winning team index is correct)
+		SoccerDuels.playerScoredGoal(Player4)
+		SoccerDuels.playerScoredGoal(Player2)
+
+		assert(changeCount == 5)
+		assert(team1Score == 2)
+		assert(team2Score == 3)
+		assert(Client1:GetWinningTeamIndex() == 2)
+		assert(Client1:GetTeamScore(1) == 2)
+		assert(Client1:GetTeamScore(2) == 3)
+
+		-- if a player disconnects, the goals they scored still count
+		SoccerDuels.disconnectPlayer(Player2)
+
+		assert(changeCount == 5)
+		assert(team1Score == 2)
+		assert(team2Score == 3)
+		assert(Client1:GetWinningTeamIndex() == 2)
+		assert(Client1:GetTeamScore(1) == 2)
+		assert(Client1:GetTeamScore(2) == 3)
+
+		-- players cannot score during match over
+		SoccerDuels.addExtraSecondsForTesting(matchGameplayDuration + maxError)
+		SoccerDuels.mapTimerTick()
+		SoccerDuels.playerScoredGoal(Player2)
+
+		assert(changeCount == 5)
+		assert(Client1:GetTeamScore(1) == 2)
+		assert(Client1:GetTeamScore(2) == 3)
+
+		-- score is reset after match over
+		SoccerDuels.addExtraSecondsForTesting(matchOverDuration + maxError)
+		SoccerDuels.mapTimerTick()
+
+		assert(changeCount == 6)
+		assert(team1Score == 0)
+		assert(team2Score == 0)
+		assert(Client1:GetWinningTeamIndex() == nil)
+		assert(Client1:GetTeamScore(1) == 0)
+		assert(Client1:GetTeamScore(2) == 0)
+
+		-- callback is not invoked after we call disconnect
+		SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration + maxError)
+		SoccerDuels.mapTimerTick()
+
+		conn:Disconnect()
+		SoccerDuels.playerScoredGoal(Player1)
+
+		assert(Client1:GetUserInterfaceMode() == "MatchGameplay")
+		assert(changeCount == 6)
+		assert(team1Score == 0)
+		assert(team2Score == 0)
+		assert(Client1:GetWinningTeamIndex() == 1)
+		assert(Client1:GetTeamScore(1) == 1)
+		assert(Client1:GetTeamScore(2) == 0)
+
+		SoccerDuels.destroyMapInstance(mapId1)
+
+		assert(changeCount == 6)
+		assert(Client1:GetTeamScore(1) == 0)
+		assert(Client1:GetTeamScore(2) == 0)
+
+		Client1:Destroy()
+		Client2:Destroy()
+		Client3:Destroy()
+		Client4:Destroy()
+	end)
 end
