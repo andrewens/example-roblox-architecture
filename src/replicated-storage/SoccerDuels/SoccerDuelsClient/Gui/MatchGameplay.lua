@@ -28,6 +28,8 @@ local function newMatchLoadingScreenGui(self)
 	local GameplayGui = Assets.getExpectedAsset("MatchGameplayGui", "MainGui", self.MainGui)
 
 	local MatchCounterTextLabel = Assets.getExpectedAsset("MatchCountdownTimerLabel", "MatchGameplayGui", GameplayGui)
+
+	local ScoreboardGui = Assets.getExpectedAsset("MatchScoreboardGui", "MatchGameplayGui", GameplayGui)
 	local ScoreboardTimerTextLabel =
 		Assets.getExpectedAsset("MatchScoreboardTimerLabel", "MatchGameplayGui", GameplayGui)
 
@@ -41,9 +43,15 @@ local function newMatchLoadingScreenGui(self)
 		Assets.getExpectedAsset("MatchScoreboardTeam1BackgroundBar", "MatchGameplayGui", GameplayGui)
 	local Team2BackgroundBar =
 		Assets.getExpectedAsset("MatchScoreboardTeam2BackgroundBar", "MatchGameplayGui", GameplayGui)
-
 	local Team1ScoreLabel = Assets.getExpectedAsset("MatchScoreboardTeam1Score", "MatchGameplayGui", GameplayGui)
 	local Team2ScoreLabel = Assets.getExpectedAsset("MatchScoreboardTeam2Score", "MatchGameplayGui", GameplayGui)
+
+	local MatchGameplayControlsImage =
+		Assets.getExpectedAsset("MatchGameplayControlsImage", "MatchGameplayGui", GameplayGui)
+	local MatchGameplaySkillsContainer =
+		Assets.getExpectedAsset("MatchGameplaySkillsContainer", "MatchGameplayGui", GameplayGui)
+	local MatchGameplayPowerBarsContainer =
+		Assets.getExpectedAsset("MatchGameplayPowerBarsContainer", "MatchGameplayGui", GameplayGui)
 
 	local UIMaid = Maid.new()
 	local PlayerIcons = {} -- Player --> PlayerIcon (GuiObject)
@@ -91,10 +99,13 @@ local function newMatchLoadingScreenGui(self)
 	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
 		UIMaid:DoCleaning()
 
-		GameplayGui.Visible = GAMEPLAY_GUI_IS_VISIBLE_DURING_UI_MODE[userInterfaceMode] or false
+		ScoreboardGui.Visible = GAMEPLAY_GUI_IS_VISIBLE_DURING_UI_MODE[userInterfaceMode] or false
+		MatchGameplayControlsImage.Visible = ScoreboardGui.Visible
+		MatchGameplaySkillsContainer.Visible = ScoreboardGui.Visible
+		MatchGameplayPowerBarsContainer.Visible = ScoreboardGui.Visible
 		MatchCounterTextLabel.Visible = (userInterfaceMode == "MatchCountdown")
 
-		if GameplayGui.Visible then
+		if ScoreboardGui.Visible then
 			UIMaid:GiveTask(Utility.runServiceRenderSteppedConnect(TIMER_POLL_RATE, updateTimer))
 		end
 	end)
@@ -144,7 +155,12 @@ local function newMatchLoadingScreenGui(self)
 		Team2ScoreLabel.Text = team2Score
 	end)
 
-	GameplayGui.Visible = false
+	GameplayGui.Visible = true
+	ScoreboardGui.Visible = false
+	MatchCounterTextLabel.Visible = false
+	MatchGameplayControlsImage.Visible = false
+	MatchGameplaySkillsContainer.Visible = false
+	MatchGameplayPowerBarsContainer.Visible = false
 	PlayerIconTemplate.Parent = nil
 
 	for _, PlayerIcon in Team1PlayersContainer:GetChildren() do

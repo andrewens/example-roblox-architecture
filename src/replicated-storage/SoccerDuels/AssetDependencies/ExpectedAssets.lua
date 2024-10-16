@@ -288,6 +288,12 @@ do
 	}
 end
 
+-- practice field teleport
+ExpectedAssets.PracticeFieldTeleportPart = {
+	Path = "Workspace/TeleportToPracticeField",
+	ClassName = "BasePart",
+}
+
 -- maps
 do
 	ExpectedAssets.MapGridOriginPart = {
@@ -336,6 +342,10 @@ do
 	ExpectedAssets.MatchGameplayGui = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay",
 		ClassName = "Frame",
+	}
+	ExpectedAssets.MatchScoreboardGui = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Scoreboard",
+		ClassName = "GuiObject",
 	}
 
 	-- timers
@@ -388,6 +398,19 @@ do
 		ExpectedAssets.MatchScoreboardTeam2Score = {
 			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Scoreboard/Blue/Score",
 			ClassName = "TextLabel",
+		}
+	end
+
+	-- controls
+	do
+		ExpectedAssets.MatchGameplayControlsImage = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Left/Controls"
+		}
+		ExpectedAssets.MatchGameplaySkillsContainer = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Right"
+		}
+		ExpectedAssets.MatchGameplayPowerBarsContainer = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Bars"
 		}
 	end
 end
@@ -468,10 +491,12 @@ do
 	end
 end
 
--- practice field teleport
-ExpectedAssets.PracticeFieldTeleportPart = {
-	Path = "Workspace/TeleportToPracticeField",
-	ClassName = "BasePart",
-}
+-- game over gui
+do
+	ExpectedAssets.GameOverGui = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/GameOver",
+		ClassName = "GuiObject"
+	}
+end
 
 return ExpectedAssets
