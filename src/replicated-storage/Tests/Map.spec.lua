@@ -23,7 +23,7 @@ local function makeSomePlayersConnectToAMap(numPlayers, mapId)
 		Client:LoadPlayerDataAsync()
 		Clients[i] = Client
 
-		SoccerDuels.connectPlayerToMapInstance(Player, mapId, (i % 2) + 1)
+		SoccerDuels.connectPlayerToMapInstance(Player, mapId, ((i - 1) % 2) + 1)
 	end
 
 	return table.unpack(Clients)
@@ -316,13 +316,6 @@ return function()
 				GameOver
 					|
 				(destroy Map)
-			]]
-			--[[
-				Additional states:
-				* WinningTeamIndex
-				* Goals per team
-				* Time left
-				* Players per team
 			]]
 			it("Maps begin in a 'Loading' state that lasts a fixed amount of time", function()
 				SoccerDuels.destroyAllMapInstances()
@@ -679,6 +672,76 @@ return function()
 				Client1:Destroy()
 				Client2:Destroy()
 			end)
+			it(
+				"If a player scores a goal during 'MatchGameplay', then map state goes directly to 'MatchOver'",
+				function()
+					SoccerDuels.destroyAllMapInstances()
+					SoccerDuels.resetTestingVariables()
+
+					local mapLoadingDuration = SoccerDuels.getConstant("MapLoadingDurationSeconds")
+					local matchCountdownDuration = SoccerDuels.getConstant("MatchCountdownDurationSeconds")
+					local matchGameplayDuration = SoccerDuels.getConstant("MatchGameplayDurationSeconds")
+					local matchOverDuration = SoccerDuels.getConstant("MatchOverDurationSeconds")
+					local gameOverDuration = SoccerDuels.getConstant("GameOverDurationSeconds")
+					local maxError = 0.010
+
+					-- load map
+					local mapId = SoccerDuels.newMapInstance("Stadium")
+					local Client1, Client2 = makeSomePlayersConnectToAMap(2, mapId)
+
+					SoccerDuels.addExtraSecondsForTesting(mapLoadingDuration + maxError)
+					SoccerDuels.mapTimerTick()
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "MatchCountdown")
+
+					SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration + maxError)
+					SoccerDuels.mapTimerTick()
+
+					-- one player scores goal
+					assert(SoccerDuels.getMapInstanceState(mapId) == "MatchGameplay")
+
+					SoccerDuels.playerScoredGoal(Client1.Player)
+
+					local team1Score, team2Score = SoccerDuels.getMapInstanceScore(mapId)
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "MatchOver")
+					assert(SoccerDuels.getPlayerThatScoredLastGoal(mapId) == Client1.Player)
+					if not (team1Score == 1) then
+						error(`{team1Score} != 1`)
+					end
+					assert(team2Score == 0)
+					assert(SoccerDuels.getMapInstanceWinningTeam(mapId) == 1)
+
+					-- if somehow a second goal is scored, only the first is counted
+					SoccerDuels.addExtraSecondsForTesting(matchOverDuration + maxError)
+					SoccerDuels.mapTimerTick()
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "MatchCountdown")
+
+					SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration + maxError)
+					SoccerDuels.mapTimerTick()
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "MatchGameplay")
+
+					SoccerDuels.playerScoredGoal(Client2.Player)
+					SoccerDuels.playerScoredGoal(Client1.Player)
+
+					team1Score, team2Score = SoccerDuels.getMapInstanceScore(mapId)
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "MatchOver")
+					assert(SoccerDuels.getPlayerThatScoredLastGoal(mapId) == Client2.Player)
+					if not (team1Score == 1) then
+						error(`{team1Score} != 1`)
+					end
+					assert(team2Score == 1)
+					assert(SoccerDuels.getMapInstanceWinningTeam(mapId) == nil)
+
+					-- cleanup
+					SoccerDuels.destroyMapInstance(mapId)
+					Client1:Destroy()
+					Client2:Destroy()
+				end
+			)
 		end)
 		describe("Player characters during a match", function()
 			it(

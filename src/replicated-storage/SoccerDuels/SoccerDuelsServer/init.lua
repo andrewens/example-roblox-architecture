@@ -245,9 +245,12 @@ return {
 	getAllMapInstances = MapsServer.getAllMapInstances,
 
 	getMapInstanceStartingLocation = MapsServer.getMapInstanceStartingLocation,
+	getPlayerThatScoredLastGoal = MapsServer.getPlayerThatScoredLastGoal,
+	getMapInstanceWinningTeam = MapsServer.getMapInstanceWinningTeam,
 	getMapInstanceMapName = MapsServer.getMapInstanceMapName,
 	getMapInstanceFolder = MapsServer.getMapInstanceFolder,
 	getMapInstanceOrigin = MapsServer.getMapInstanceOrigin,
+	getMapInstanceScore = MapsServer.getMapInstanceScore,
 	destroyMapInstance = MapsServer.destroyMapInstance,
 	newMapInstance = MapsServer.newMapInstance,
 

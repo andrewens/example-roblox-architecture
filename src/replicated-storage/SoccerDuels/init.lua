@@ -74,9 +74,12 @@ return {
 	getAllMapInstances = SoccerDuelsServer.getAllMapInstances,
 
 	getMapInstanceStartingLocation = SoccerDuelsServer.getMapInstanceStartingLocation,
+	getPlayerThatScoredLastGoal = SoccerDuelsServer.getPlayerThatScoredLastGoal,
+	getMapInstanceWinningTeam = SoccerDuelsServer.getMapInstanceWinningTeam,
 	getMapInstanceMapName = SoccerDuelsServer.getMapInstanceMapName,
 	getMapInstanceFolder = SoccerDuelsServer.getMapInstanceFolder,
 	getMapInstanceOrigin = SoccerDuelsServer.getMapInstanceOrigin,
+	getMapInstanceScore = SoccerDuelsServer.getMapInstanceScore,
 	destroyMapInstance = SoccerDuelsServer.destroyMapInstance,
 	newMapInstance = SoccerDuelsServer.newMapInstance,
 

@@ -48,6 +48,7 @@ local MapInstanceStateChangeTimestamp = {} -- int mapInstanceId --> int unixTime
 local MapInstanceMatchesPlayed = {} -- int mapInstanceId --> int numberOfMatchesPlayed
 local MapInstanceMapEnum = {} -- int mapInstanceId --> int mapEnum
 local MapInstanceScore = {} -- int mapInstanceId --> int teamIndex --> int numGoalsScored
+local PlayerThatScoredLastGoal = {} -- int mapInstanceId --> Player | nil
 
 local PlayerGoals = {} -- Player --> int | nil numGoals
 local PlayerAssists = {} -- Player --> int | nil numAssists
@@ -65,11 +66,6 @@ local function resetMapInstanceScore(mapInstanceId)
 	end
 end
 local function incrementMapInstanceScore(mapInstanceId, teamIndex)
-	local mapStateEnum = MapInstanceState[mapInstanceId]
-	if not (mapStateEnum == MATCH_GAMEPLAY_STATE_ENUM or mapStateEnum == PERPETUAL_GAMEPLAY_STATE_ENUM) then
-		return
-	end
-
 	MapInstanceScore[mapInstanceId][teamIndex] += 1
 
 	for Player, otherTeamIndex in MapInstancePlayers[mapInstanceId] do
@@ -122,11 +118,6 @@ local function incrementPlayerLeaderstats(Player, newGoals, newAssists, newTackl
 		return
 	end
 
-	local mapStateEnum = MapInstanceState[mapInstanceId]
-	if not (mapStateEnum == MATCH_GAMEPLAY_STATE_ENUM or mapStateEnum == PERPETUAL_GAMEPLAY_STATE_ENUM) then
-		return
-	end
-
 	if newGoals and newGoals > 0 then
 		PlayerGoals[Player] += newGoals
 	end
@@ -143,13 +134,6 @@ local function deletePlayerLeaderstats(Player)
 	PlayerGoals[Player] = nil
 	PlayerAssists[Player] = nil
 	PlayerTackles[Player] = nil
-
-	replicatePlayerLeaderstats(Player)
-end
-local function resetPlayerLeaderstats(Player)
-	PlayerGoals[Player] = 0
-	PlayerAssists[Player] = 0
-	PlayerTackles[Player] = 0
 
 	replicatePlayerLeaderstats(Player)
 end
@@ -193,7 +177,7 @@ local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
 		replicateMapStateToPlayer(Player)
 	end
 
-	-- 'MatchCountdown' - spawn characters at their starting positions (and freeze them) + reset leaderstats
+	-- 'MatchCountdown' - spawn characters at their starting positions (and freeze them)
 	if mapStateEnum == MATCH_COUNTDOWN_STATE_ENUM then
 		local TeamPositionIndex = { 0, 0 } -- int teamIndex --> int teamPositionIndex
 		for Player, teamIndex in MapInstancePlayers[mapInstanceId] do
@@ -204,13 +188,7 @@ local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
 
 			CharacterServer.spawnPlayerCharacterAtPosition(Player, startingPosition)
 			Utility.setPlayerCharacterAnchored(Player, true)
-
-			-- reset their leaderstats
-			resetPlayerLeaderstats(Player)
 		end
-
-		-- reset team scores
-		resetMapInstanceScore(mapInstanceId)
 
 		return
 	end
@@ -260,6 +238,14 @@ local function mapInstanceHasNoPlayersOnATeam(mapInstanceId)
 	end
 
 	return not (team1HasPlayers and team2HasPlayers)
+end
+local function updateMapStateAfterPlayerScoredGoal(mapInstanceId, Player)
+	if not (MapInstanceState[mapInstanceId] == MATCH_GAMEPLAY_STATE_ENUM) then
+		return
+	end
+
+	setMapState(mapInstanceId, MATCH_OVER_STATE_ENUM, MATCH_OVER_DURATION_SECONDS)
+	PlayerThatScoredLastGoal[mapInstanceId] = Player
 end
 local function updateMapStateAfterPlayerLeft(mapInstanceId)
 	-- if MatchCycleEnabled=false, we don't do anything
@@ -375,7 +361,14 @@ local function playerTackledAnotherPlayer(Player)
 	if not Utility.isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
 	end
-	if PlayerConnectedMapInstance[Player] == nil then
+
+	local mapInstanceId = PlayerConnectedMapInstance[Player]
+	if mapInstanceId == nil then
+		return
+	end
+
+	local mapStateEnum = MapInstanceState[mapInstanceId]
+	if not (mapStateEnum == MATCH_GAMEPLAY_STATE_ENUM or mapStateEnum == PERPETUAL_GAMEPLAY_STATE_ENUM) then
 		return
 	end
 
@@ -385,7 +378,14 @@ local function playerAssistedGoal(Player)
 	if not Utility.isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
 	end
-	if PlayerConnectedMapInstance[Player] == nil then
+
+	local mapInstanceId = PlayerConnectedMapInstance[Player]
+	if mapInstanceId == nil then
+		return
+	end
+
+	local mapStateEnum = MapInstanceState[mapInstanceId]
+	if not (mapStateEnum == MATCH_GAMEPLAY_STATE_ENUM or mapStateEnum == PERPETUAL_GAMEPLAY_STATE_ENUM) then
 		return
 	end
 
@@ -395,15 +395,22 @@ local function playerScoredGoal(Player)
 	if not Utility.isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
 	end
-	if PlayerConnectedMapInstance[Player] == nil then
+
+	local mapInstanceId = PlayerConnectedMapInstance[Player]
+	if mapInstanceId == nil then
 		return
 	end
 
-	local mapInstanceId = PlayerConnectedMapInstance[Player]
+	local mapStateEnum = MapInstanceState[mapInstanceId]
+	if not (mapStateEnum == MATCH_GAMEPLAY_STATE_ENUM or mapStateEnum == PERPETUAL_GAMEPLAY_STATE_ENUM) then
+		return
+	end
+
 	local teamIndex = MapInstancePlayers[mapInstanceId][Player]
 
 	incrementMapInstanceScore(mapInstanceId, teamIndex)
 	incrementPlayerLeaderstats(Player, 1, 0, 0)
+	updateMapStateAfterPlayerScoredGoal(mapInstanceId, Player)
 end
 
 local function getMapInstanceStartingLocation(mapInstanceId, teamIndex, teamPositionIndex)
@@ -536,6 +543,29 @@ local function playerIsInLobby(Player)
 	return PlayerConnectedMapInstance[Player] == nil
 end
 
+local function getMapInstanceWinningTeam(mapInstanceId)
+	if not Utility.isInteger(mapInstanceId) then
+		error(`{mapInstanceId} is not a map instance id!`)
+	end
+
+	if MapInstanceScore[mapInstanceId] == nil then
+		return
+	end
+
+	local team1Score, team2Score = table.unpack(MapInstanceScore[mapInstanceId])
+	if team1Score == team2Score then
+		return nil
+	end
+
+	return if team1Score > team2Score then 1 else 2
+end
+local function getPlayerThatScoredLastGoal(mapInstanceId)
+	if not Utility.isInteger(mapInstanceId) then
+		error(`{mapInstanceId} is not a map instance id!`)
+	end
+
+	return PlayerThatScoredLastGoal[mapInstanceId]
+end
 local function getMapInstanceMapName(mapInstanceId)
 	if not Utility.isInteger(mapInstanceId) then
 		error(`{mapInstanceId} is not a map instance id!`)
@@ -567,6 +597,18 @@ local function getMapInstanceOrigin(mapInstanceId)
 
 	return mapPositionIndexToOriginPosition(mapPositionIndex)
 end
+local function getMapInstanceScore(mapInstanceId)
+	if not Utility.isInteger(mapInstanceId) then
+		error(`{mapInstanceId} is not a map instance id!`)
+	end
+
+	local mapPositionIndex = MapInstanceIdToMapPositionIndex[mapInstanceId]
+	if mapPositionIndex == nil then
+		return nil
+	end
+
+	return table.unpack(MapInstanceScore[mapInstanceId])
+end
 function destroyMapInstance(mapInstanceId)
 	if not Utility.isInteger(mapInstanceId) then
 		error(`{mapInstanceId} is not a map instance id!`)
@@ -596,6 +638,7 @@ function destroyMapInstance(mapInstanceId)
 	MapInstanceStateChangeTimestamp[mapInstanceId] = nil
 	MapInstanceMatchesPlayed[mapInstanceId] = nil
 	MapInstanceScore[mapInstanceId] = nil
+	PlayerThatScoredLastGoal[mapInstanceId] = nil
 end
 local function newMapInstance(mapName, Options)
 	Options = Options or {}
@@ -697,9 +740,12 @@ return {
 	getAllMapInstances = getAllMapInstances,
 
 	getMapInstanceStartingLocation = getMapInstanceStartingLocation,
+	getPlayerThatScoredLastGoal = getPlayerThatScoredLastGoal,
+	getMapInstanceWinningTeam = getMapInstanceWinningTeam,
 	getMapInstanceMapName = getMapInstanceMapName,
 	getMapInstanceFolder = getMapInstanceFolder,
 	getMapInstanceOrigin = getMapInstanceOrigin,
+	getMapInstanceScore = getMapInstanceScore,
 	destroyMapInstance = destroyMapInstance,
 	newMapInstance = newMapInstance,
 
