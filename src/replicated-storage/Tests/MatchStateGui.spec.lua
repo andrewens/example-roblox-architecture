@@ -732,4 +732,120 @@ return function()
 		Client3:Destroy()
 		Client4:Destroy()
 	end)
+	it("The MVP of a game is whoever had the most goals", function()
+		SoccerDuels.disconnectAllPlayers()
+		SoccerDuels.destroyAllMapInstances()
+		SoccerDuels.resetTestingVariables()
+
+		local maxError = 0.010
+		local mapLoadingDuration = SoccerDuels.getConstant("MapLoadingDurationSeconds")
+		local matchCountdownDuration = SoccerDuels.getConstant("MatchCountdownDurationSeconds")
+		local matchGameplayDuration = SoccerDuels.getConstant("MatchGameplayDurationSeconds")
+		local matchOverDuration = SoccerDuels.getConstant("MatchOverDurationSeconds")
+
+		local Player1 = MockInstance.new("Player")
+		local Player2 = MockInstance.new("Player")
+		local Player3 = MockInstance.new("Player")
+		local Player4 = MockInstance.new("Player")
+
+		local Client1 = SoccerDuels.newClient(Player1)
+		local Client2 = SoccerDuels.newClient(Player2)
+		local Client3 = SoccerDuels.newClient(Player3)
+		local Client4 = SoccerDuels.newClient(Player4)
+
+		Client1:LoadPlayerDataAsync()
+		Client2:LoadPlayerDataAsync()
+		Client3:LoadPlayerDataAsync()
+		Client4:LoadPlayerDataAsync()
+
+		local mapId1 = SoccerDuels.newMapInstance("Stadium")
+
+		SoccerDuels.connectPlayerToMapInstance(Player1, mapId1, 1)
+		SoccerDuels.connectPlayerToMapInstance(Player2, mapId1, 2)
+		SoccerDuels.connectPlayerToMapInstance(Player3, mapId1, 1)
+		SoccerDuels.connectPlayerToMapInstance(Player4, mapId1, 2)
+
+		SoccerDuels.addExtraSecondsForTesting(mapLoadingDuration + maxError)
+		SoccerDuels.mapTimerTick()
+		SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration + maxError)
+		SoccerDuels.mapTimerTick()
+
+		-- round 1: Player2 scores, Player4 assists
+		assert(SoccerDuels.getMapInstanceState(mapId1) == "MatchGameplay")
+		SoccerDuels.playerAssistedGoal(Player4)
+		SoccerDuels.playerScoredGoal(Player2)
+
+		assert(Client1:GetPlayerWhoScoredLastGoal() == Player2)
+		assert(Client1:GetTeamMVP(1) == nil)
+		assert(Client1:GetTeamMVP(2) == Player2) -- MVP is Player2
+
+		SoccerDuels.addExtraSecondsForTesting(matchOverDuration + maxError)
+		SoccerDuels.mapTimerTick()
+		SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration + maxError)
+		SoccerDuels.mapTimerTick()
+
+		-- round 2: Player4 scores, Player2 assists
+		assert(SoccerDuels.getMapInstanceState(mapId1) == "MatchGameplay")
+		SoccerDuels.playerAssistedGoal(Player2)
+		SoccerDuels.playerScoredGoal(Player4)
+
+		assert(Client1:GetPlayerWhoScoredLastGoal() == Player4)
+		assert(Client1:GetTeamMVP(1) == nil)
+		assert(Client1:GetTeamMVP(2) == nil) -- MVP is nil because they're tied
+
+		SoccerDuels.addExtraSecondsForTesting(matchOverDuration + maxError)
+		SoccerDuels.mapTimerTick()
+		SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration + maxError)
+		SoccerDuels.mapTimerTick()
+
+		-- round 3: Player1 scores, Player4 tackles
+		assert(SoccerDuels.getMapInstanceState(mapId1) == "MatchGameplay")
+		SoccerDuels.playerTackledAnotherPlayer(Player4)
+		SoccerDuels.playerScoredGoal(Player1)
+
+		assert(Client1:GetPlayerWhoScoredLastGoal() == Player1)
+		assert(Client1:GetTeamMVP(1) == Player1)
+		assert(Client1:GetTeamMVP(2) == Player4) -- Player4 is MVP because of the tackle
+
+		SoccerDuels.addExtraSecondsForTesting(matchOverDuration + maxError)
+		SoccerDuels.mapTimerTick()
+		SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration + maxError)
+		SoccerDuels.mapTimerTick()
+
+		-- round 4: Player3 scores, Player1 assists
+		assert(SoccerDuels.getMapInstanceState(mapId1) == "MatchGameplay")
+		SoccerDuels.playerAssistedGoal(Player1)
+		SoccerDuels.playerScoredGoal(Player3)
+
+		assert(Client1:GetPlayerWhoScoredLastGoal() == Player3)
+		assert(Client1:GetPlayerLeaderstat(Player1, "Assists") == 1)
+		assert(Client1:GetPlayerLeaderstat(Player1, "Goals") == 1)
+		assert(Client1:GetPlayerLeaderstat(Player3, "Assists") == 0)
+		assert(Client1:GetPlayerLeaderstat(Player3, "Goals") == 1)
+		if not (Client1:GetTeamMVP(1) == Player1) then -- Player1 is still MVP because assist + goal > just a goal
+			error(`{Client1:GetTeamMVP(1)} != {Player1}`)
+		end
+		assert(Client1:GetTeamMVP(2) == Player4)
+
+		SoccerDuels.addExtraSecondsForTesting(matchOverDuration + maxError)
+		SoccerDuels.mapTimerTick()
+		SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration + maxError)
+		SoccerDuels.mapTimerTick()
+
+		-- round 5: Player3 scores, Player1 assists
+		assert(SoccerDuels.getMapInstanceState(mapId1) == "MatchGameplay")
+		SoccerDuels.playerAssistedGoal(Player1)
+		SoccerDuels.playerScoredGoal(Player3)
+
+		assert(Client1:GetPlayerWhoScoredLastGoal() == Player3)
+		assert(Client1:GetTeamMVP(1) == Player3) -- Player3 is now MVP because they have two goals
+		assert(Client1:GetTeamMVP(2) == Player4)
+
+		-- cleanup
+		SoccerDuels.destroyMapInstance(mapId1)
+		Client1:Destroy()
+		Client2:Destroy()
+		Client3:Destroy()
+		Client4:Destroy()
+	end)
 end

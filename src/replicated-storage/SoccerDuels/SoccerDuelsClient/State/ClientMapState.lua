@@ -4,6 +4,7 @@ local SoccerDuelsClientStateFolder = script:FindFirstAncestor("State")
 
 local Enums = require(SoccerDuelsModule.Enums)
 local Network = require(SoccerDuelsModule.Network)
+local Utility = require(SoccerDuelsModule.Utility)
 
 local ClientModalState = require(SoccerDuelsClientStateFolder.ClientModalState)
 local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserInterfaceMode)
@@ -30,6 +31,10 @@ local function clientConnectedMapScoreChanged(self, team1Score, team2Score)
 	end
 end
 local function playerLeaderstatsChanged(self, Player, teamIndex, goalsScored, numAssists, numTackles)
+	if typeof(goalsScored) == "number" and goalsScored > 0 and goalsScored ~= self._PlayerGoals[Player] then
+		self._PlayerThatScoredLastGoal = Player
+	end
+
 	self._PlayerTeamIndex[Player] = teamIndex
 	self._PlayerGoals[Player] = goalsScored
 	self._PlayerAssists[Player] = numAssists
@@ -50,6 +55,9 @@ local function playerConnectedMapChanged(self, Player, mapEnum, teamIndex)
 	self._PlayerTeamIndex[Player] = teamIndex
 
 	if Player == self.Player then
+		-- reset data
+		self._PlayerThatScoredLastGoal = nil
+
 		-- make any modals go away
 		ClientModalState.setClientVisibleModal(self, nil)
 
@@ -108,6 +116,97 @@ local function playerConnectedMapStateChanged(self, mapStateEnum, stateEndTimest
 end
 
 -- public / Client class methods
+local function getClientConnectedMapPlayerLeaderstat(self, Player, leaderstat)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+
+	if leaderstat == "Goals" then
+		return self._PlayerGoals[Player]
+	end
+
+	if leaderstat == "Assists" then
+		return self._PlayerAssists[Player]
+	end
+
+	if leaderstat == "Tackles" then
+		return self._PlayerTackles[Player]
+	end
+
+	error(`There's no leaderstat named "{leaderstat}"`)
+end
+local function getClientedConnectedMapTeamMostValuablePlayer(self, teamIndex)
+	if not (teamIndex == 1 or teamIndex == 2) then
+		error(`{teamIndex} is not 1 or 2!`)
+	end
+
+	--[[
+			is new mvp?   goals  assists  tackles
+			Y				>		>		>
+			Y				>		>		==
+			Y				>		>		<
+			Y				>		==		>
+			Y				>		==		==
+			Y				>		==		<
+			Y				>		<		>
+			Y				>		<		==
+			Y				>		<		<
+			Y				==		>		>
+			Y				==		>		==
+			Y				==		>		<
+			Y				==		==		>
+		delete MVP (tie)	==		==		==
+			N				==		==		<
+			N				==		<		>
+			N				==		<		==
+			N				==		<		<
+			N				<		>		<
+			N				<		>		==
+			N				<		>		>
+			N				<		==		>
+			N				<		==		==
+			N				<		==		<
+			N				<		<		>
+			N				<		<		==
+			N				<		<		<
+	]]
+
+	local mvpGoals = 0
+	local mvpAssists = 0
+	local mvpTackles = 0
+	local MVPPlayer
+
+	for Player, numGoals in self._PlayerGoals do
+		if self._PlayerTeamIndex[Player] ~= teamIndex then
+			continue
+		end
+
+		local numAssists = self._PlayerAssists[Player]
+		local numTackles = self._PlayerTackles[Player]
+
+		if numGoals == mvpGoals and numAssists == mvpAssists and numTackles == mvpTackles then
+			MVPPlayer = nil
+			continue
+		end
+		if
+			numGoals < mvpGoals
+			or (numGoals == mvpGoals and numAssists < mvpAssists)
+			or (numGoals == mvpGoals and numAssists == mvpAssists and numTackles < mvpTackles)
+		then
+			continue
+		end
+
+		MVPPlayer = Player
+		mvpGoals = numGoals
+		mvpAssists = numAssists
+		mvpTackles = numTackles
+	end
+
+	return MVPPlayer
+end
+local function getPlayerWhoScoredLastGoalInClientConnectedMap(self)
+	return self._PlayerThatScoredLastGoal
+end
 local function getClientConnectedMapTeamScore(self, teamIndex)
 	if not (teamIndex == 1 or teamIndex == 2) then
 		error(`{teamIndex} is not 1 or 2!`)
@@ -225,6 +324,9 @@ local function initializeClientMapState(self)
 end
 
 return {
+	getPlayerWhoScoredLastGoalInClientConnectedMap = getPlayerWhoScoredLastGoalInClientConnectedMap,
+	getClientedConnectedMapTeamMostValuablePlayer = getClientedConnectedMapTeamMostValuablePlayer,
+	getClientConnectedMapPlayerLeaderstat = getClientConnectedMapPlayerLeaderstat,
 	getClientConnectedMapWinningTeamIndex = getClientConnectedMapWinningTeamIndex,
 	onPlayerLeaderstatsChangedConnect = onPlayerLeaderstatsChangedConnect,
 	getClientMapStateChangeTimestamp = getClientMapStateChangeTimestamp,
