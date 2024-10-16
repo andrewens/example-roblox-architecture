@@ -497,6 +497,33 @@ do
 		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/GameOver",
 		ClassName = "GuiObject"
 	}
+	ExpectedAssets.GameOverMVPContainer = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/GameOver/Lower",
+	}
+
+	-- mvp user
+	ExpectedAssets.GameOverMVPUserNameLabel = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/GameOver/Lower/User/List/User",
+		ClassName = "TextLabel",
+	}
+	ExpectedAssets.GameOverMVPLevelLabel = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/GameOver/Lower/User/List/Level/Value",
+		ClassName = "TextLabel",
+	}
+
+	-- mvp stats
+	ExpectedAssets.GameOverMVPGoalsLabel = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/GameOver/Lower/Stats/List/Goals/Value",
+		ClassName = "TextLabel",
+	}
+	ExpectedAssets.GameOverMVPAssistsLabel = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/GameOver/Lower/Stats/List/Assists/Value",
+		ClassName = "TextLabel",
+	}
+	ExpectedAssets.GameOverMVPTacklesLabel = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/GameOver/Lower/Stats/List/Tackles/Value",
+		ClassName = "TextLabel",
+	}
 end
 
 return ExpectedAssets
