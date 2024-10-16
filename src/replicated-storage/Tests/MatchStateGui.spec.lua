@@ -772,6 +772,8 @@ return function()
 
 		-- round 1: Player2 scores, Player4 assists
 		assert(SoccerDuels.getMapInstanceState(mapId1) == "MatchGameplay")
+		assert(Client1:GetPlayerWhoScoredLastGoal() == nil)
+
 		SoccerDuels.playerAssistedGoal(Player4)
 		SoccerDuels.playerScoredGoal(Player2)
 
@@ -786,6 +788,8 @@ return function()
 
 		-- round 2: Player4 scores, Player2 assists
 		assert(SoccerDuels.getMapInstanceState(mapId1) == "MatchGameplay")
+		assert(Client1:GetPlayerWhoScoredLastGoal() == nil)
+
 		SoccerDuels.playerAssistedGoal(Player2)
 		SoccerDuels.playerScoredGoal(Player4)
 
@@ -800,6 +804,8 @@ return function()
 
 		-- round 3: Player1 scores, Player4 tackles
 		assert(SoccerDuels.getMapInstanceState(mapId1) == "MatchGameplay")
+		assert(Client1:GetPlayerWhoScoredLastGoal() == nil)
+
 		SoccerDuels.playerTackledAnotherPlayer(Player4)
 		SoccerDuels.playerScoredGoal(Player1)
 
@@ -814,6 +820,8 @@ return function()
 
 		-- round 4: Player3 scores, Player1 assists
 		assert(SoccerDuels.getMapInstanceState(mapId1) == "MatchGameplay")
+		assert(Client1:GetPlayerWhoScoredLastGoal() == nil)
+
 		SoccerDuels.playerAssistedGoal(Player1)
 		SoccerDuels.playerScoredGoal(Player3)
 
@@ -834,6 +842,8 @@ return function()
 
 		-- round 5: Player3 scores, Player1 assists
 		assert(SoccerDuels.getMapInstanceState(mapId1) == "MatchGameplay")
+		assert(Client1:GetPlayerWhoScoredLastGoal() == nil)
+
 		SoccerDuels.playerAssistedGoal(Player1)
 		SoccerDuels.playerScoredGoal(Player3)
 

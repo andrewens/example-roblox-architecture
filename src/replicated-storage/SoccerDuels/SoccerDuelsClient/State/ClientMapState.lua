@@ -11,6 +11,7 @@ local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserI
 
 -- const
 local LOADING_MAP_ENUM = Enums.getEnum("MapState", "Loading")
+local MATCH_COUNTDOWN_STATE_ENUM = Enums.getEnum("MapState", "MatchCountdown")
 
 -- protected / Network methods
 local function clientConnectedMapScoreChanged(self, team1Score, team2Score)
@@ -93,6 +94,11 @@ end
 local function playerConnectedMapStateChanged(self, mapStateEnum, stateEndTimestamp)
 	self._ConnectedMapStateEnum = mapStateEnum
 	self._ConnectedMapStateEndTimestamp = stateEndTimestamp
+
+	-- mapState: 'MatchCountdown' --> reset _PlayerThatScoredLastGoal
+	if mapStateEnum == MATCH_COUNTDOWN_STATE_ENUM then
+		self._PlayerThatScoredLastGoal = nil
+	end
 
 	-- mapState: 'nil' (map was destroyed) --> userInterfaceMode: 'Lobby'
 	if mapStateEnum == nil then

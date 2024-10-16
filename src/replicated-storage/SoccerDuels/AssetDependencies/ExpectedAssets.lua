@@ -491,6 +491,29 @@ do
 	end
 end
 
+-- match over gui
+do
+	ExpectedAssets.MatchOverGui = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/RoundWonOrLost"
+	}
+	ExpectedAssets.MatchOverResultLabel = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/RoundWonOrLost/Bar/Result",
+		ClassName = "TextLabel",
+	}
+	ExpectedAssets.MatchOverLostGradient = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/RoundWonOrLost/Bar/Lost",
+		ClassName = "UIGradient",
+	}
+	ExpectedAssets.MatchOverWonGradient = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/RoundWonOrLost/Bar/Won",
+		ClassName = "UIGradient",
+	}
+	ExpectedAssets.MatchOverDrawGradient = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/RoundWonOrLost/Bar/Draw",
+		ClassName = "UIGradient",
+	}
+end
+
 -- game over gui
 do
 	ExpectedAssets.GameOverGui = {
