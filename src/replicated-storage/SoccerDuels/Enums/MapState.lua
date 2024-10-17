@@ -4,5 +4,6 @@ return {
     "MatchCountdown",
     "MatchGameplay",
     "MatchOver",
+    "GoalCutscene",
     "GameOver",
 }

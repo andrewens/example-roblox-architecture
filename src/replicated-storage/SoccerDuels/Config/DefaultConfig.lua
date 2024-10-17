@@ -201,11 +201,14 @@ DefaultConfig.MapLoadingDurationSeconds = 3
 DefaultConfig.MatchCountdownDurationSeconds = 5
 DefaultConfig.MatchGameplayDurationSeconds = 90
 DefaultConfig.MatchOverDurationSeconds = 5
+DefaultConfig.GoalCutsceneDurationSeconds = 5
 DefaultConfig.GameOverDurationSeconds = 5
 
 DefaultConfig.DefaultMapInstanceOptions = {
 	MatchCycleEnabled = true,
 }
+
+DefaultConfig.GoalCutsceneFramesPerSecond = 10
 
 -- ping
 DefaultConfig.PingCheckPollRateSeconds = 1

@@ -24,12 +24,14 @@ local MAP_LOADING_DURATION_SECONDS = Config.getConstant("MapLoadingDurationSecon
 local MATCH_COUNTDOWN_DURATION_SECONDS = Config.getConstant("MatchCountdownDurationSeconds")
 local MATCH_GAMEPLAY_DURATION_SECONDS = Config.getConstant("MatchGameplayDurationSeconds")
 local MATCH_OVER_DURATION_SECONDS = Config.getConstant("MatchOverDurationSeconds")
+local GOAL_CUTSCENE_DURATION_SECONDS = Config.getConstant("GoalCutsceneDurationSeconds")
 local GAME_OVER_DURATION_SECONDS = Config.getConstant("GameOverDurationSeconds")
 
 local MAP_LOADING_STATE_ENUM = Enums.getEnum("MapState", "Loading")
 local MATCH_COUNTDOWN_STATE_ENUM = Enums.getEnum("MapState", "MatchCountdown")
 local MATCH_GAMEPLAY_STATE_ENUM = Enums.getEnum("MapState", "MatchGameplay")
 local MATCH_OVER_STATE_ENUM = Enums.getEnum("MapState", "MatchOver")
+local GOAL_CUTSCENE_STATE_ENUM = Enums.getEnum("MapState", "GoalCutscene")
 local GAME_OVER_STATE_ENUM = Enums.getEnum("MapState", "GameOver")
 local PERPETUAL_GAMEPLAY_STATE_ENUM = Enums.getEnum("MapState", "Gameplay")
 
@@ -177,8 +179,11 @@ local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
 		replicateMapStateToPlayer(Player)
 	end
 
-	-- 'MatchCountdown' - spawn characters at their starting positions (and freeze them)
+	-- 'MatchCountdown' - spawn characters at their starting positions (and freeze them) + reset PlayerThatScoredLastGoal
 	if mapStateEnum == MATCH_COUNTDOWN_STATE_ENUM then
+		-- no one scored the last goal
+		PlayerThatScoredLastGoal[mapInstanceId] = nil
+
 		local TeamPositionIndex = { 0, 0 } -- int teamIndex --> int teamPositionIndex
 		for Player, teamIndex in MapInstancePlayers[mapInstanceId] do
 			-- move their character to a starting position
@@ -307,8 +312,14 @@ local function updateMapState(mapInstanceId)
 		return
 	end
 
-	-- 'MatchOver' --> 'MatchCountdown' | 'GameOver'
+	-- 'MatchOver' --> 'GoalCutscene' | 'MatchCountdown' | 'GameOver'
 	if currentStateEnum == MATCH_OVER_DURATION_SECONDS then
+		-- go to 'GoalCutscene' if someone scored a goal
+		if PlayerThatScoredLastGoal[mapInstanceId] then
+			setMapState(mapInstanceId, GOAL_CUTSCENE_STATE_ENUM, GOAL_CUTSCENE_DURATION_SECONDS)
+			return
+		end
+
 		-- go to 'GameOver' if we've played all of the matches
 		MapInstanceMatchesPlayed[mapInstanceId] += 1
 		if MapInstanceMatchesPlayed[mapInstanceId] >= NUMBER_OF_MATCHES_PER_GAME then
@@ -322,7 +333,27 @@ local function updateMapState(mapInstanceId)
 			return
 		end
 
-		-- go to 'MatchCountdown' to repeat the loop
+		-- go to 'MatchCountdown' to repeat the loop otherwise
+		setMapState(mapInstanceId, MATCH_COUNTDOWN_STATE_ENUM, MATCH_COUNTDOWN_DURATION_SECONDS)
+		return
+	end
+
+	-- 'GoalCutscene' --> 'MatchCountdown' | 'GameOver'
+	if currentStateEnum == GOAL_CUTSCENE_STATE_ENUM then
+		-- go to 'GameOver' if we've played all of the matches
+		MapInstanceMatchesPlayed[mapInstanceId] += 1
+		if MapInstanceMatchesPlayed[mapInstanceId] >= NUMBER_OF_MATCHES_PER_GAME then
+			setMapState(mapInstanceId, GAME_OVER_STATE_ENUM, GAME_OVER_DURATION_SECONDS)
+			return
+		end
+
+		-- go to 'GameOver' if a team has no players on it
+		if mapInstanceHasNoPlayersOnATeam(mapInstanceId) then
+			setMapState(mapInstanceId, GAME_OVER_STATE_ENUM, GAME_OVER_DURATION_SECONDS)
+			return
+		end
+
+		-- go to 'MatchCountdown' to repeat the loop otherwise
 		setMapState(mapInstanceId, MATCH_COUNTDOWN_STATE_ENUM, MATCH_COUNTDOWN_DURATION_SECONDS)
 		return
 	end

@@ -307,6 +307,8 @@ return function()
 					|					|
 				MatchOver				|
 					|					|
+				GoalCutscene (only if someone scored)
+					|					|
 					|---------->--------|
 					|					|
 				repeat 5x		If all players on a team leave
@@ -343,7 +345,7 @@ return function()
 				assert(SoccerDuels.getMapInstanceState(mapId) == nil)
 			end)
 			it(
-				"Maps repeat a cycle of 'MatchCountdown', 'MatchGameplay', and 'MatchOver' states a few times, then it's a 'GameOver' state",
+				"Maps repeat a cycle of 'MatchCountdown', 'MatchGameplay', 'MatchOver', and states a few times, then it's a 'GameOver' state",
 				function()
 					SoccerDuels.destroyAllMapInstances()
 					SoccerDuels.resetTestingVariables()
@@ -673,7 +675,7 @@ return function()
 				Client2:Destroy()
 			end)
 			it(
-				"If a player scores a goal during 'MatchGameplay', then map state goes directly to 'MatchOver'",
+				"If a player scores a goal during 'MatchGameplay', then map state goes directly to 'MatchOver', then to 'GoalCutscene'",
 				function()
 					SoccerDuels.destroyAllMapInstances()
 					SoccerDuels.resetTestingVariables()
@@ -682,6 +684,7 @@ return function()
 					local matchCountdownDuration = SoccerDuels.getConstant("MatchCountdownDurationSeconds")
 					local matchGameplayDuration = SoccerDuels.getConstant("MatchGameplayDurationSeconds")
 					local matchOverDuration = SoccerDuels.getConstant("MatchOverDurationSeconds")
+					local goalCutsceneDuration = SoccerDuels.getConstant("GoalCutsceneDurationSeconds")
 					local gameOverDuration = SoccerDuels.getConstant("GameOverDurationSeconds")
 					local maxError = 0.010
 
@@ -714,6 +717,11 @@ return function()
 
 					-- if somehow a second goal is scored, only the first is counted
 					SoccerDuels.addExtraSecondsForTesting(matchOverDuration + maxError)
+					SoccerDuels.mapTimerTick()
+
+					assert(SoccerDuels.getMapInstanceState(mapId) == "GoalCutscene")
+
+					SoccerDuels.addExtraSecondsForTesting(goalCutsceneDuration + maxError)
 					SoccerDuels.mapTimerTick()
 
 					assert(SoccerDuels.getMapInstanceState(mapId) == "MatchCountdown")
