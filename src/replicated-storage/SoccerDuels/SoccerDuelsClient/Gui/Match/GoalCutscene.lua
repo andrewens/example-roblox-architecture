@@ -11,8 +11,6 @@ local Utility = require(SoccerDuelsModule.Utility)
 local AvatarHeadshotImages = require(SoccerDuelsClientModule.AvatarHeadshotImages)
 local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 
--- const
-
 -- public / Client class methods
 local function newGoalCutsceneGui(self)
 	local GoalCutsceneGui = Assets.getExpectedAsset("GoalCutsceneGui", "MainGui", self.MainGui)
@@ -33,6 +31,17 @@ local function newGoalCutsceneGui(self)
 	local GoalCutsceneAssistTeam2Background =
 		Assets.getExpectedAsset("GoalCutsceneAssistTeam2Background", "GoalCutsceneGui", GoalCutsceneGui)
 
+	local GoalCutscenePlayerCard = Assets.getExpectedAsset("GoalCutscenePlayerCard", "GoalCutsceneGui", GoalCutsceneGui)
+	local GoalCutscenePlayerCardProfilePictureImage = Assets.getExpectedAsset(
+		"GoalCutscenePlayerCardProfilePictureImage",
+		"GoalCutscenePlayerCard",
+		GoalCutscenePlayerCard
+	)
+	local GoalCutscenePlayerCardUserNameLabel =
+		Assets.getExpectedAsset("GoalCutscenePlayerCardUserNameLabel", "GoalCutscenePlayerCard", GoalCutscenePlayerCard)
+	local GoalCutscenePlayerCardLevelLabel =
+		Assets.getExpectedAsset("GoalCutscenePlayerCardLevelLabel", "GoalCutscenePlayerCard", GoalCutscenePlayerCard)
+
 	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
 		GoalCutsceneGui.Visible = (userInterfaceMode == "GoalCutscene")
 		if not GoalCutsceneGui.Visible then
@@ -43,20 +52,27 @@ local function newGoalCutsceneGui(self)
 		local PlayerThatAssistedLastGoal = self:GetPlayerWhoAssistedLastGoal()
 		local teamIndex = self:GetPlayerTeamIndex(PlayerThatScoredLastGoal)
 
-        -- goal
+		-- goal
 		GoalCutsceneGoalPlayerLabel.Text = `Scored by {PlayerThatScoredLastGoal.Name}`
 		GoalCutsceneGoalPlayerTeam1Background.Enabled = (teamIndex == 1)
 		GoalCutsceneGoalPlayerTeam2Background.Enabled = (teamIndex == 2)
 
-        -- assist
+		-- assist
 		GoalCutsceneAssistContainer.Visible = PlayerThatAssistedLastGoal ~= nil
-		if not GoalCutsceneAssistContainer.Visible then
-			return
+		if GoalCutsceneAssistContainer.Visible then
+			GoalCutsceneAssistLabel.Text = `Assisted by {PlayerThatAssistedLastGoal.Name}`
+			GoalCutsceneAssistTeam1Background.Enabled = (teamIndex == 1)
+			GoalCutsceneAssistTeam2Background.Enabled = (teamIndex == 2)
 		end
 
-		GoalCutsceneAssistLabel.Text = `Assisted by {PlayerThatAssistedLastGoal.Name}`
-		GoalCutsceneAssistTeam1Background.Enabled = (teamIndex == 1)
-		GoalCutsceneAssistTeam2Background.Enabled = (teamIndex == 2)
+		-- card
+		AvatarHeadshotImages.setImageLabelImageToAvatarHeadshot(
+			self,
+			GoalCutscenePlayerCardProfilePictureImage,
+			PlayerThatScoredLastGoal
+		)
+		GoalCutscenePlayerCardUserNameLabel.Text = PlayerThatScoredLastGoal.Name
+		GoalCutscenePlayerCardLevelLabel.Text = self:GetAnyPlayerDataValue("Level", PlayerThatScoredLastGoal)
 	end)
 
 	GoalCutsceneGui.Visible = false

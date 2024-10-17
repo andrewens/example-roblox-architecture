@@ -554,6 +554,35 @@ do
 			ClassName = "UIGradient",
 		}
 	end
+
+	-- goal scoring player's stats card
+	do
+		ExpectedAssets.GoalCutscenePlayerCard = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Card",
+		}
+
+		ExpectedAssets.GoalCutscenePlayerCardProfilePictureImage = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Card/PFP",
+			ClassName = "ImageLabel",
+		}
+		ExpectedAssets.GoalCutscenePlayerCardUserNameLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Card/User",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.GoalCutscenePlayerCardLevelLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Card/Level",
+			ClassName = "TextLabel",
+		}
+
+		ExpectedAssets.GoalCutscenePlayerCardGoalsLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Card/Goals",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.GoalCutscenePlayerCardAssistsLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Card/Assists",
+			ClassName = "TextLabel",
+		}
+	end
 end
 
 -- game over gui
