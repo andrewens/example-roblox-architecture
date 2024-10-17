@@ -519,6 +519,41 @@ do
 	ExpectedAssets.GoalCutsceneGui = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal"
 	}
+
+	-- who scored goal
+	do
+		ExpectedAssets.GoalCutsceneGoalPlayerLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Lower/Score/Player",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.GoalCutsceneGoalPlayerTeam1Background = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Lower/Score/Red",
+			ClassName = "UIGradient",
+		}
+		ExpectedAssets.GoalCutsceneGoalPlayerTeam2Background = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Lower/Score/Blue",
+			ClassName = "UIGradient",
+		}
+	end
+
+	-- who assisted the goal
+	do
+		ExpectedAssets.GoalCutsceneAssistContainer = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Lower/Assist",
+		}
+		ExpectedAssets.GoalCutsceneAssistLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Lower/Assist/Score",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.GoalCutsceneAssistTeam1Background = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Lower/Assist/Red",
+			ClassName = "UIGradient",
+		}
+		ExpectedAssets.GoalCutsceneAssistTeam2Background = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Lower/Assist/Blue",
+			ClassName = "UIGradient",
+		}
+	end
 end
 
 -- game over gui

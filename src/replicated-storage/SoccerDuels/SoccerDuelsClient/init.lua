@@ -143,7 +143,9 @@ local function initializeClients()
 		IterateEndOfMatchPlayerCFrames = ClientMapState.iterateEndOfMatchPlayerCFrames,
 		MapTimerTick = ClientMapState.mapTimerTick,
 
+		GetPlayerWhoAssistedLastGoal = ClientMapState.getPlayerWhoAssistedLastGoalInClientConnectedMap,
 		GetPlayerWhoScoredLastGoal = ClientMapState.getPlayerWhoScoredLastGoalInClientConnectedMap,
+
 		OnConnectedMapScoreChanged = ClientMapState.onClientMapScoreChangedConnect,
 		GetWinningTeamIndex = ClientMapState.getClientConnectedMapWinningTeamIndex,
 		GetTeamMVP = ClientMapState.getClientedConnectedMapTeamMostValuablePlayer,

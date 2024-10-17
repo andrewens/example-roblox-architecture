@@ -242,9 +242,14 @@ local function getClientedConnectedMapTeamMostValuablePlayer(self, teamIndex)
 
 	return MVPPlayer
 end
+
 local function getPlayerWhoScoredLastGoalInClientConnectedMap(self)
 	return self._PlayerThatScoredLastGoal
 end
+local function getPlayerWhoAssistedLastGoalInClientConnectedMap(self)
+	return self._PlayerThatScoredLastGoal -- TODO properly test & implement this
+end
+
 local function getClientConnectedMapTeamScore(self, teamIndex)
 	if not (teamIndex == 1 or teamIndex == 2) then
 		error(`{teamIndex} is not 1 or 2!`)
@@ -365,7 +370,9 @@ return {
 	iterateEndOfMatchPlayerCFrames = iterateEndOfMatchPlayerCFrames,
 	mapTimerTick = mapTimerTick,
 
+	getPlayerWhoAssistedLastGoalInClientConnectedMap = getPlayerWhoAssistedLastGoalInClientConnectedMap,
 	getPlayerWhoScoredLastGoalInClientConnectedMap = getPlayerWhoScoredLastGoalInClientConnectedMap,
+
 	getClientedConnectedMapTeamMostValuablePlayer = getClientedConnectedMapTeamMostValuablePlayer,
 	getClientConnectedMapPlayerLeaderstat = getClientConnectedMapPlayerLeaderstat,
 	getClientConnectedMapWinningTeamIndex = getClientConnectedMapWinningTeamIndex,
