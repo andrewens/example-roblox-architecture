@@ -2,6 +2,7 @@
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 local SoccerDuelsClientStateFolder = script:FindFirstAncestor("State")
 
+local Config = require(SoccerDuelsModule.Config)
 local Enums = require(SoccerDuelsModule.Enums)
 local Network = require(SoccerDuelsModule.Network)
 local Utility = require(SoccerDuelsModule.Utility)
@@ -12,6 +13,12 @@ local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserI
 -- const
 local LOADING_MAP_ENUM = Enums.getEnum("MapState", "Loading")
 local MATCH_COUNTDOWN_STATE_ENUM = Enums.getEnum("MapState", "MatchCountdown")
+local MATCH_GAMEPLAY_STATE_ENUM = Enums.getEnum("MapState", "MatchGameplay")
+local MATCH_OVER_STATE_ENUM = Enums.getEnum("MapState", "MatchOver")
+
+local GOAL_CUTSCENE_DURATION = Config.getConstant("GoalCutsceneDurationSeconds")
+local GOAL_CUTSCENE_FRAMES_PER_SECOND = Config.getConstant("GoalCutsceneFramesPerSecond")
+local TOTAL_FRAMES_PER_GOAL_CUTSCENE = GOAL_CUTSCENE_DURATION * GOAL_CUTSCENE_FRAMES_PER_SECOND
 
 -- protected / Network methods
 local function clientConnectedMapScoreChanged(self, team1Score, team2Score)
@@ -58,6 +65,8 @@ local function playerConnectedMapChanged(self, Player, mapEnum, teamIndex)
 	if Player == self.Player then
 		-- reset data
 		self._PlayerThatScoredLastGoal = nil
+		self._PlayerCFrames = nil
+		--self._PlayerCFrameFrameIndex = nil
 
 		-- make any modals go away
 		ClientModalState.setClientVisibleModal(self, nil)
@@ -95,9 +104,11 @@ local function playerConnectedMapStateChanged(self, mapStateEnum, stateEndTimest
 	self._ConnectedMapStateEnum = mapStateEnum
 	self._ConnectedMapStateEndTimestamp = stateEndTimestamp
 
-	-- mapState: 'MatchCountdown' --> reset _PlayerThatScoredLastGoal
+	-- mapState: 'MatchCountdown' --> reset _PlayerThatScoredLastGoal, _PlayerCFrames
 	if mapStateEnum == MATCH_COUNTDOWN_STATE_ENUM then
 		self._PlayerThatScoredLastGoal = nil
+		self._PlayerCFrames = {}
+		--self._PlayerCFrameFrameIndex = 1
 	end
 
 	-- mapState: 'nil' (map was destroyed) --> userInterfaceMode: 'Lobby'
@@ -122,6 +133,27 @@ local function playerConnectedMapStateChanged(self, mapStateEnum, stateEndTimest
 end
 
 -- public / Client class methods
+local function iterateEndOfMatchPlayerCFrames(self)
+	return ipairs(self._PlayerCFrames)
+end
+local function mapTimerTick(self) -- TODO implement this against runservice renderstepped
+	local mapStateEnum = self._ConnectedMapStateEnum
+	if not (mapStateEnum == MATCH_GAMEPLAY_STATE_ENUM or mapStateEnum == MATCH_OVER_STATE_ENUM) then
+		return
+	end
+
+	local PlayerCFramesAtThisFrame = {}
+	for Player, _ in self._PlayerGoals do
+		PlayerCFramesAtThisFrame[Player] = Utility.getPlayerCharacterCFrame(Player) -- this accounts for players leaving or having no character
+	end
+
+	if #self._PlayerCFrames >= TOTAL_FRAMES_PER_GOAL_CUTSCENE then
+		table.remove(self._PlayerCFrames, 1) -- TODO could implement a circular array buffer to prevent down-shifting every item in the lsit
+	end
+
+	table.insert(self._PlayerCFrames, PlayerCFramesAtThisFrame)
+end
+
 local function getClientConnectedMapPlayerLeaderstat(self, Player, leaderstat)
 	if not Utility.isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
@@ -330,6 +362,9 @@ local function initializeClientMapState(self)
 end
 
 return {
+	iterateEndOfMatchPlayerCFrames = iterateEndOfMatchPlayerCFrames,
+	mapTimerTick = mapTimerTick,
+
 	getPlayerWhoScoredLastGoalInClientConnectedMap = getPlayerWhoScoredLastGoalInClientConnectedMap,
 	getClientedConnectedMapTeamMostValuablePlayer = getClientedConnectedMapTeamMostValuablePlayer,
 	getClientConnectedMapPlayerLeaderstat = getClientConnectedMapPlayerLeaderstat,

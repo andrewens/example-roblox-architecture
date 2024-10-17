@@ -113,6 +113,8 @@ local function newClient(Player)
 	self._PlayerLeaderstatsChangedCallbacks = {} -- function callback(Player, int | nil teamIndex, int | nil numGoals, ...) --> true
 	self._PlayerThatScoredLastGoal = nil -- Player (only in same map as self.Player)
 
+	self._PlayerCFrames = {} -- int frameIndex --> Player --> CFrame (only players in same map as self.Player)
+
 	self._ConnectedMapStateEnum = nil -- int | nil mapStateEnum
 	self._ConnectedMapStateEndTimestamp = nil -- int | nil unixTimestampMilliseconds
 
@@ -138,15 +140,18 @@ local function initializeClients()
 		GetCharactersInLobby = LobbyCharacters.getCharactersInLobby,
 
 		-- map state
+		IterateEndOfMatchPlayerCFrames = ClientMapState.iterateEndOfMatchPlayerCFrames,
+		MapTimerTick = ClientMapState.mapTimerTick,
+
 		GetPlayerWhoScoredLastGoal = ClientMapState.getPlayerWhoScoredLastGoalInClientConnectedMap,
 		OnConnectedMapScoreChanged = ClientMapState.onClientMapScoreChangedConnect,
 		GetWinningTeamIndex = ClientMapState.getClientConnectedMapWinningTeamIndex,
 		GetTeamMVP = ClientMapState.getClientedConnectedMapTeamMostValuablePlayer,
 		GetTeamScore = ClientMapState.getClientConnectedMapTeamScore,
-		
+
 		GetConnectedMapStateChangeTimestamp = ClientMapState.getClientMapStateChangeTimestamp,
 		GetConnectedMapName = ClientMapState.getClientConnectedMapName,
-		
+
 		OnPlayerLeaderstatsChangedConnect = ClientMapState.onPlayerLeaderstatsChangedConnect,
 		GetPlayerLeaderstat = ClientMapState.getClientConnectedMapPlayerLeaderstat,
 		OnPlayerJoinedConnectedMap = ClientMapState.onPlayerJoinedConnectedMap,

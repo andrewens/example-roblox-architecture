@@ -202,6 +202,7 @@ DefaultConfig.MatchCountdownDurationSeconds = 5
 DefaultConfig.MatchGameplayDurationSeconds = 90
 DefaultConfig.MatchOverDurationSeconds = 5
 DefaultConfig.GoalCutsceneDurationSeconds = 5
+DefaultConfig.SecondsAfterGoalUntilGoalCutsceneEnds = 2
 DefaultConfig.GameOverDurationSeconds = 5
 
 DefaultConfig.DefaultMapInstanceOptions = {

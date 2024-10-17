@@ -189,6 +189,23 @@ local function setPlayerCharacterAnchored(Player, isAnchored)
 
 	HumanoidRootPart.Anchored = isAnchored
 end
+local function getPlayerCharacterCFrame(Player)
+	if not isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+
+	local Character = Player.Character
+	if Character == nil or Character.Parent == nil then
+		return nil
+	end
+
+	local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+	if HumanoidRootPart == nil then
+		return nil
+	end
+
+	return HumanoidRootPart.CFrame
+end
 local function getPlayerCharacterPosition(Player)
 	if not isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
@@ -270,7 +287,6 @@ end
 
 return {
 	setDefaultRobloxLeaderboardEnabled = setDefaultRobloxLeaderboardEnabled,
-
 	convertInstanceIntoModel = convertInstanceIntoModel,
 
 	dictionaryToArray = dictionaryToArray,
@@ -282,6 +298,7 @@ return {
 	playerCharacterIsInsideSpherePart = playerCharacterIsInsideSpherePart,
 	getPlayerCharacterPosition = getPlayerCharacterPosition,
 	setPlayerCharacterAnchored = setPlayerCharacterAnchored,
+	getPlayerCharacterCFrame = getPlayerCharacterCFrame,
 	playerIsInGame = playerIsInGame,
 	weldPartToPart = weldPartToPart,
 
