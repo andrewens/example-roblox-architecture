@@ -514,6 +514,13 @@ do
 	}
 end
 
+-- goal cutscene gui
+do
+	ExpectedAssets.GoalCutsceneGui = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal"
+	}
+end
+
 -- game over gui
 do
 	ExpectedAssets.GameOverGui = {
