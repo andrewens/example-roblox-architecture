@@ -389,7 +389,7 @@ return function()
 			)
 		end)
 		describe("Player save data", function()
-			itFOCUS("Initial values", function()
+			it("Initial values", function()
 				SoccerDuels.resetTestingVariables()
 
 				local Player = MockInstance.new("Player")
@@ -403,11 +403,13 @@ return function()
 				local DataValues = {
 					Level = 0,
 					ExperiencePoints = 0,
-					WinStreak = 0,
+
 					Wins = 0,
 					Losses = 0,
-					Assists = 0,
+					WinStreak = 0,
+
 					Goals = 0,
+					Assists = 0,
 					Tackles = 0,
 				}
 
@@ -438,6 +440,99 @@ return function()
 						error(`"{valueName}": {Client:GetAnyPlayerDataValue(valueName, Player)} != {value}`)
 					end
 				end
+
+				-- cleanup
+				Client:Destroy()
+			end)
+			it("Player win rate is just the ratio of wins to total games played", function()
+				SoccerDuels.resetTestingVariables()
+
+				local Player = MockInstance.new("Player")
+				Player.UserId = 349805341
+
+				local Client = SoccerDuels.newClient(Player)
+				Client:LoadPlayerDataAsync()
+
+				-- initial values
+				local SaveData = SoccerDuels.getCachedPlayerSaveData(Player)
+
+				assert(SaveData.Wins == 0)
+				assert(SaveData.Losses == 0)
+				assert(SaveData.WinRate == 0)
+
+				assert(Client:GetAnyPlayerDataValue("Wins", Player) == 0)
+				assert(Client:GetAnyPlayerDataValue("Losses", Player) == 0)
+				assert(Client:GetAnyPlayerDataValue("WinRate", Player) == 0)
+
+				-- if losses are 0, and wins are > 0, the winRate is 1
+				SoccerDuels.updateCachedPlayerSaveData(Player, {
+					Wins = 1,
+				})
+				SaveData = SoccerDuels.getCachedPlayerSaveData(Player)
+
+				assert(SaveData.Wins == 1)
+				assert(SaveData.Losses == 0)
+				assert(SaveData.WinRate == 1)
+
+				assert(Client:GetAnyPlayerDataValue("Wins", Player) == 1)
+				assert(Client:GetAnyPlayerDataValue("Losses", Player) == 0)
+				assert(Client:GetAnyPlayerDataValue("WinRate", Player) == 1)
+
+				SoccerDuels.updateCachedPlayerSaveData(Player, {
+					Wins = 2349,
+				})
+				SaveData = SoccerDuels.getCachedPlayerSaveData(Player)
+
+				assert(SaveData.Wins == 2349)
+				assert(SaveData.Losses == 0)
+				assert(SaveData.WinRate == 1)
+
+				assert(Client:GetAnyPlayerDataValue("Wins", Player) == 2349)
+				assert(Client:GetAnyPlayerDataValue("Losses", Player) == 0)
+				assert(Client:GetAnyPlayerDataValue("WinRate", Player) == 1)
+
+				-- otherwise WinRate is the ratio of wins to total games played
+				SoccerDuels.updateCachedPlayerSaveData(Player, {
+					Wins = 0,
+					Losses = 5,
+				})
+				SaveData = SoccerDuels.getCachedPlayerSaveData(Player)
+
+				assert(SaveData.Wins == 0)
+				assert(SaveData.Losses == 5)
+				assert(SaveData.WinRate == 0)
+
+				assert(Client:GetAnyPlayerDataValue("Wins", Player) == 0)
+				assert(Client:GetAnyPlayerDataValue("Losses", Player) == 5)
+				assert(Client:GetAnyPlayerDataValue("WinRate", Player) == 0)
+
+				SoccerDuels.updateCachedPlayerSaveData(Player, {
+					Wins = 3,
+					Losses = 2,
+				})
+				SaveData = SoccerDuels.getCachedPlayerSaveData(Player)
+
+				assert(SaveData.Wins == 3)
+				assert(SaveData.Losses == 2)
+				assert(SaveData.WinRate == 3 / 5)
+
+				assert(Client:GetAnyPlayerDataValue("Wins", Player) == 3)
+				assert(Client:GetAnyPlayerDataValue("Losses", Player) == 2)
+				assert(Client:GetAnyPlayerDataValue("WinRate", Player) == 3 / 5)
+
+				SoccerDuels.updateCachedPlayerSaveData(Player, {
+					Wins = 99,
+					Losses = 999,
+				})
+				SaveData = SoccerDuels.getCachedPlayerSaveData(Player)
+
+				assert(SaveData.Wins == 99)
+				assert(SaveData.Losses == 999)
+				assert(SaveData.WinRate == 99 / (99 + 999))
+
+				assert(Client:GetAnyPlayerDataValue("Wins", Player) == 99)
+				assert(Client:GetAnyPlayerDataValue("Losses", Player) == 999)
+				assert(Client:GetAnyPlayerDataValue("WinRate", Player) == 99 / (99 + 999))
 
 				-- cleanup
 				Client:Destroy()

@@ -124,6 +124,16 @@ local function indexPlayerDocument(self, key)
 	if PlayerDocumentMethods[key] then
 		return PlayerDocumentMethods[key]
 	end
+	if key == "WinRate" then
+		local wins = self._Data["Wins"]
+		local losses = self._Data["Losses"]
+
+		if losses <= 0 then
+			return if wins > 0 then 1 else 0
+		end
+
+		return wins / (wins + losses)
+	end
 
 	if typeof(self._Data[key]) == "table" then
 		return self._NestedTableInterfaces[key]

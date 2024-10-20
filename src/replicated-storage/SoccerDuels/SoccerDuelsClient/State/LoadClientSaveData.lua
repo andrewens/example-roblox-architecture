@@ -56,13 +56,14 @@ local function getAnyPlayerDataCachedValue(self, valueName, Player)
 	if not Utility.isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
 	end
-	if DEFAULT_PLAYER_SAVE_DATA[valueName] == nil then
-		error(`"{valueName}" is not a PlayerDocument field!`)
-	end
 
 	local CachedSaveData = self._PlayerSaveData[Player]
 	if CachedSaveData == nil then
 		return nil
+	end
+
+	if CachedSaveData[valueName] == nil then
+		error(`"{valueName}" is not a PlayerDocument field!`)
 	end
 
 	return CachedSaveData[valueName]
