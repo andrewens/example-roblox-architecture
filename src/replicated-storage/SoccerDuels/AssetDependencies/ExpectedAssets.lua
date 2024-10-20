@@ -412,13 +412,13 @@ do
 	-- controls
 	do
 		ExpectedAssets.MatchGameplayControlsImage = {
-			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Left/Controls"
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Left/Controls",
 		}
 		ExpectedAssets.MatchGameplaySkillsContainer = {
-			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Right"
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Right",
 		}
 		ExpectedAssets.MatchGameplayPowerBarsContainer = {
-			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Bars"
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Bars",
 		}
 	end
 end
@@ -502,7 +502,7 @@ end
 -- match over gui
 do
 	ExpectedAssets.MatchOverGui = {
-		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/RoundWonOrLost"
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/RoundWonOrLost",
 	}
 	ExpectedAssets.MatchOverResultLabel = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/RoundWonOrLost/Bar/Result",
@@ -525,7 +525,7 @@ end
 -- goal cutscene gui
 do
 	ExpectedAssets.GoalCutsceneGui = {
-		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal"
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal",
 	}
 
 	-- who scored goal
@@ -590,6 +590,22 @@ do
 			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Card/Assists",
 			ClassName = "TextLabel",
 		}
+		ExpectedAssets.GoalCutscenePlayerCardTacklesLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Card/Tackles",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.GoalCutscenePlayerCardWinsLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Card/Wins",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.GoalCutscenePlayerCardLossesLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Card/Losses",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.GoalCutscenePlayerCardWinStreakLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/Goal/Card/Winstreak",
+			ClassName = "TextLabel",
+		}
 	end
 end
 
@@ -597,7 +613,7 @@ end
 do
 	ExpectedAssets.GameOverGui = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/GameOver",
-		ClassName = "GuiObject"
+		ClassName = "GuiObject",
 	}
 	ExpectedAssets.GameOverMVPContainer = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/GameOver/Lower",

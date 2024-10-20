@@ -42,6 +42,22 @@ local function newGoalCutsceneGui(self)
 	local GoalCutscenePlayerCardLevelLabel =
 		Assets.getExpectedAsset("GoalCutscenePlayerCardLevelLabel", "GoalCutscenePlayerCard", GoalCutscenePlayerCard)
 
+	local GoalCutscenePlayerCardGoalsLabel =
+		Assets.getExpectedAsset("GoalCutscenePlayerCardGoalsLabel", "GoalCutscenePlayerCard", GoalCutscenePlayerCard)
+	local GoalCutscenePlayerCardAssistsLabel =
+		Assets.getExpectedAsset("GoalCutscenePlayerCardAssistsLabel", "GoalCutscenePlayerCard", GoalCutscenePlayerCard)
+	local GoalCutscenePlayerCardTacklesLabel =
+		Assets.getExpectedAsset("GoalCutscenePlayerCardTacklesLabel", "GoalCutscenePlayerCard", GoalCutscenePlayerCard)
+	local GoalCutscenePlayerCardWinsLabel =
+		Assets.getExpectedAsset("GoalCutscenePlayerCardWinsLabel", "GoalCutscenePlayerCard", GoalCutscenePlayerCard)
+	local GoalCutscenePlayerCardLossesLabel =
+		Assets.getExpectedAsset("GoalCutscenePlayerCardLossesLabel", "GoalCutscenePlayerCard", GoalCutscenePlayerCard)
+	local GoalCutscenePlayerCardWinStreakLabel = Assets.getExpectedAsset(
+		"GoalCutscenePlayerCardWinStreakLabel",
+		"GoalCutscenePlayerCard",
+		GoalCutscenePlayerCard
+	)
+
 	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
 		GoalCutsceneGui.Visible = (userInterfaceMode == "GoalCutscene")
 		if not GoalCutsceneGui.Visible then
@@ -65,7 +81,7 @@ local function newGoalCutsceneGui(self)
 			GoalCutsceneAssistTeam2Background.Enabled = (teamIndex == 2)
 		end
 
-		-- card
+		-- card user
 		AvatarHeadshotImages.setImageLabelImageToAvatarHeadshot(
 			self,
 			GoalCutscenePlayerCardProfilePictureImage,
@@ -73,6 +89,14 @@ local function newGoalCutsceneGui(self)
 		)
 		GoalCutscenePlayerCardUserNameLabel.Text = PlayerThatScoredLastGoal.Name
 		GoalCutscenePlayerCardLevelLabel.Text = self:GetAnyPlayerDataValue("Level", PlayerThatScoredLastGoal)
+
+		-- card stats
+		GoalCutscenePlayerCardGoalsLabel.Text = self:GetAnyPlayerDataValue("Goals", PlayerThatScoredLastGoal)
+		GoalCutscenePlayerCardAssistsLabel.Text = self:GetAnyPlayerDataValue("Assists", PlayerThatScoredLastGoal)
+		GoalCutscenePlayerCardTacklesLabel.Text = self:GetAnyPlayerDataValue("Tackles", PlayerThatScoredLastGoal)
+		GoalCutscenePlayerCardWinsLabel.Text = self:GetAnyPlayerDataValue("Wins", PlayerThatScoredLastGoal)
+		GoalCutscenePlayerCardLossesLabel.Text = self:GetAnyPlayerDataValue("Losses", PlayerThatScoredLastGoal)
+		GoalCutscenePlayerCardWinStreakLabel.Text = self:GetAnyPlayerDataValue("WinStreak", PlayerThatScoredLastGoal)
 	end)
 
 	GoalCutsceneGui.Visible = false
