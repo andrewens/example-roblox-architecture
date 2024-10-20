@@ -309,10 +309,6 @@ return function()
 				assert(1 == SoccerDuels.getAvailableDataStoreRequests("Save"))
 
 				SoccerDuels.resetTestingVariables()
-
-				-- TODO lowkey this test needs to be broken up...
-				-- TODO put playerdocument on the client?
-				-- TODO make the toast notification work with all this
 			end)
 		end)
 		describe("SoccerDuels.saveAllPlayerData()", function()
@@ -391,6 +387,61 @@ return function()
 					Client2:Destroy()
 				end
 			)
+		end)
+		describe("Player save data", function()
+			itFOCUS("Initial values", function()
+				SoccerDuels.resetTestingVariables()
+
+				local Player = MockInstance.new("Player")
+				Player.UserId = 1239804234
+
+				local Client = SoccerDuels.newClient(Player)
+				Client:LoadPlayerDataAsync()
+
+				-- verify initial save data is correct
+				local SaveData = SoccerDuels.getCachedPlayerSaveData(Player)
+				local DataValues = {
+					Level = 0,
+					ExperiencePoints = 0,
+					WinStreak = 0,
+					Wins = 0,
+					Losses = 0,
+					Assists = 0,
+					Goals = 0,
+					Tackles = 0,
+				}
+
+				local i = 0
+				for valueName, value in DataValues do
+					if not (SaveData[valueName] == value) then
+						error(`SaveData["{valueName}"] is {SaveData[valueName]} which is not {value}!`)
+					end
+
+					i += 1
+					DataValues[valueName] += i
+				end
+
+				-- values should all be 'saveable'
+				SoccerDuels.updateCachedPlayerSaveData(Player, DataValues)
+				SoccerDuels.saveAllPlayerData()
+				SaveData = SoccerDuels.getPlayerSaveDataAsync(Player)
+
+				for valueName, value in DataValues do
+					if not (SaveData[valueName] == value) then
+						error(`SaveData["{valueName}"]: {SaveData[valueName]} != {value}`)
+					end
+				end
+
+				-- values should update on the client
+				for valueName, value in DataValues do
+					if not (Client:GetAnyPlayerDataValue(valueName, Player) == value) then
+						error(`"{valueName}": {Client:GetAnyPlayerDataValue(valueName, Player)} != {value}`)
+					end
+				end
+
+				-- cleanup
+				Client:Destroy()
+			end)
 		end)
 	end)
 end

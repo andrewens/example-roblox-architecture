@@ -58,9 +58,18 @@ DefaultConfig.DatabaseRetryWaitSeconds = 2
 DefaultConfig.CurrentPlayerDataVersion = 0
 DefaultConfig.DefaultPlayerSaveData = {
 	DataFormatVersion = DefaultConfig.CurrentPlayerDataVersion,
-	Level = 0,
-	WinStreak = 0,
 	Settings = DefaultConfig.DefaultClientSettings,
+
+	Level = 0,
+	ExperiencePoints = 0,
+
+	Wins = 0,
+	Losses = 0,
+	WinStreak = 0,
+
+	Goals = 0,
+	Assists = 0,
+	Tackles = 0,
 }
 DefaultConfig.AutoSavePollRateSeconds = 15
 DefaultConfig.SaveDataThatPlayerDecides = {

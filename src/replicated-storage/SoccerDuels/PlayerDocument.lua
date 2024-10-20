@@ -158,7 +158,13 @@ local function isAPlayerDocument(value)
 	return true
 end
 local function newPlayerDocument(LoadedSaveData)
-	LoadedSaveData = LoadedSaveData or {}
+	if LoadedSaveData == nil then
+		LoadedSaveData = {}
+	end
+	if typeof(LoadedSaveData) == "table" then
+		LoadedSaveData = table.clone(LoadedSaveData)
+	end
+
 	if typeof(LoadedSaveData) == "string" then
 		local jsonString = LoadedSaveData
 		LoadedSaveData = HttpService:JSONDecode(jsonString)
@@ -175,8 +181,17 @@ local function newPlayerDocument(LoadedSaveData)
 	local Data = Utility.tableDeepCopy(DEFAULT_PLAYER_SAVE_DATA)
 
 	Data.DataFormatVersion = CURRENT_DATA_FORMAT_VERSION
+
 	Data.Level = LoadedSaveData.Level or Data.Level
+	Data.ExperiencePoints = LoadedSaveData.ExperiencePoints or Data.ExperiencePoints
+
+	Data.Wins = LoadedSaveData.Wins or Data.Wins
+	Data.Losses = LoadedSaveData.Losses or Data.Losses
 	Data.WinStreak = LoadedSaveData.WinStreak or Data.WinStreak
+
+	Data.Goals = LoadedSaveData.Goals or Data.Goals
+	Data.Assists = LoadedSaveData.Assists or Data.Assists
+	Data.Tackles = LoadedSaveData.Tackles or Data.Tackles
 
 	for settingName, defaultSettingValue in DEFAULT_CLIENT_SETTINGS do
 		Data.Settings[settingName] = if LoadedSaveData.Settings[settingName] == nil
