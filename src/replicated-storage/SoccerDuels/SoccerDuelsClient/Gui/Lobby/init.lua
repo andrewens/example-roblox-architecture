@@ -6,7 +6,6 @@ local ModalGuiFolder = script.Modals
 local Assets = require(SoccerDuelsModule.AssetDependencies)
 local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 
-local SettingsModalGui = require(ModalGuiFolder.Settings)
 local AvailableMatchJoiningPadsGui = require(script.AvailableMatchJoiningPads)
 
 -- public / Client class methods
@@ -34,7 +33,9 @@ local function newLobbyGui(self)
 
 	UIAnimations.initializePopup(self, LobbyButtons)
 
-	SettingsModalGui.new(self)
+	for _, ModalGui in ModalGuiFolder:GetChildren() do
+		require(ModalGui).new(self)
+	end
 	AvailableMatchJoiningPadsGui.new(self)
 
 	LobbyGui.Visible = true

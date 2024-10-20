@@ -67,6 +67,14 @@ do
 	}
 end
 
+-- career modal
+do
+	ExpectedAssets.CareerModalCloseButton = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Career/Title/Close",
+		ClassName = "GuiButton",
+	}
+end
+
 -- toast notifications
 do
 	ExpectedAssets.ToastContainer = {
