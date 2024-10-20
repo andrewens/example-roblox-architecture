@@ -16,11 +16,6 @@ local TIMER_POLL_RATE = Config.getConstant("UserInterfaceCountdownTimerPollRateS
 local BACKGROUND_BAR_SIZE_SCALE_PER_PLAYER = Config.getConstant("MatchScoreboardBarSizeScalePerPlayer")
 local BACKGROUND_BAR_DEFAULT_SIZE_SCALE = Config.getConstant("MatchScoreboardBarSizeScaleDefault")
 
-local GAMEPLAY_GUI_IS_VISIBLE_DURING_UI_MODE = {
-	["MatchCountdown"] = true,
-	["MatchGameplay"] = true,
-	["Gameplay"] = true,
-}
 local ONE_SIXTIETH = 1 / 60
 
 -- public / Client class methods
@@ -99,11 +94,21 @@ local function newMatchLoadingScreenGui(self)
 	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
 		UIMaid:DoCleaning()
 
-		ScoreboardGui.Visible = GAMEPLAY_GUI_IS_VISIBLE_DURING_UI_MODE[userInterfaceMode] or false
-		MatchGameplayControlsImage.Visible = ScoreboardGui.Visible
-		MatchGameplaySkillsContainer.Visible = ScoreboardGui.Visible
-		MatchGameplayPowerBarsContainer.Visible = ScoreboardGui.Visible
-		MatchCounterTextLabel.Visible = (userInterfaceMode == "MatchCountdown")
+		local MATCH_COUNTDOWN = (userInterfaceMode == "MatchCountdown")
+		local SCORE_BOARD_IS_VISIBLE = (userInterfaceMode == "MatchGameplay" or userInterfaceMode == "MatchCountdown")
+		local CONTROLS_ARE_VISIBLE = (
+			userInterfaceMode == "MatchGameplay"
+			or userInterfaceMode == "MatchCountdown"
+			or userInterfaceMode == "MatchOver"
+			or userInterfaceMode == "Gameplay"
+		)
+
+		MatchGameplayControlsImage.Visible = CONTROLS_ARE_VISIBLE
+		MatchGameplaySkillsContainer.Visible = CONTROLS_ARE_VISIBLE
+		MatchGameplayPowerBarsContainer.Visible = CONTROLS_ARE_VISIBLE
+
+		ScoreboardGui.Visible = SCORE_BOARD_IS_VISIBLE
+		MatchCounterTextLabel.Visible = MATCH_COUNTDOWN
 
 		if ScoreboardGui.Visible then
 			UIMaid:GiveTask(Utility.runServiceRenderSteppedConnect(TIMER_POLL_RATE, updateTimer))
