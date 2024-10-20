@@ -73,6 +73,57 @@ do
 		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Career/Title/Close",
 		ClassName = "GuiButton",
 	}
+
+	-- win streak
+	ExpectedAssets.CareerModalWinRateLabel = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Career/Winrate",
+		ClassName = "TextLabel",
+	}
+
+	-- player card
+	do
+		ExpectedAssets.CareerModalPlayerCard = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Career/Card",
+		}
+
+		ExpectedAssets.CareerModalPlayerCardProfilePictureImage = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Career/Card/PFP",
+			ClassName = "ImageLabel",
+		}
+		ExpectedAssets.CareerModalPlayerCardUserNameLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Career/Card/User",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.CareerModalPlayerCardLevelLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Career/Card/Level",
+			ClassName = "TextLabel",
+		}
+
+		ExpectedAssets.CareerModalPlayerCardGoalsLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Career/Card/Goals",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.CareerModalPlayerCardAssistsLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Career/Card/Assists",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.CareerModalPlayerCardTacklesLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Career/Card/Tackles",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.CareerModalPlayerCardWinsLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Career/Card/Wins",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.CareerModalPlayerCardLossesLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Career/Card/Losses",
+			ClassName = "TextLabel",
+		}
+		ExpectedAssets.CareerModalPlayerCardWinStreakLabel = {
+			Path = "ReplicatedStorage/UserInterface/Windows/Middle/Frames/Career/Card/Winstreak",
+			ClassName = "TextLabel",
+		}
+	end
 end
 
 -- toast notifications
