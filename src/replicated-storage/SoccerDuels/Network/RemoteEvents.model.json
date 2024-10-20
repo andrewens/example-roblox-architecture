@@ -92,6 +92,10 @@
     {
       "Name": "PlayerRequestToJoinPracticeField",
       "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "PlayerDisconnectFromAllMapInstances",
+      "ClassName": "RemoteEvent"
     }
   ]
 }

@@ -42,6 +42,7 @@ local function initializePracticeFieldServer()
 	PracticeFieldTeleportPart.Transparency = if TESTING_MODE then 0.8 else 1
 
 	Network.onServerEventConnect("PlayerRequestToJoinPracticeField", onClientRequestToJoinPracticeField)
+    Network.onServerEventConnect("PlayerDisconnectFromAllMapInstances", MapsServer.disconnectPlayerFromAllMapInstances)
 end
 
 return {

@@ -160,6 +160,8 @@ local function initializeClients()
 		OnPlayerLeftConnectedMap = ClientMapState.onPlayerLeftConnectedMap,
 		-- GetPlayerTeamIndex = getAnyPlayerTeamIndex,
 
+		DisconnectFromAllMapInstances = ClientMapState.disconnectClientFromAllMapInstances,
+
 		-- map voting
 		VoteForMap = ClientMatchPad.clientVoteForMap,
 		OnConnectedMatchPadVoteChangedConnect = ClientMatchPad.onClientConnectedMatchPadVoteChangedConnect,

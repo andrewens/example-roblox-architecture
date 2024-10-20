@@ -294,6 +294,14 @@ ExpectedAssets.PracticeFieldTeleportPart = {
 	ClassName = "BasePart",
 }
 
+-- leave practice field gui button
+do
+	ExpectedAssets.LeavePracticeFieldButton = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/BackToLobby",
+		ClassName = "GuiButton",
+	}
+end
+
 -- maps
 do
 	ExpectedAssets.MapGridOriginPart = {

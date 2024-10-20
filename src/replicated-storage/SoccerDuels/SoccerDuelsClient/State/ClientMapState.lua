@@ -133,6 +133,10 @@ local function playerConnectedMapStateChanged(self, mapStateEnum, stateEndTimest
 end
 
 -- public / Client class methods
+local function disconnectClientFromAllMapInstances(self)
+	Network.fireServer("PlayerDisconnectFromAllMapInstances", self.Player)
+end
+
 local function iterateEndOfMatchPlayerCFrames(self)
 	return ipairs(self._PlayerCFrames)
 end
@@ -384,6 +388,8 @@ return {
 
 	onPlayerJoinedConnectedMap = onPlayerJoinedConnectedMap,
 	onPlayerLeftConnectedMap = onPlayerLeftConnectedMap,
+
+	disconnectClientFromAllMapInstances = disconnectClientFromAllMapInstances,
 
 	initialize = initializeClientMapState,
 }
