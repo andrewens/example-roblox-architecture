@@ -163,7 +163,12 @@ DefaultConfig.UserInputTypeToControllerType = {
 	["InputMethod"] = nil,
 }
 DefaultConfig.DefaultKeybinds = {
-	Leaderboard = Enum.KeyCode.Tab,
+	Keyboard = {
+		Leaderboard = Enum.KeyCode.Tab,
+	},
+	XBox = {
+		Leaderboard = Enum.KeyCode.ButtonL1,
+	},
 }
 
 -- match joining pads

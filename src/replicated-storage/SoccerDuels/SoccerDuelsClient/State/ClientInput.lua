@@ -15,7 +15,8 @@ local ClientModalState = require(SoccerDuelsClientStateFolder.ClientModalState)
 -- const
 local DEFAULT_CONTROLLER_TYPE = Config.getConstant("DefaultControllerType")
 local USER_INPUT_TYPE_TO_CONTROLLER_TYPE = Config.getConstant("UserInputTypeToControllerType")
-local DEFAULT_LEADERBOARD_KEY = Config.getConstant("DefaultKeybinds", "Leaderboard")
+local DEFAULT_LEADERBOARD_KEY = Config.getConstant("DefaultKeybinds", "Keyboard", "Leaderboard")
+local DEFAULT_XBOX_LEADERBOARD_BUTTON = Config.getConstant("DefaultKeybinds", "XBox", "Leaderboard")
 
 local DEFAULT_CONTROLLER_TYPE_ENUM = Enums.getEnum("ControllerType", DEFAULT_CONTROLLER_TYPE)
 
@@ -42,7 +43,7 @@ local function clientBeginInput(self, InputObject)
 		error(`{InputObject} is not an InputObject!`)
 	end
 
-	if InputObject.KeyCode == DEFAULT_LEADERBOARD_KEY then
+	if InputObject.KeyCode == DEFAULT_LEADERBOARD_KEY or InputObject.KeyCode == DEFAULT_XBOX_LEADERBOARD_BUTTON then
 		if ClientMapState.getClientConnectedMapName(self) then
 			ClientModalState.setClientVisibleModal(self, "Leaderboard")
 		end
@@ -53,7 +54,7 @@ local function clientEndInput(self, InputObject)
 		error(`{InputObject} is not an InputObject!`)
 	end
 
-	if InputObject.KeyCode == DEFAULT_LEADERBOARD_KEY then
+	if InputObject.KeyCode == DEFAULT_LEADERBOARD_KEY or InputObject.KeyCode == DEFAULT_XBOX_LEADERBOARD_BUTTON then
 		if ClientModalState.getClientVisibleModalName(self) == "Leaderboard" then
 			ClientModalState.setClientVisibleModal(self, nil)
 		end

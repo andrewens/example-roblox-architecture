@@ -501,16 +501,26 @@ return function()
 		SoccerDuels.destroyAllMapInstances()
 		SoccerDuels.resetTestingVariables()
 
-		local defaultLeaderboardKey = SoccerDuels.getConstant("DefaultKeybinds", "Leaderboard")
+		local defaultLeaderboardKey = SoccerDuels.getConstant("DefaultKeybinds", "Keyboard", "Leaderboard")
 		local notDefaultLeaderboardKey = if defaultLeaderboardKey == Enum.KeyCode.X
 			then Enum.KeyCode.Y
 			else Enum.KeyCode.X
+
+		local xboxLeaderboardKey = SoccerDuels.getConstant("DefaultKeybinds", "XBox", "Leaderboard")
+		local notXboxLeaderboardKey = if xboxLeaderboardKey == Enum.KeyCode.X then Enum.KeyCode.Y else Enum.KeyCode.X
 
 		local LeaderboardKeyInputObject = MockInstance.new("InputObject", {
 			KeyCode = defaultLeaderboardKey,
 		})
 		local NotLeaderboardInputObject = MockInstance.new("InputObject", {
 			KeyCode = notDefaultLeaderboardKey,
+		})
+
+		local XBoxLeaderboardKeyInputObject = MockInstance.new("InputObject", {
+			KeyCode = xboxLeaderboardKey,
+		})
+		local XBoxNotLeaderboardKeyInputObject = MockInstance.new("InputObject", {
+			KeyCode = notXboxLeaderboardKey,
 		})
 
 		local Player1 = MockInstance.new("Player")
@@ -544,12 +554,22 @@ return function()
 		Client1:EndInput(LeaderboardKeyInputObject)
 		assert(Client1:GetVisibleModalName() == nil)
 
+		-- (xbox support)
+		Client1:BeginInput(XBoxLeaderboardKeyInputObject)
+		assert(Client1:GetVisibleModalName() == "Leaderboard")
+
+		Client1:EndInput(XBoxLeaderboardKeyInputObject)
+		assert(Client1:GetVisibleModalName() == nil)
+
 		-- tapping an input doesn't do anything here
 		Client1:TapInput(LeaderboardKeyInputObject)
 		assert(Client1:GetVisibleModalName() == nil)
 
 		-- holding a different key doesn't work
 		Client1:BeginInput(NotLeaderboardInputObject)
+		assert(Client1:GetVisibleModalName() == nil)
+
+		Client1:BeginInput(XBoxNotLeaderboardKeyInputObject)
 		assert(Client1:GetVisibleModalName() == nil)
 
 		-- we can bring up the modal with SetVisibleModalName()
