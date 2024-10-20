@@ -13,7 +13,12 @@ if SoccerDuels.getConstant("TestingMode") then
 	local begin = os.clock()
 
 	MockInstance.initialize()
-	TestEZ.TestBootstrap:run({ TestsFolder })
+	local s, output = pcall(function()
+		TestEZ.TestBootstrap:run({ TestsFolder })
+	end)
+	if not s then
+		warn(output)
+	end
 
 	local TestUtility = require(TestsFolder.Utility)
 	TestUtility.serverFinishedTests() -- TODO this is a temporary fix

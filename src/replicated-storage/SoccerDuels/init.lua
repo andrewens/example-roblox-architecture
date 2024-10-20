@@ -119,6 +119,7 @@ return {
 	newClient = SoccerDuelsClient.new,
 
 	-- SoccerDuels server
+	incrementCachedPlayerSaveData = SoccerDuelsServer.incrementCachedPlayerSaveData, -- TODO this is untested
 	updateCachedPlayerSaveData = SoccerDuelsServer.updateCachedPlayerSaveData,
 	getCachedPlayerSaveData = SoccerDuelsServer.getCachedPlayerSaveData,
 	disconnectAllPlayers = SoccerDuelsServer.disconnectAllPlayers,

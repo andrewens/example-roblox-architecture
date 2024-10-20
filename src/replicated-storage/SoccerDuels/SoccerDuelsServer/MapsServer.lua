@@ -404,6 +404,7 @@ local function playerTackledAnotherPlayer(Player)
 	end
 
 	incrementPlayerLeaderstats(Player, 0, 0, 1)
+	SoccerDuelsServer.incrementCachedPlayerSaveData(Player, { Tackles = 1 })
 end
 local function playerAssistedGoal(Player)
 	if not Utility.isA(Player, "Player") then
@@ -421,6 +422,7 @@ local function playerAssistedGoal(Player)
 	end
 
 	incrementPlayerLeaderstats(Player, 0, 1, 0)
+	SoccerDuelsServer.incrementCachedPlayerSaveData(Player, { Assists = 1 })
 end
 local function playerScoredGoal(Player)
 	if not Utility.isA(Player, "Player") then
@@ -442,6 +444,8 @@ local function playerScoredGoal(Player)
 	incrementMapInstanceScore(mapInstanceId, teamIndex)
 	incrementPlayerLeaderstats(Player, 1, 0, 0)
 	updateMapStateAfterPlayerScoredGoal(mapInstanceId, Player)
+
+	SoccerDuelsServer.incrementCachedPlayerSaveData(Player, { Goals = 1 })
 end
 
 local function getMapInstanceStartingLocation(mapInstanceId, teamIndex, teamPositionIndex)

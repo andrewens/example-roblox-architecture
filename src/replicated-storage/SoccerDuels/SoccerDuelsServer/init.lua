@@ -187,6 +187,34 @@ local function updateCachedPlayerSaveData(Player, DataToUpdate)
 
 	CachedSaveData:ChangeValues(DataToUpdate)
 end
+local function incrementCachedPlayerSaveData(Player, DataToUpdate)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+	if not (typeof(DataToUpdate) == "table") then
+		error(`{DataToUpdate} is not a table!`)
+	end
+
+	local CachedSaveData = CachedPlayerSaveData[Player]
+	if CachedSaveData == nil then
+		error(`{Player}'s save data is not cached!`)
+	end
+
+	for key, value in DataToUpdate do
+		if not (typeof(value) == "number") then
+			error(`"{key}": {value} is not a number!`)
+		end
+
+		local currentValue = CachedSaveData[key]
+		if not (typeof(currentValue) == "number") then
+			error(`SaveData["{key}"] is not a number!`)
+		end
+
+		DataToUpdate[key] = currentValue + value
+	end
+
+	CachedSaveData:ChangeValues(DataToUpdate)
+end
 local function getCachedPlayerSaveData(Player)
 	if CachedPlayerSaveData[Player] == nil then
 		return
@@ -295,6 +323,7 @@ return {
 	notifyPlayer = NotifyPlayerServer.notifyPlayer,
 
 	-- SoccerDuels server
+	incrementCachedPlayerSaveData = incrementCachedPlayerSaveData,
 	updateCachedPlayerSaveData = updateCachedPlayerSaveData,
 	getCachedPlayerSaveData = getCachedPlayerSaveData,
 	disconnectAllPlayers = disconnectAllPlayers,
