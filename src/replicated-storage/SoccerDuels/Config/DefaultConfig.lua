@@ -235,4 +235,7 @@ DefaultConfig.PingQualityThresholdMilliseconds = {
 }
 DefaultConfig.PlaceholderPingQuality = "Bad" -- if a player has left or hasn't loaded, this is the ping quality the system will read for them
 
+-- player country code
+DefaultConfig.GetPlayerCountryRegionCodeNumTries = 3
+
 return DefaultConfig

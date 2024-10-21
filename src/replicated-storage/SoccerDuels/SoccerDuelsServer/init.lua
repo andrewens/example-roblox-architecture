@@ -14,6 +14,7 @@ local MapsServer = require(script.MapsServer)
 local MatchJoiningPadsServer = require(script.MatchJoiningPadsServer)
 local NotifyPlayerServer = require(script.NotifyPlayerServer)
 local PlayerControllerTypeServer = require(script.PlayerControllerTypeServer)
+local PlayerRegionServer = require(script.PlayerRegionServer)
 local PlayerPingServer = require(script.PlayerPingServer)
 local PracticeFieldServer = require(script.PracticeFieldServer)
 local TestingVariables = require(script.TestingVariables)
@@ -104,6 +105,7 @@ local function getPlayerSaveData(Player)
 	PlayerPingServer.playerDataLoaded(Player)
 	CharacterServer.playerDataLoaded(Player)
 	MatchJoiningPadsServer.playerDataLoaded(Player)
+	PlayerRegionServer.playerDataLoaded(Player)
 
 	return true, PlayerSaveData:ToJson()
 end
@@ -164,6 +166,7 @@ local function disconnectPlayer(Player, kickPlayer)
 	CharacterServer.disconnectPlayer(Player)
 	PlayerPingServer.disconnectPlayer(Player)
 	MapsServer.disconnectPlayer(Player)
+	PlayerRegionServer.disconnectPlayer(Player)
 
 	Network.fireAllClients("PlayerDisconnected", Player) -- TODO this behavior is untested
 end
@@ -310,6 +313,9 @@ return {
 	getPlayerPingMilliseconds = PlayerPingServer.getPlayerPingMilliseconds,
 	getPlayerPingQuality = PlayerPingServer.getPlayerPingQuality,
 	pingPlayerAsync = PlayerPingServer.pingPlayerAsync,
+
+	-- player region
+	getPlayerRegion = PlayerRegionServer.getPlayerRegion,
 
 	-- testing
 	resetAvailableDataStoreRequestsTestingMode = TestingVariables.resetAvailableDataStoreRequestsTestingMode,

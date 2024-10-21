@@ -115,6 +115,9 @@ return {
 	getPlayerPingQuality = SoccerDuelsServer.getPlayerPingQuality,
 	pingPlayerAsync = SoccerDuelsServer.pingPlayerAsync,
 
+	-- player region
+	getPlayerRegion = SoccerDuelsServer.getPlayerRegion,
+
 	-- SoccerDuels client
 	newClient = SoccerDuelsClient.new,
 

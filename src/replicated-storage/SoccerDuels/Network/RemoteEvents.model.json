@@ -96,6 +96,10 @@
     {
       "Name": "PlayerDisconnectFromAllMapInstances",
       "ClassName": "RemoteEvent"
+    },
+    {
+      "Name": "PlayerCountryRegionCodeChanged",
+      "ClassName": "RemoteEvent"
     }
   ]
 }

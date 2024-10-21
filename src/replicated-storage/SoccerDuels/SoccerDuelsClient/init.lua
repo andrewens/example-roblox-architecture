@@ -21,6 +21,7 @@ local ClientToastNotificationState = require(SoccerDuelsClientStateFolder.Client
 local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserInterfaceMode)
 local LoadClientSaveData = require(SoccerDuelsClientStateFolder.LoadClientSaveData)
 local LobbyCharacters = require(SoccerDuelsClientStateFolder.LobbyCharacters)
+local PlayerRegions = require(SoccerDuelsClientStateFolder.PlayerRegions)
 
 -- var
 local ClientMetatable
@@ -43,6 +44,7 @@ local function destroyClient(self)
 
 	self._MatchJoiningPadStateChangeTimestamp = nil
 	self._ImageLabelsWaitingForAvatarImages = nil
+	self._PlayerCountryRegionCodeEnum = nil
 	self._ClientConnectedMatchScore = nil
 	self._MatchJoiningPadStateEnum = nil
 	self._CachedPlayerAvatarImages = nil
@@ -124,6 +126,8 @@ local function newClient(Player)
 	self._ClientConnectedMatchScore = { 0, 0 } -- int teamIndex --> int teamScore
 	self._ClientConnectedMatchScoreChangedCallbacks = {} -- function callback(int team1Score, int team2Score) --> true
 
+	self._PlayerCountryRegionCodeEnum = {} -- Player --> int countryRegionCodeEnum
+
 	-- init
 	setmetatable(self, ClientMetatable)
 
@@ -194,6 +198,9 @@ local function initializeClients()
 		OnPlayerPingQualityChangedConnect = ClientPing.onPlayerPingQualityChangeConnect,
 		GetPlayerPingMilliseconds = ClientPing.getPlayerPingMilliseconds,
 		GetPlayerPingQuality = ClientPing.getPlayerPingQuality,
+
+		-- player region
+		GetAnyPlayerRegion = PlayerRegions.getAnyPlayerRegion,
 
 		-- toast notification
 		OnToastNotificationConnect = ClientToastNotificationState.onClientToastNotificationConnect,
