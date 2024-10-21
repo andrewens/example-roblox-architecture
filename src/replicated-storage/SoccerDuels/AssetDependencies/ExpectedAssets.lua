@@ -563,6 +563,9 @@ do
 	ExpectedAssets.MatchOverGui = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/RoundWonOrLost",
 	}
+	ExpectedAssets.MatchOverBar = {
+		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/RoundWonOrLost/Bar",
+	}
 	ExpectedAssets.MatchOverResultLabel = {
 		Path = "ReplicatedStorage/UserInterface/Windows/Gameplay/Middle/RoundWonOrLost/Bar/Result",
 		ClassName = "TextLabel",

@@ -142,6 +142,10 @@ DefaultConfig.LeaderboardGoodPingFrameTransparency = 0
 DefaultConfig.LeaderboardBadPingFrameColor = Color3.new(0, 0, 0)
 DefaultConfig.LeaderboardGoodPingFrameColor = Color3.new(1, 1, 1)
 
+DefaultConfig.RoundWonBarInitialWidthScale = 0.15
+DefaultConfig.RoundWonBarFinalWidthScale = 0.4
+DefaultConfig.RoundWonBarTweenInfo = TweenInfo.new(2, Enum.EasingStyle.Linear)
+
 -- avatar headshots
 DefaultConfig.AvatarHeadshotImageThumbnailType = Enum.ThumbnailType.AvatarBust
 DefaultConfig.AvatarHeadshotImageThumbnailResolution = Enum.ThumbnailSize.Size100x100
