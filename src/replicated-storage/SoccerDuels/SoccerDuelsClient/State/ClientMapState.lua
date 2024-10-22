@@ -58,11 +58,13 @@ local function playerLeaderstatsChanged(self, Player, teamIndex, goalsScored, nu
 		end
 	end
 end
-local function playerConnectedMapChanged(self, Player, mapEnum, teamIndex)
+local function playerConnectedMapChanged(self, Player, mapEnum, teamIndex, MapFolder)
 	self._PlayerConnectedMapEnum[Player] = mapEnum
 	self._PlayerTeamIndex[Player] = teamIndex
 
 	if Player == self.Player then
+		self._ConnectedMapFolder = MapFolder
+
 		-- reset data
 		self._PlayerThatScoredLastGoal = nil
 		self._PlayerCFrames = nil
@@ -254,6 +256,9 @@ local function getPlayerWhoAssistedLastGoalInClientConnectedMap(self)
 	return self._PlayerThatScoredLastGoal -- TODO properly test & implement this
 end
 
+local function getClientConnectedMapFolder(self)
+	return self._ConnectedMapFolder
+end
 local function getClientConnectedMapTeamScore(self, teamIndex)
 	if not (teamIndex == 1 or teamIndex == 2) then
 		error(`{teamIndex} is not 1 or 2!`)
@@ -377,13 +382,15 @@ return {
 	getPlayerWhoAssistedLastGoalInClientConnectedMap = getPlayerWhoAssistedLastGoalInClientConnectedMap,
 	getPlayerWhoScoredLastGoalInClientConnectedMap = getPlayerWhoScoredLastGoalInClientConnectedMap,
 
+	onPlayerLeaderstatsChangedConnect = onPlayerLeaderstatsChangedConnect,
+	onClientMapScoreChangedConnect = onClientMapScoreChangedConnect,
+
 	getClientedConnectedMapTeamMostValuablePlayer = getClientedConnectedMapTeamMostValuablePlayer,
 	getClientConnectedMapPlayerLeaderstat = getClientConnectedMapPlayerLeaderstat,
 	getClientConnectedMapWinningTeamIndex = getClientConnectedMapWinningTeamIndex,
-	onPlayerLeaderstatsChangedConnect = onPlayerLeaderstatsChangedConnect,
 	getClientMapStateChangeTimestamp = getClientMapStateChangeTimestamp,
 	getClientConnectedMapTeamScore = getClientConnectedMapTeamScore,
-	onClientMapScoreChangedConnect = onClientMapScoreChangedConnect,
+	getClientConnectedMapFolder = getClientConnectedMapFolder,
 	getClientConnectedMapName = getClientConnectedMapName,
 
 	onPlayerJoinedConnectedMap = onPlayerJoinedConnectedMap,

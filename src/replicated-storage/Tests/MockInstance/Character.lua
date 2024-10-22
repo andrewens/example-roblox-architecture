@@ -7,6 +7,7 @@ local MockPart = require(MockInstanceModule.Part)
 local SpawnLocation = workspace:FindFirstChildWhichIsA("SpawnLocation", true)
 
 -- public / MockCharacter class methods
+local newCharacter
 local function moveTo(self, position)
 	if not (typeof(position) == "Vector3") then
 		error(`{position} is not a Vector3!`)
@@ -33,6 +34,13 @@ end
 local function findFirstChild(self, childName)
 	return self[childName]
 end
+local function cloneCharacter(self)
+	return newCharacter({
+		HumanoidRootPart = self.HumanoidRootPart:Clone(),
+		Humanoid = self.Humanoid:Clone(),
+		Name = self.Name,
+	})
+end
 local function destroyCharacter(self)
 	self.Parent = nil
 	if self.Humanoid then
@@ -44,19 +52,26 @@ local function destroyCharacter(self)
 		self.HumanoidRootPart = nil
 	end
 end
+function newCharacter(InputData)
+	InputData = InputData or {}
 
--- MockCharacter class constructor
-return function()
-	local HumanoidRootPart = MockPart()
-	HumanoidRootPart.Name = "HumanoidRootPart"
-	HumanoidRootPart.Position = SpawnLocation.Position + Vector3.new(0, 3, 0)
+	if InputData.HumanoidRootPart == nil then
+		InputData.HumanoidRootPart = MockPart()
+		InputData.HumanoidRootPart.Name = "HumanoidRootPart"
+		InputData.HumanoidRootPart.Position = SpawnLocation.Position + Vector3.new(0, 3, 0)
+	end
+
+	if InputData.Humanoid == nil then
+		InputData.Humanoid = MockHumanoid()
+	end
 
 	return {
 		-- properties
-		Name = "MockCharacter",
+		Name = InputData.Name or "MockCharacter",
 		Parent = nil,
 
 		-- methods
+		Clone = cloneCharacter,
 		Destroy = destroyCharacter,
 		FindFirstChild = findFirstChild,
 		GetDescendants = getDescendants,
@@ -65,7 +80,10 @@ return function()
 		GetPivot = getPivot,
 
 		-- children
-		Humanoid = MockHumanoid(),
-		HumanoidRootPart = HumanoidRootPart,
+		Humanoid = InputData.Humanoid ,
+		HumanoidRootPart = InputData.HumanoidRootPart,
 	}
 end
+
+-- MockCharacter class constructor
+return newCharacter

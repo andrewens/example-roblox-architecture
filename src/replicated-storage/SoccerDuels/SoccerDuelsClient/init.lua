@@ -120,6 +120,7 @@ local function newClient(Player)
 
 	self._ConnectedMapStateEnum = nil -- int | nil mapStateEnum
 	self._ConnectedMapStateEndTimestamp = nil -- int | nil unixTimestampMilliseconds
+	self._ConnectedMapFolder = nil -- Instance | nil MapInstanceFolder
 
 	self._PlayerLeftConnectedMapCallbacks = {} -- function callback(Player) --> true
 	self._PlayerJoinedConnectedMapCallbacks = {} -- function callback(Player, int teamIndex) --> true
@@ -158,6 +159,7 @@ local function initializeClients()
 		GetTeamScore = ClientMapState.getClientConnectedMapTeamScore,
 
 		GetConnectedMapStateChangeTimestamp = ClientMapState.getClientMapStateChangeTimestamp,
+		GetConnectedMapFolder = ClientMapState.getClientConnectedMapFolder,
 		GetConnectedMapName = ClientMapState.getClientConnectedMapName,
 
 		OnPlayerLeaderstatsChangedConnect = ClientMapState.onPlayerLeaderstatsChangedConnect,

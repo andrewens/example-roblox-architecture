@@ -509,7 +509,7 @@ local function disconnectPlayerFromAllMapInstances(Player)
 	MapInstancePlayers[mapInstanceId][Player] = nil
 	PlayerConnectedMapInstance[Player] = nil
 
-	Network.fireAllClients("PlayerConnectedMapChanged", Player, nil, nil)
+	Network.fireAllClients("PlayerConnectedMapChanged", Player, nil, nil, nil)
 
 	updateMapStateAfterPlayerLeft(mapInstanceId)
 	replicateMapStateToPlayer(Player)
@@ -540,11 +540,18 @@ local function connectPlayerToMapInstance(Player, mapInstanceId, teamIndex)
 	if not Utility.isInteger(mapInstanceId) then
 		error(`{mapInstanceId} is not an integer!`)
 	end
-	if MapInstanceIdToMapPositionIndex[mapInstanceId] == nil then
-		error(`{mapInstanceId} is not an active map instance id!`)
-	end
 	if not (teamIndex == 1 or teamIndex == 2) then
 		error(`{teamIndex} is not 1 or 2!`)
+	end
+
+	local mapPositionIndex = MapInstanceIdToMapPositionIndex[mapInstanceId]
+	if mapPositionIndex == nil then
+		error(`{mapInstanceId} is not an active map instance id!`)
+	end
+
+	local MapFolder = MapInstanceFolder[mapPositionIndex]
+	if MapFolder == nil then
+		error(`Map {mapInstanceId} has no Folder!`)
 	end
 
 	disconnectPlayerFromAllMapInstances(Player)
@@ -556,7 +563,7 @@ local function connectPlayerToMapInstance(Player, mapInstanceId, teamIndex)
 	addPlayerToLeaderstats(Player, mapInstanceId, teamIndex)
 	replicateMapInstanceScoreToPlayer(Player, mapInstanceId)
 
-	Network.fireAllClients("PlayerConnectedMapChanged", Player, MapInstanceMapEnum[mapInstanceId], teamIndex)
+	Network.fireAllClients("PlayerConnectedMapChanged", Player, MapInstanceMapEnum[mapInstanceId], teamIndex, MapFolder)
 
 	CharacterServer.removePlayerCharacter(Player)
 

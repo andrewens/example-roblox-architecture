@@ -16,23 +16,26 @@ local MockPartMetatable = {
 }
 
 -- public / MockPart class methods
+local newMockPart
+local function clone(self)
+	return newMockPart(self)
+end
 local function isA(self, className)
 	return className == "Part" or className == "BasePart"
 end
-local function destroy(self)
+local function destroy(self) end
+function newMockPart(InputData)
+	InputData = InputData or {}
 
-end
-
--- MockPart constructor
-return function()
 	local self = {
 		-- properties
-		Name = "Part",
-		CFrame = CFrame.new(),
+		Name = InputData.Name or "Part",
+		CFrame = InputData.CFrame or CFrame.new(),
 		Anchored = false,
 
 		-- methods
 		IsA = isA,
+		Clone = clone,
 		Destroy = destroy,
 	}
 
@@ -40,3 +43,6 @@ return function()
 
 	return self
 end
+
+-- MockPart constructor
+return newMockPart

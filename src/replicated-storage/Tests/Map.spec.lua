@@ -174,6 +174,9 @@ return function()
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player1) == nil)
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player2) == nil)
 
+				assert(Client1:GetConnectedMapFolder() == nil)
+				assert(Client2:GetConnectedMapFolder() == nil)
+
 				SoccerDuels.connectPlayerToMapInstance(Player1, mapId1, 1)
 				Map1Players = SoccerDuels.getPlayersConnectedToMapInstance(mapId1)
 				Map2Players = SoccerDuels.getPlayersConnectedToMapInstance(mapId2)
@@ -190,6 +193,9 @@ return function()
 				assert(SoccerDuels.playerIsInLobby(Player2))
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player1) == mapId1)
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player2) == nil)
+
+				assert(Client1:GetConnectedMapFolder() == SoccerDuels.getMapInstanceFolder(mapId1))
+				assert(Client2:GetConnectedMapFolder() == nil)
 
 				SoccerDuels.connectPlayerToMapInstance(Player1, mapId2, 2)
 				Map1Players = SoccerDuels.getPlayersConnectedToMapInstance(mapId1)
@@ -208,6 +214,9 @@ return function()
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player1) == mapId2)
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player2) == nil)
 
+				assert(Client1:GetConnectedMapFolder() == SoccerDuels.getMapInstanceFolder(mapId2))
+				assert(Client2:GetConnectedMapFolder() == nil)
+
 				SoccerDuels.connectPlayerToMapInstance(Player2, mapId2, 1)
 				Map1Players = SoccerDuels.getPlayersConnectedToMapInstance(mapId1)
 				Map2Players = SoccerDuels.getPlayersConnectedToMapInstance(mapId2)
@@ -224,6 +233,9 @@ return function()
 				assert(not SoccerDuels.playerIsInLobby(Player2))
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player1) == mapId2)
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player2) == mapId2)
+
+				assert(Client1:GetConnectedMapFolder() == SoccerDuels.getMapInstanceFolder(mapId2))
+				assert(Client2:GetConnectedMapFolder() == SoccerDuels.getMapInstanceFolder(mapId2))
 
 				SoccerDuels.disconnectPlayerFromAllMapInstances(Player1)
 				Map1Players = SoccerDuels.getPlayersConnectedToMapInstance(mapId1)
@@ -242,6 +254,9 @@ return function()
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player1) == nil)
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player2) == mapId2)
 
+				assert(Client1:GetConnectedMapFolder() == nil)
+				assert(Client2:GetConnectedMapFolder() == SoccerDuels.getMapInstanceFolder(mapId2))
+
 				SoccerDuels.disconnectPlayer(Player2)
 				Map1Players = SoccerDuels.getPlayersConnectedToMapInstance(mapId1)
 				Map2Players = SoccerDuels.getPlayersConnectedToMapInstance(mapId2)
@@ -258,6 +273,9 @@ return function()
 				assert(not SoccerDuels.playerIsInLobby(Player2)) -- still not in lobby tho
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player1) == nil)
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player2) == nil)
+
+				assert(Client1:GetConnectedMapFolder() == nil)
+				assert(Client2:GetConnectedMapFolder() == nil)
 
 				s = pcall(SoccerDuels.connectPlayerToMapInstance, Player2, mapId1, 1)
 				assert(not s)
@@ -279,6 +297,9 @@ return function()
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player1) == mapId1)
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player2) == nil)
 
+				assert(Client1:GetConnectedMapFolder() == SoccerDuels.getMapInstanceFolder(mapId1))
+				assert(Client2:GetConnectedMapFolder() == nil)
+
 				SoccerDuels.destroyMapInstance(mapId1)
 				Map1Players = SoccerDuels.getPlayersConnectedToMapInstance(mapId1)
 				Map2Players = SoccerDuels.getPlayersConnectedToMapInstance(mapId2)
@@ -290,6 +311,9 @@ return function()
 				assert(not SoccerDuels.playerIsInLobby(Player2))
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player1) == nil)
 				assert(SoccerDuels.getPlayerConnectedMapInstance(Player2) == nil)
+
+				assert(Client1:GetConnectedMapFolder() == nil)
+				assert(Client2:GetConnectedMapFolder() == nil)
 
 				Client1:Destroy()
 				Client2:Destroy()
