@@ -13,6 +13,7 @@ local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 
 -- public / Client class methods
 local function newGoalCutsceneGui(self)
+	-- gui dependencies
 	local GoalCutsceneGui = Assets.getExpectedAsset("GoalCutsceneGui", "MainGui", self.MainGui)
 
 	local GoalCutsceneGoalPlayerLabel =
@@ -58,16 +59,11 @@ local function newGoalCutsceneGui(self)
 		GoalCutscenePlayerCard
 	)
 
-	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
-		GoalCutsceneGui.Visible = (userInterfaceMode == "GoalCutscene")
-		if not GoalCutsceneGui.Visible then
-			return
-		end
+	-- var
+	local UIMaid = Maid.new()
 
-		local PlayerThatScoredLastGoal = self:GetPlayerWhoScoredLastGoal()
-		local PlayerThatAssistedLastGoal = self:GetPlayerWhoAssistedLastGoal()
-		local teamIndex = self:GetPlayerTeamIndex(PlayerThatScoredLastGoal)
-
+	-- functions
+	local function renderGoalCutsceneGui(PlayerThatScoredLastGoal, PlayerThatAssistedLastGoal, teamIndex)
 		-- goal
 		GoalCutsceneGoalPlayerLabel.Text = `Scored by {PlayerThatScoredLastGoal.Name}`
 		GoalCutsceneGoalPlayerTeam1Background.Enabled = (teamIndex == 1)
@@ -97,8 +93,44 @@ local function newGoalCutsceneGui(self)
 		GoalCutscenePlayerCardWinsLabel.Text = self:GetAnyPlayerDataValue("Wins", PlayerThatScoredLastGoal)
 		GoalCutscenePlayerCardLossesLabel.Text = self:GetAnyPlayerDataValue("Losses", PlayerThatScoredLastGoal)
 		GoalCutscenePlayerCardWinStreakLabel.Text = self:GetAnyPlayerDataValue("WinStreak", PlayerThatScoredLastGoal)
+	end
+	local function locallyPlayGoalCutscene(teamIndexThatScored)
+		local mapName = self:GetConnectedMapName()
+		local MapFolder = self:GetConnectedMapFolder()
+		local otherTeamIndex = if teamIndexThatScored == 1 then 2 else 1
+
+		local Camera = workspace.Camera
+		local SidelinesCameraPart =
+			Assets.getExpectedAsset(`{mapName} SidelinesCameraPart`, `{mapName} MapFolder`, MapFolder)
+		local GoalPart =
+			Assets.getExpectedAsset(`{mapName} Team{otherTeamIndex} GoalPart`, `{mapName} MapFolder`, MapFolder)
+
+		Camera.CameraType = Enum.CameraType.Scriptable
+		Camera.CFrame = CFrame.lookAt(SidelinesCameraPart.Position, GoalPart.Position)
+
+		UIMaid:GiveTask(function()
+			Camera.CameraType = Enum.CameraType.Custom
+		end)
+	end
+
+	-- events
+	self:OnUserInterfaceModeChangedConnect(function(userInterfaceMode)
+		UIMaid:DoCleaning()
+
+		GoalCutsceneGui.Visible = (userInterfaceMode == "GoalCutscene")
+		if not GoalCutsceneGui.Visible then
+			return
+		end
+
+		local PlayerThatScoredLastGoal = self:GetPlayerWhoScoredLastGoal()
+		local PlayerThatAssistedLastGoal = self:GetPlayerWhoAssistedLastGoal()
+		local teamIndex = self:GetPlayerTeamIndex(PlayerThatScoredLastGoal)
+
+		renderGoalCutsceneGui(PlayerThatScoredLastGoal, PlayerThatAssistedLastGoal, teamIndex)
+		locallyPlayGoalCutscene(teamIndex)
 	end)
 
+	-- initialize
 	GoalCutsceneGui.Visible = false
 end
 

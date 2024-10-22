@@ -381,7 +381,20 @@ do
 		ExpectedAssets[`{mapName} TeamStartingPositions`] = {
 			Path = `ServerStorage/MapTemplates/{mapName}/TeamStartingPositions`,
 		}
+		ExpectedAssets[`{mapName} SidelinesCameraPart`] = {
+			Path = `ServerStorage/MapTemplates/{mapName}/Cameras/Sideline`,
+			ClassName = "BasePart",
+		}
 
+		-- goal parts
+		for teamIndex = 1, 2 do
+			ExpectedAssets[`{mapName} Team{teamIndex} GoalPart`] = {
+				Path = `ServerStorage/MapTemplates/{mapName}/Goals/Team{teamIndex}`,
+				ClassName = "BasePart",
+			}
+		end
+
+		-- team starting positions
 		for teamIndex = 1, 2 do
 			for i = 1, MAX_PLAYERS_PER_TEAM do
 				ExpectedAssets[`{mapName} Team{teamIndex} StartPosition{i}`] = {
