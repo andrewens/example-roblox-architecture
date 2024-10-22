@@ -12,6 +12,7 @@ local ClientPing = require(SoccerDuelsClientStateFolder.ClientPing)
 local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserInterfaceMode)
 local LobbyCharacters = require(SoccerDuelsClientStateFolder.LobbyCharacters)
 local PlayerRegions = require(SoccerDuelsClientStateFolder.PlayerRegions)
+local PlayerCharactersInMap = require(SoccerDuelsClientStateFolder.PlayerCharactersInMap)
 
 local AvatarHeadshotImages = require(SoccerDuelsClientModule.AvatarHeadshotImages)
 local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
@@ -96,9 +97,10 @@ local function loadClientPlayerDataAsync(self)
 		updateCachedPlayerSaveData(self, ...)
 	end))
 
-	ClientMatchPad.initialize(self) -- must be before GetPlayerSaveData b/c it listens to a remote event that fires afterward
+	PlayerCharactersInMap.initialize(self)
 	AvatarHeadshotImages.initialize(self)
 	ClientMapState.initialize(self)
+	ClientMatchPad.initialize(self) -- must be before GetPlayerSaveData b/c it listens to a remote event that fires afterward
 	PlayerRegions.initialize(self)
 	UIAnimations.initialize(self)
 	ClientPing.initialize(self)

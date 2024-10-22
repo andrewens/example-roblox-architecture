@@ -21,6 +21,7 @@ local ClientToastNotificationState = require(SoccerDuelsClientStateFolder.Client
 local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserInterfaceMode)
 local LoadClientSaveData = require(SoccerDuelsClientStateFolder.LoadClientSaveData)
 local LobbyCharacters = require(SoccerDuelsClientStateFolder.LobbyCharacters)
+local PlayerCharactersInMap = require(SoccerDuelsClientStateFolder.PlayerCharactersInMap)
 local PlayerRegions = require(SoccerDuelsClientStateFolder.PlayerRegions)
 
 -- var
@@ -48,10 +49,10 @@ local function destroyClient(self)
 	self._ClientConnectedMatchScore = nil
 	self._MatchJoiningPadStateEnum = nil
 	self._CachedPlayerAvatarImages = nil
+	self._PlayerCharacterTemplate = nil
 	self._CharactersInLobby = nil
 
 	Gui.destroy(self)
-
 	Network.fireServer("ClientDestroyed", self.Player)
 end
 
@@ -127,6 +128,7 @@ local function newClient(Player)
 	self._ClientConnectedMatchScoreChangedCallbacks = {} -- function callback(int team1Score, int team2Score) --> true
 
 	self._PlayerCountryRegionCodeEnum = {} -- Player --> int countryRegionCodeEnum
+	self._PlayerCharacterTemplate = {} -- Player --> Model CharacterTemplate (a copy of their character -- only for characters in same match as self.Player)
 
 	-- init
 	setmetatable(self, ClientMetatable)
@@ -198,6 +200,9 @@ local function initializeClients()
 		OnPlayerPingQualityChangedConnect = ClientPing.onPlayerPingQualityChangeConnect,
 		GetPlayerPingMilliseconds = ClientPing.getPlayerPingMilliseconds,
 		GetPlayerPingQuality = ClientPing.getPlayerPingQuality,
+
+		-- player avatar
+		ClonePlayerAvatar = PlayerCharactersInMap.clonePlayerAvatar,
 
 		-- player region
 		GetAnyPlayerRegion = PlayerRegions.getAnyPlayerRegion,
