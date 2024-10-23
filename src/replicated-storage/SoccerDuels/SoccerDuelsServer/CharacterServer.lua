@@ -15,12 +15,21 @@ local CharactersFolder
 -- const
 local TESTING_MODE = Config.getConstant("TestingMode")
 local LOBBY_CHARACTER_COLLISION_GROUP = Config.getConstant("LobbyCharacterCollisionGroup")
+local GOAL_CUTSCENE_DURATION = Config.getConstant("GoalCutsceneDurationSeconds")
 
 -- var
 local CharactersInLobby = {} -- Player --> Character
 
 -- private
-local function characterAppearanceLoaded(Player, Character)
+local function destroyCachedPlayerCharacter(Player)
+	local Character = CharactersFolder:FindFirstChild(Player.UserId)
+	if Character then
+		Character:Destroy()
+	end
+end
+local function cachePlayerCharacter(Player, Character)
+	destroyCachedPlayerCharacter(Player)
+
 	Character.Archivable = true
 	Character = Character:Clone()
 	Character.Name = Player.UserId
@@ -120,6 +129,10 @@ local function spawnCharacterInLobby(Player)
 	loadPlayerCharacter(Player)
 end
 
+local function disconnectPlayer(Player)
+	lobbyCharacterDespawned(Player)
+	task.delay(2 * GOAL_CUTSCENE_DURATION, destroyCachedPlayerCharacter, Player)
+end
 local function initializePlayer(Player)
 	-- TODO I think a client could invoke this twice, which would be bad because the number of callbacks would duplicate
 	Utility.onPlayerDiedConnect(Player, function()
@@ -132,7 +145,7 @@ local function initializeLobbyCharacterServer()
 	SoccerDuelsServer = require(SoccerDuelsServerModule)
 
 	CharactersFolder = Assets.getExpectedAsset("PlayerCharacterCacheFolder")
-	Utility.onCharacterAppearanceLoadedConnect(characterAppearanceLoaded)
+	Utility.onCharacterAppearanceLoadedConnect(cachePlayerCharacter)
 
 	PhysicsService:RegisterCollisionGroup(LOBBY_CHARACTER_COLLISION_GROUP)
 	PhysicsService:CollisionGroupSetCollidable(LOBBY_CHARACTER_COLLISION_GROUP, LOBBY_CHARACTER_COLLISION_GROUP, false)
@@ -147,6 +160,6 @@ return {
 	removePlayerCharacter = removeCharacter,
 
 	initialize = initializeLobbyCharacterServer,
-	disconnectPlayer = lobbyCharacterDespawned,
+	disconnectPlayer = disconnectPlayer,
 	playerDataLoaded = initializePlayer,
 }
