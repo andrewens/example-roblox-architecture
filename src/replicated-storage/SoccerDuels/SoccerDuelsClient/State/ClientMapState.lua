@@ -18,6 +18,7 @@ local MATCH_OVER_STATE_ENUM = Enums.getEnum("MapState", "MatchOver")
 
 local GOAL_CUTSCENE_DURATION = Config.getConstant("GoalCutsceneDurationSeconds")
 local GOAL_CUTSCENE_FRAMES_PER_SECOND = Config.getConstant("GoalCutsceneFramesPerSecond")
+local GOAL_CUTSCENE_SECONDS_PER_FRAME = 1 / GOAL_CUTSCENE_FRAMES_PER_SECOND
 local TOTAL_FRAMES_PER_GOAL_CUTSCENE = GOAL_CUTSCENE_DURATION * GOAL_CUTSCENE_FRAMES_PER_SECOND
 
 -- protected / Network methods
@@ -372,6 +373,9 @@ local function initializeClientMapState(self)
 	end))
 	self.Maid:GiveTask(Network.onClientEventConnect("MatchScoreChanged", self.Player, function(...)
 		clientConnectedMapScoreChanged(self, ...)
+	end))
+	self.Maid:GiveTask(Utility.runServiceSteppedConnect(GOAL_CUTSCENE_SECONDS_PER_FRAME, function(...)
+		mapTimerTick(self, ...)
 	end))
 end
 

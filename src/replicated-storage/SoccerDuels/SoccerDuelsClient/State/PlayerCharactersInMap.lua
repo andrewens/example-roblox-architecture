@@ -6,58 +6,55 @@ local Utility = require(SoccerDuelsModule.Utility)
 local ClientMapState = require(SoccerDuelsClientStateFolder.ClientMapState)
 
 -- private
-local function playerCharacterAdded(self, Player, Character)
-	if self._PlayerGoals[Player] == nil then
-		self._PlayerCharacterTemplate[Player] = nil
-		return
+local function cachePlayerCharacter(self, Player, Character)
+	Character = Character or Player.Character
+	if Character == nil then
+		return false
+	end
+
+	if Character:FindFirstChild("HumanoidRootPart") == nil then
+		return false
 	end
 
 	if self._PlayerCharacterTemplate[Player] then
 		self._PlayerCharacterTemplate[Player]:Destroy()
 	end
 
-	self._PlayerCharacterTemplate[Player] = Character:Clone()
-end
-local function playerJoinedConnectedMap(self, Player)
-	local Character = Player.Character
-	if Character == nil then
-		return
-	end
+	Character.Archivable = true
 
-	self._PlayerCharacterTemplate[Player] = Character:Clone()
-end
-local function playerLeftConnectedMap(self, Player)
-	if self._PlayerCharacterTemplate[Player] == nil then
-		return
-	end
+	local ClonedCharacter = Character:Clone()
+	ClonedCharacter.HumanoidRootPart.Anchored = true
+	self._PlayerCharacterTemplate[Player] = ClonedCharacter
 
-	self._PlayerCharacterTemplate[Player]:Destroy()
-	self._PlayerCharacterTemplate[Player] = nil
+	return true
 end
 
 -- public / Client class methods
 local function clonePlayerAvatar(self, Player)
+	local ClonedCharacter
+
 	local CharacterTemplate = self._PlayerCharacterTemplate[Player]
 	if CharacterTemplate == nil then
-		local Character = Player.Character
-		if Character == nil then
+		local s = cachePlayerCharacter(self, Player)
+		if not s then
+			warn(`{Player.Name} has no cached character`)
 			return
 		end
 
-		return Character:Clone()
+		CharacterTemplate = self._PlayerCharacterTemplate[Player]
 	end
 
-	return CharacterTemplate:Clone()
+	ClonedCharacter = CharacterTemplate:Clone()
+	ClonedCharacter.PrimaryPart = ClonedCharacter:FindFirstChild("HumanoidRootPart")
+
+	return ClonedCharacter
 end
 local function initializePlayerCharactersClientModule(self)
 	self.Maid:GiveTask(Utility.onCharacterLoadedConnect(function(...)
-		playerCharacterAdded(self, ...)
+		cachePlayerCharacter(self, ...)
 	end))
-	self.Maid:GiveTask(ClientMapState.onPlayerJoinedConnectedMap(self, function(...)
-		playerJoinedConnectedMap(self, ...)
-	end))
-	self.Maid:GiveTask(ClientMapState.onPlayerLeftConnectedMap(self, function(...)
-		playerLeftConnectedMap(self, ...)
+	self.Maid:GiveTask(ClientMapState.onPlayerJoinedConnectedMap(self, function(Player, ...)
+		cachePlayerCharacter(self, Player)
 	end))
 end
 

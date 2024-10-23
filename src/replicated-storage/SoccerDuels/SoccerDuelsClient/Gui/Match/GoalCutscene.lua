@@ -11,6 +11,10 @@ local Utility = require(SoccerDuelsModule.Utility)
 local AvatarHeadshotImages = require(SoccerDuelsClientModule.AvatarHeadshotImages)
 local UIAnimations = require(SoccerDuelsClientModule.UIAnimations)
 
+-- const
+local GOAL_CUTSCENE_FRAMES_PER_SECOND = Config.getConstant("GoalCutsceneFramesPerSecond")
+local GOAL_CUTSCENE_SECONDS_PER_FRAME = 1 / GOAL_CUTSCENE_FRAMES_PER_SECOND
+
 -- public / Client class methods
 local function newGoalCutsceneGui(self)
 	-- gui dependencies
@@ -111,6 +115,35 @@ local function newGoalCutsceneGui(self)
 		UIMaid:GiveTask(function()
 			Camera.CameraType = Enum.CameraType.Custom
 		end)
+
+		local PlayerCharacters = {} -- Player --> Character
+		local cutsceneStillPlaying = true
+
+		UIMaid:GiveTask(function()
+			cutsceneStillPlaying = false
+			for Player, Character in PlayerCharacters do
+				Character:Destroy()
+			end
+		end)
+
+		for i, PlayerCFrames in self:IterateEndOfMatchPlayerCFrames() do
+			if not cutsceneStillPlaying then
+				break
+			end
+
+			for Player, characterCFrame in PlayerCFrames do
+				local Character = PlayerCharacters[Player]
+				if Character == nil then
+					Character = self:ClonePlayerAvatar(Player)
+					Character.Parent = workspace
+					PlayerCharacters[Player] = Character
+				end
+
+				Character:SetPrimaryPartCFrame(characterCFrame)
+			end
+
+			task.wait(GOAL_CUTSCENE_SECONDS_PER_FRAME)
+		end
 	end
 
 	-- events
@@ -127,7 +160,7 @@ local function newGoalCutsceneGui(self)
 		local teamIndex = self:GetPlayerTeamIndex(PlayerThatScoredLastGoal)
 
 		renderGoalCutsceneGui(PlayerThatScoredLastGoal, PlayerThatAssistedLastGoal, teamIndex)
-		locallyPlayGoalCutscene(teamIndex)
+		locallyPlayGoalCutscene(teamIndex) -- this yields
 	end)
 
 	-- initialize
