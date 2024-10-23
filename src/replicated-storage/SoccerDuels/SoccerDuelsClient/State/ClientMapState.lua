@@ -5,6 +5,7 @@ local SoccerDuelsClientStateFolder = script:FindFirstAncestor("State")
 local Config = require(SoccerDuelsModule.Config)
 local Enums = require(SoccerDuelsModule.Enums)
 local Network = require(SoccerDuelsModule.Network)
+local Time = require(SoccerDuelsModule.Time)
 local Utility = require(SoccerDuelsModule.Utility)
 
 local ClientModalState = require(SoccerDuelsClientStateFolder.ClientModalState)
@@ -17,8 +18,11 @@ local MATCH_COUNTDOWN_STATE_ENUM = Enums.getEnum("MapState", "MatchCountdown")
 local MATCH_GAMEPLAY_STATE_ENUM = Enums.getEnum("MapState", "MatchGameplay")
 local MATCH_OVER_STATE_ENUM = Enums.getEnum("MapState", "MatchOver")
 
+local MATCH_OVER_DURATION = Config.getConstant("MatchOverDurationSeconds")
 local GOAL_CUTSCENE_DURATION = Config.getConstant("GoalCutsceneDurationSeconds")
 local GOAL_CUTSCENE_FRAMES_PER_SECOND = Config.getConstant("GoalCutsceneFramesPerSecond")
+local SECONDS_AFTER_GOAL_UNTIL_CUTSCENE_ENDS = Config.getConstant("SecondsAfterGoalUntilGoalCutsceneEnds")
+
 local GOAL_CUTSCENE_SECONDS_PER_FRAME = 1 / GOAL_CUTSCENE_FRAMES_PER_SECOND
 local TOTAL_FRAMES_PER_GOAL_CUTSCENE = GOAL_CUTSCENE_DURATION * GOAL_CUTSCENE_FRAMES_PER_SECOND
 
@@ -138,6 +142,7 @@ local function playerConnectedMapStateChanged(self, mapStateEnum, stateEndTimest
 end
 
 -- public / Client class methods
+local getClientMapStateChangeTimestamp
 local function disconnectClientFromAllMapInstances(self)
 	Network.fireServer("PlayerDisconnectFromAllMapInstances", self.Player)
 end
@@ -148,6 +153,17 @@ end
 local function mapTimerTick(self)
 	local mapStateEnum = self._ConnectedMapStateEnum
 	if not (mapStateEnum == MATCH_GAMEPLAY_STATE_ENUM or mapStateEnum == MATCH_OVER_STATE_ENUM) then
+		return
+	end
+
+	local now = Time.getUnixTimestampMilliseconds()
+	local timestamp = getClientMapStateChangeTimestamp(self)
+	if
+		mapStateEnum == MATCH_OVER_STATE_ENUM
+		and now
+			> (timestamp + (-MATCH_OVER_DURATION + SECONDS_AFTER_GOAL_UNTIL_CUTSCENE_ENDS) * 1E3)
+	then
+		print("Blaaah", math.floor(timestamp - now))
 		return
 	end
 
@@ -333,7 +349,7 @@ local function onPlayerJoinedConnectedMap(self, callback)
 		end,
 	}
 end
-local function getClientMapStateChangeTimestamp(self)
+function getClientMapStateChangeTimestamp(self)
 	return self._ConnectedMapStateEndTimestamp
 end
 local function onPlayerLeaderstatsChangedConnect(self, callback)

@@ -30,11 +30,10 @@ end
 local function cachePlayerCharacter(Player, Character)
 	destroyCachedPlayerCharacter(Player)
 
-	Character.Archivable = true
-	Character = Character:Clone()
-	Character.Name = Player.UserId
-	Character.HumanoidRootPart.Anchored = true
-	Character.Parent = CharactersFolder
+	local ClonedCharacter = Utility.cloneCharacter(Character)
+	ClonedCharacter.Name = Player.UserId
+	ClonedCharacter.HumanoidRootPart.Anchored = true
+	ClonedCharacter.Parent = CharactersFolder
 end
 local function lobbyCharacterDespawned(Player)
 	if CharactersInLobby[Player] == nil then

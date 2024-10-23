@@ -59,13 +59,15 @@ return function()
 
 		assert(SoccerDuels.getMapInstanceState(mapId) == "MatchGameplay")
 
-		SoccerDuels.addExtraSecondsForTesting(1) -- extra seconds in match gameplay
+		SoccerDuels.addExtraSecondsForTesting(0.1) -- extra seconds in match gameplay
 		SoccerDuels.mapTimerTick()
 
 		local TestCFrames = {} -- int frameIndex --> Player --> CFrame
 		local frameAtWhichPlayer4Disconnects = 10
-		local frameAtWhichPlayerScoresGoal =
-			math.floor((goalCutsceneDuration - secondsAfterGoalUntilCutsceneEnds) * cutsceneFramesPerSecond)
+		local frameAtWhichPlayerScoresGoal = math.floor(
+			(goalCutsceneDuration - secondsAfterGoalUntilCutsceneEnds + cutsceneSecondsPerFrame)
+				* cutsceneFramesPerSecond
+		)
 
 		for i = 1, totalNumFrames do
 			TestCFrames[i] = {
@@ -85,7 +87,7 @@ return function()
 				Player.Character.HumanoidRootPart.CFrame = characterCFrame
 			end
 
-			SoccerDuels.addExtraSecondsForTesting(cutsceneSecondsPerFrame + maxError)
+			SoccerDuels.addExtraSecondsForTesting(cutsceneSecondsPerFrame - maxError)
 			SoccerDuels.mapTimerTick()
 			Client1:MapTimerTick()
 
@@ -111,7 +113,9 @@ return function()
 			assert(TestCFrames[j][Player4] == PlayerCFramesThisFrame[Player4]) -- this should be nil for j >= 10 b/ Player4 disconnected
 		end
 
-		assert(j == totalNumFrames)
+		if not (j == totalNumFrames) then
+			error(`{j} != {totalNumFrames}`)
+		end
 
 		SoccerDuels.destroyMapInstance(mapId)
 		Client1:Destroy()

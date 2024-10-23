@@ -173,6 +173,16 @@ local function playerIsInGame(Player)
 	end
 	return typeof(Player) == "table" or Players:FindFirstChild(Player.Name) ~= nil
 end
+local function cloneCharacter(Character)
+	local ClonedCharacter = Instance.new("Model")
+	ClonedCharacter.Name = Character.Name
+
+	for _, Child in Character:GetChildren() do
+		Child:Clone().Parent = ClonedCharacter
+	end
+
+	return ClonedCharacter
+end
 local function setPlayerCharacterAnchored(Player, isAnchored)
 	if not isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
@@ -346,6 +356,7 @@ return {
 	getPlayerCharacterPosition = getPlayerCharacterPosition,
 	setPlayerCharacterAnchored = setPlayerCharacterAnchored,
 	getPlayerCharacterCFrame = getPlayerCharacterCFrame,
+	cloneCharacter = cloneCharacter,
 	playerIsInGame = playerIsInGame,
 	weldPartToPart = weldPartToPart,
 

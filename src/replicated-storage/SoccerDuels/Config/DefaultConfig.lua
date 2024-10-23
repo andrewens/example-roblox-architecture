@@ -227,7 +227,7 @@ DefaultConfig.DefaultMapInstanceOptions = {
 	MatchCycleEnabled = true,
 }
 
-DefaultConfig.GoalCutsceneFramesPerSecond = 10
+DefaultConfig.GoalCutsceneFramesPerSecond = 30
 
 -- ping
 DefaultConfig.PingCheckPollRateSeconds = 1
