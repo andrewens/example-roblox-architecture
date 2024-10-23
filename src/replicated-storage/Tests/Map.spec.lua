@@ -777,7 +777,7 @@ return function()
 		end)
 		describe("Player characters during a match", function()
 			it(
-				"Players have no characters during the 'Loading' or 'GameOver' states; characters are frozen during 'MatchCountdown', but not during 'MatchGameplay'; characters are teleported to starting positions for 'MatchCountdown'",
+				"Players have no characters during the 'Loading', 'GoalCutscene' or 'GameOver' states; characters are frozen during 'MatchCountdown', but not during 'MatchGameplay'; characters are teleported to starting positions for 'MatchCountdown'",
 				function()
 					SoccerDuels.disconnectAllPlayers()
 					SoccerDuels.destroyAllMapInstances()
@@ -788,6 +788,7 @@ return function()
 					local matchCountdownDuration = SoccerDuels.getConstant("MatchCountdownDurationSeconds")
 					local matchGameplayDuration = SoccerDuels.getConstant("MatchGameplayDurationSeconds")
 					local matchOverDuration = SoccerDuels.getConstant("MatchOverDurationSeconds")
+					local goalCutsceneDuration = SoccerDuels.getConstant("GoalCutsceneDurationSeconds")
 					local gameOverDuration = SoccerDuels.getConstant("GameOverDurationSeconds")
 					local numMatchesPerGame = SoccerDuels.getConstant("NumberOfMatchesPerGame")
 
@@ -843,6 +844,26 @@ return function()
 
 						Player1.Character:MoveTo(startPosition2) -- move characters off their starting positions
 						Player2.Character:MoveTo(startPosition1)
+
+						if i == 1 then
+							SoccerDuels.playerScoredGoal(Player1)
+
+							assert(SoccerDuels.getMapInstanceState(mapId) == "MatchOver")
+							assert(not Player1.Character.HumanoidRootPart.Anchored)
+							assert(not Player2.Character.HumanoidRootPart.Anchored)
+
+							SoccerDuels.addExtraSecondsForTesting(matchOverDuration + maxError)
+							SoccerDuels.mapTimerTick()
+
+							assert(SoccerDuels.getMapInstanceState(mapId) == "GoalCutscene")
+							assert(Player1.Character == nil or Player1.Character.Parent == nil)
+							assert(Player2.Character == nil or Player2.Character.Parent == nil)
+
+							SoccerDuels.addExtraSecondsForTesting(goalCutsceneDuration + maxError)
+							SoccerDuels.mapTimerTick()
+
+							continue
+						end
 
 						SoccerDuels.addExtraSecondsForTesting(matchGameplayDuration + maxError)
 						SoccerDuels.mapTimerTick()

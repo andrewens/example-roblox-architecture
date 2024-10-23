@@ -49,7 +49,6 @@ local function destroyClient(self)
 	self._ClientConnectedMatchScore = nil
 	self._MatchJoiningPadStateEnum = nil
 	self._CachedPlayerAvatarImages = nil
-	self._PlayerCharacterTemplate = nil
 	self._CharactersInLobby = nil
 
 	Gui.destroy(self)
@@ -129,7 +128,6 @@ local function newClient(Player)
 	self._ClientConnectedMatchScoreChangedCallbacks = {} -- function callback(int team1Score, int team2Score) --> true
 
 	self._PlayerCountryRegionCodeEnum = {} -- Player --> int countryRegionCodeEnum
-	self._PlayerCharacterTemplate = {} -- Player --> Model CharacterTemplate (a copy of their character -- only for characters in same match as self.Player)
 
 	-- init
 	setmetatable(self, ClientMetatable)
@@ -204,7 +202,7 @@ local function initializeClients()
 		GetPlayerPingQuality = ClientPing.getPlayerPingQuality,
 
 		-- player avatar
-		ClonePlayerAvatar = PlayerCharactersInMap.clonePlayerAvatar,
+		ClonePlayerAvatar = PlayerCharactersInMap.clonePlayerAvatar, -- TODO untested
 
 		-- player region
 		GetAnyPlayerRegion = PlayerRegions.getAnyPlayerRegion,

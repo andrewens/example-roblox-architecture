@@ -9,6 +9,7 @@ local Utility = require(SoccerDuelsModule.Utility)
 
 local ClientModalState = require(SoccerDuelsClientStateFolder.ClientModalState)
 local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserInterfaceMode)
+local PlayerCharactersInMap = require(SoccerDuelsClientStateFolder.PlayerCharactersInMap)
 
 -- const
 local LOADING_MAP_ENUM = Enums.getEnum("MapState", "Loading")
@@ -63,6 +64,7 @@ local function playerConnectedMapChanged(self, Player, mapEnum, teamIndex, MapFo
 	self._PlayerConnectedMapEnum[Player] = mapEnum
 	self._PlayerTeamIndex[Player] = teamIndex
 
+	-- LocalPlayer
 	if Player == self.Player then
 		self._ConnectedMapFolder = MapFolder
 
@@ -143,7 +145,7 @@ end
 local function iterateEndOfMatchPlayerCFrames(self)
 	return ipairs(self._PlayerCFrames)
 end
-local function mapTimerTick(self) -- TODO implement this against runservice renderstepped
+local function mapTimerTick(self)
 	local mapStateEnum = self._ConnectedMapStateEnum
 	if not (mapStateEnum == MATCH_GAMEPLAY_STATE_ENUM or mapStateEnum == MATCH_OVER_STATE_ENUM) then
 		return

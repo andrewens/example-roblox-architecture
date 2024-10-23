@@ -207,8 +207,12 @@ local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
 		return
 	end
 
-	-- 'Loading' | 'GameOver' - remove player characters
-	if mapStateEnum == MAP_LOADING_STATE_ENUM or mapStateEnum == GAME_OVER_STATE_ENUM then
+	-- 'Loading' | 'GoalCutscene' | 'GameOver' - remove player characters
+	if
+		mapStateEnum == MAP_LOADING_STATE_ENUM
+		or mapStateEnum == GOAL_CUTSCENE_STATE_ENUM
+		or mapStateEnum == GAME_OVER_STATE_ENUM
+	then
 		for Player, teamIndex in MapInstancePlayers[mapInstanceId] do
 			CharacterServer.removePlayerCharacter(Player)
 		end

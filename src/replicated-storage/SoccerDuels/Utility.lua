@@ -3,6 +3,9 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
 
+local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
+local Maid = require(SoccerDuelsModule.Maid)
+
 -- public
 local function setDefaultRobloxLeaderboardEnabled(isEnabled)
 	if not (typeof(isEnabled) == "boolean") then
@@ -251,19 +254,63 @@ local function onCharacterLoadedConnect(callback)
 		error(`{callback} is not a function!`)
 	end
 
-	local conn = Players.PlayerAdded:Connect(function(Player)
-		Player.CharacterAdded:Connect(function(Char)
+	local Connections = {} -- Player --> RBXScriptSignal or whatever it is
+
+	Connections[1] = Players.PlayerAdded:Connect(function(Player)
+		Connections[Player] = Player.CharacterAdded:Connect(function(Char)
 			callback(Player, Char)
 		end)
 	end)
 
+	Connections[2] = Players.PlayerRemoving:Connect(function(Player)
+		local conn = Connections[Player]
+		if conn == nil then
+			return
+		end
+
+		conn:Disconnect()
+		Connections[Player] = nil
+	end)
+
 	for _, Player in Players:GetPlayers() do
+		Connections[Player] = Player.CharacterAdded:Connect(function(Char)
+			callback(Player, Char)
+		end)
+
 		if Player.Character then
 			callback(Player, Player.Character)
 		end
 	end
 
-	return conn
+	return {
+		Disconnect = function()
+			for _, conn in Connections do
+				conn:Disconnect()
+			end
+			Connections = nil
+		end,
+	}
+end
+local function onCharacterAppearanceLoadedConnect(callback)
+	if not (typeof(callback) == "function") then
+		error(`{callback} is not a function!`)
+	end
+
+	Players.PlayerAdded:Connect(function(Player)
+		Player.CharacterAppearanceLoaded:Connect(function(Char)
+			callback(Player, Char)
+		end)
+	end)
+
+	for _, Player in Players:GetPlayers() do
+		Player.CharacterAppearanceLoaded:Connect(function(Char)
+			callback(Player, Char)
+		end)
+
+		if Player.Character and Player:HasAppearanceLoaded() then
+			callback(Player, Player.Character)
+		end
+	end
 end
 local function onPlayerDiedConnect(Player, callback)
 	local charAdded = function(Char)
@@ -302,6 +349,7 @@ return {
 	playerIsInGame = playerIsInGame,
 	weldPartToPart = weldPartToPart,
 
+	onCharacterAppearanceLoadedConnect = onCharacterAppearanceLoadedConnect,
 	runServiceRenderSteppedConnect = runServiceRenderSteppedConnect,
 	runServiceSteppedConnect = runServiceSteppedConnect,
 	onCharacterLoadedConnect = onCharacterLoadedConnect,

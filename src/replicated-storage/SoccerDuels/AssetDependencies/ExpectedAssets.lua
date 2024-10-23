@@ -719,4 +719,9 @@ do
 	}
 end
 
+ExpectedAssets.PlayerCharacterCacheFolder = {
+	Path = "ReplicatedStorage/CharacterCache",
+	ClassName = "Folder",
+}
+
 return ExpectedAssets

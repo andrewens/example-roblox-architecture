@@ -4,10 +4,13 @@ local PhysicsService = game:GetService("PhysicsService")
 local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 local SoccerDuelsServerModule = script:FindFirstAncestor("SoccerDuelsServer")
 
+local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Config = require(SoccerDuelsModule.Config)
 local Network = require(SoccerDuelsModule.Network)
 local Utility = require(SoccerDuelsModule.Utility)
 local SoccerDuelsServer -- required in initialize()
+
+local CharactersFolder
 
 -- const
 local TESTING_MODE = Config.getConstant("TestingMode")
@@ -17,6 +20,13 @@ local LOBBY_CHARACTER_COLLISION_GROUP = Config.getConstant("LobbyCharacterCollis
 local CharactersInLobby = {} -- Player --> Character
 
 -- private
+local function characterAppearanceLoaded(Player, Character)
+	Character.Archivable = true
+	Character = Character:Clone()
+	Character.Name = Player.UserId
+	Character.HumanoidRootPart.Anchored = true
+	Character.Parent = CharactersFolder
+end
 local function lobbyCharacterDespawned(Player)
 	if CharactersInLobby[Player] == nil then
 		return
@@ -120,6 +130,9 @@ local function initializePlayer(Player)
 end
 local function initializeLobbyCharacterServer()
 	SoccerDuelsServer = require(SoccerDuelsServerModule)
+
+	CharactersFolder = Assets.getExpectedAsset("PlayerCharacterCacheFolder")
+	Utility.onCharacterAppearanceLoadedConnect(characterAppearanceLoaded)
 
 	PhysicsService:RegisterCollisionGroup(LOBBY_CHARACTER_COLLISION_GROUP)
 	PhysicsService:CollisionGroupSetCollidable(LOBBY_CHARACTER_COLLISION_GROUP, LOBBY_CHARACTER_COLLISION_GROUP, false)

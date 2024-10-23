@@ -135,6 +135,10 @@ local function newGoalCutsceneGui(self)
 				local Character = PlayerCharacters[Player]
 				if Character == nil then
 					Character = self:ClonePlayerAvatar(Player)
+					if Character == nil then
+						continue
+					end
+
 					Character.Parent = workspace
 					PlayerCharacters[Player] = Character
 				end
