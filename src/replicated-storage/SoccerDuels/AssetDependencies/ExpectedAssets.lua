@@ -719,9 +719,14 @@ do
 	}
 end
 
+-- character models for cutscenes
 ExpectedAssets.PlayerCharacterCacheFolder = {
 	Path = "ReplicatedStorage/CharacterCache",
 	ClassName = "Folder",
+}
+ExpectedAssets.PlayerCharacterPlaceholderRig = {
+	Path = "ReplicatedStorage/CharacterCache/Placeholder",
+	ClassName = "Model",
 }
 
 return ExpectedAssets

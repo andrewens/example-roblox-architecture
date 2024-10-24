@@ -5,6 +5,7 @@ local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Utility = require(SoccerDuelsModule.Utility)
 
 local CharactersFolder
+local PlaceholderCharacterRig
 
 -- public / Client class methods
 local function clonePlayerAvatar(self, Player)
@@ -15,16 +16,18 @@ local function clonePlayerAvatar(self, Player)
 	local CharacterTemplate = CharactersFolder:FindFirstChild(Player.UserId)
 	if CharacterTemplate == nil then
 		warn(`{Player.Name} (UserId={Player.UserId}) has no cached character`)
-		return
+		CharacterTemplate = PlaceholderCharacterRig
 	end
 
 	local ClonedCharacter = CharacterTemplate:Clone()
 	ClonedCharacter.PrimaryPart = ClonedCharacter:FindFirstChild("HumanoidRootPart")
+	ClonedCharacter.Name = Player.Name
 
 	return ClonedCharacter
 end
 local function initializePlayerCharactersClientModule(self)
 	CharactersFolder = Assets.getExpectedAsset("PlayerCharacterCacheFolder")
+	PlaceholderCharacterRig = Assets.getExpectedAsset("PlayerCharacterPlaceholderRig")
 end
 
 return {
