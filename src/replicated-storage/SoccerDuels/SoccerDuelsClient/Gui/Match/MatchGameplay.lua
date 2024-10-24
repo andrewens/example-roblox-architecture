@@ -111,6 +111,7 @@ local function newMatchLoadingScreenGui(self)
 		MatchCounterTextLabel.Visible = MATCH_COUNTDOWN
 
 		if ScoreboardGui.Visible then
+			workspace.Camera.CameraType = Enum.CameraType.Custom -- reset from goal cutscenes
 			UIMaid:GiveTask(Utility.runServiceRenderSteppedConnect(TIMER_POLL_RATE, updateTimer))
 		end
 	end)

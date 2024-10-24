@@ -154,6 +154,7 @@ local function initializeClients()
 		OnConnectedMapScoreChanged = ClientMapState.onClientMapScoreChangedConnect,
 		GetWinningTeamIndex = ClientMapState.getClientConnectedMapWinningTeamIndex,
 		GetTeamMVP = ClientMapState.getClientedConnectedMapTeamMostValuablePlayer,
+		GetTeamPlayers = ClientMapState.getClientConnectedMapTeamPlayers, -- TODO untested
 		GetTeamScore = ClientMapState.getClientConnectedMapTeamScore,
 
 		GetConnectedMapStateChangeTimestamp = ClientMapState.getClientMapStateChangeTimestamp,

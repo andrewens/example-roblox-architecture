@@ -22,6 +22,7 @@ local function clonePlayerAvatar(self, Player)
 	local ClonedCharacter = CharacterTemplate:Clone()
 	ClonedCharacter.PrimaryPart = ClonedCharacter:FindFirstChild("HumanoidRootPart")
 	ClonedCharacter.Name = Player.Name
+	ClonedCharacter.Parent = workspace
 
 	return ClonedCharacter
 end

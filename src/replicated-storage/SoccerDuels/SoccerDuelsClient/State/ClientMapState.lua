@@ -163,7 +163,6 @@ local function mapTimerTick(self)
 		and now
 			> (timestamp + (-MATCH_OVER_DURATION + SECONDS_AFTER_GOAL_UNTIL_CUTSCENE_ENDS) * 1E3)
 	then
-		print("Blaaah", math.floor(timestamp - now))
 		return
 	end
 
@@ -266,6 +265,26 @@ local function getClientedConnectedMapTeamMostValuablePlayer(self, teamIndex)
 	end
 
 	return MVPPlayer
+end
+local function getClientConnectedMapTeamPlayers(self, teamIndex)
+	if teamIndex == nil then
+		teamIndex = self._PlayerTeamIndex[self.Player]
+	end
+
+	if not (teamIndex == 1 or teamIndex == 2) then
+		error(`{teamIndex} is not 1 or 2!`)
+	end
+
+	local PlayersOnThisTeam = {}
+
+	for Player,  _ in self._PlayerGoals do
+		local playerTeamIndex = self._PlayerTeamIndex[Player]
+		if playerTeamIndex == teamIndex then
+			table.insert(PlayersOnThisTeam, Player)
+		end
+	end
+
+	return PlayersOnThisTeam
 end
 
 local function getPlayerWhoScoredLastGoalInClientConnectedMap(self)
@@ -410,6 +429,7 @@ return {
 	getClientedConnectedMapTeamMostValuablePlayer = getClientedConnectedMapTeamMostValuablePlayer,
 	getClientConnectedMapPlayerLeaderstat = getClientConnectedMapPlayerLeaderstat,
 	getClientConnectedMapWinningTeamIndex = getClientConnectedMapWinningTeamIndex,
+	getClientConnectedMapTeamPlayers = getClientConnectedMapTeamPlayers,
 	getClientMapStateChangeTimestamp = getClientMapStateChangeTimestamp,
 	getClientConnectedMapTeamScore = getClientConnectedMapTeamScore,
 	getClientConnectedMapFolder = getClientConnectedMapFolder,

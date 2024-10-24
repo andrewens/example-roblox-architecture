@@ -381,8 +381,14 @@ do
 		ExpectedAssets[`{mapName} TeamStartingPositions`] = {
 			Path = `ServerStorage/MapTemplates/{mapName}/TeamStartingPositions`,
 		}
+
+		-- cameras
 		ExpectedAssets[`{mapName} SidelinesCameraPart`] = {
 			Path = `ServerStorage/MapTemplates/{mapName}/Cameras/Sideline`,
+			ClassName = "BasePart",
+		}
+		ExpectedAssets[`{mapName} EndCutsceneCameraPart`] = {
+			Path = `ServerStorage/MapTemplates/{mapName}/Cameras/GameOver`,
 			ClassName = "BasePart",
 		}
 
@@ -402,6 +408,14 @@ do
 					ClassName = "BasePart",
 				}
 			end
+		end
+
+		-- team end cutscene positions
+		for i = 1, MAX_PLAYERS_PER_TEAM do
+			ExpectedAssets[`{mapName} EndCutsceneCharacterPosition{i}`] = {
+				Path = `ServerStorage/MapTemplates/{mapName}/GameOverCharacterPositions/{i}`,
+				ClassName = "BasePart",
+			}
 		end
 	end
 end

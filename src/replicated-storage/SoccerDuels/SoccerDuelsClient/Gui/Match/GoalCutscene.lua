@@ -112,10 +112,6 @@ local function newGoalCutsceneGui(self)
 		Camera.CameraType = Enum.CameraType.Scriptable
 		Camera.CFrame = CFrame.lookAt(SidelinesCameraPart.Position, GoalPart.Position)
 
-		UIMaid:GiveTask(function()
-			Camera.CameraType = Enum.CameraType.Custom
-		end)
-
 		local PlayerCharacters = {} -- Player --> Character
 		local cutsceneStillPlaying = true
 
@@ -135,18 +131,13 @@ local function newGoalCutsceneGui(self)
 				local Character = PlayerCharacters[Player]
 				if Character == nil then
 					Character = self:ClonePlayerAvatar(Player)
-					if Character == nil then
-						continue
-					end
-
-					Character.Parent = workspace
 					PlayerCharacters[Player] = Character
 				end
 
 				Character:SetPrimaryPartCFrame(characterCFrame)
 			end
 
-			task.wait(GOAL_CUTSCENE_SECONDS_PER_FRAME)
+			task.wait(GOAL_CUTSCENE_SECONDS_PER_FRAME) -- TODO this is technically a little longer b/c of how wait() works
 		end
 	end
 
