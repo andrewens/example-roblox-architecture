@@ -13,9 +13,17 @@ if SoccerDuels.getConstant("TestingMode") then
 	local begin = os.clock()
 
 	MockInstance.initialize()
-	local s, output = pcall(function()
-		TestEZ.TestBootstrap:run({ TestsFolder })
+	local s, output
+	task.spawn(function()
+		s, output = pcall(function()
+			TestEZ.TestBootstrap:run({ TestsFolder })
+		end)
 	end)
+
+	repeat
+		task.wait()
+	until s ~= nil
+
 	if not s then
 		warn(output)
 	end

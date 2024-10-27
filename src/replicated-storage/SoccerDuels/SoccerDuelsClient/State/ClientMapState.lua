@@ -174,12 +174,46 @@ local function mapTimerTick(self)
 		return
 	end
 
+	local PreviousPlayerCFrames = if #self._PlayerCFrames > 0 then self._PlayerCFrames[#self._PlayerCFrames] else {}
+
 	local PlayerCFramesAtThisFrame = {}
 	local PlayerHumanoidStatesAtThisFrame = {}
 
 	for Player, _ in self._PlayerGoals do
-		PlayerCFramesAtThisFrame[Player] = Utility.getPlayerCharacterCFrame(Player) -- this accounts for players leaving or having no character
-		PlayerHumanoidStatesAtThisFrame[Player] = Utility.getPlayerCharacterHumanoidState(Player)
+		local currentCFrame = Utility.getPlayerCharacterCFrame(Player) -- this accounts for players leaving or having no character
+		if currentCFrame == nil then
+			continue
+		end
+
+		PlayerCFramesAtThisFrame[Player] = currentCFrame
+
+		local previousCFrame = PreviousPlayerCFrames[Player]
+		if previousCFrame == nil then
+			PlayerHumanoidStatesAtThisFrame[Player] = Enum.HumanoidStateType.None
+			continue
+		end
+
+		local offset = currentCFrame.Position - previousCFrame.Position
+		local lateralOffsetSquared = offset.X * offset.X + offset.Y + offset.Y
+
+		print(Player.Name, offset)
+
+		if lateralOffsetSquared > 0.1 then
+			PlayerHumanoidStatesAtThisFrame[Player] = Enum.HumanoidStateType.Running
+			continue
+		end
+
+		if offset.Y > 0.1 then
+			PlayerHumanoidStatesAtThisFrame[Player] = Enum.HumanoidStateType.Jumping
+			continue
+		end
+
+		if offset.Y < 0.1 then
+			PlayerHumanoidStatesAtThisFrame[Player] = Enum.HumanoidStateType.Freefall
+			continue
+		end
+
+		PlayerHumanoidStatesAtThisFrame[Player] = Enum.HumanoidStateType.None
 	end
 
 	if #self._PlayerCFrames >= TOTAL_FRAMES_PER_GOAL_CUTSCENE then
