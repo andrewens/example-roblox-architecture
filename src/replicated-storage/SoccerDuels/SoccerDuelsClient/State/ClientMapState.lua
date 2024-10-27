@@ -196,8 +196,6 @@ local function mapTimerTick(self)
 		local offset = currentCFrame.Position - previousCFrame.Position
 		local lateralOffsetSquared = offset.X * offset.X + offset.Y + offset.Y
 
-		print(Player.Name, offset)
-
 		if lateralOffsetSquared > 0.1 then
 			PlayerHumanoidStatesAtThisFrame[Player] = Enum.HumanoidStateType.Running
 			continue

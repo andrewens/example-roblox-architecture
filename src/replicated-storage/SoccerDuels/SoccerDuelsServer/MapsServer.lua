@@ -164,7 +164,7 @@ local function getMapInstanceStartingLocationUnprotected(mapInstanceId, teamInde
 	return StartPositionPart.Position + Vector3.new(0, 3, 0)
 end
 
-local destroyMapInstance
+local destroyMapInstance, getMapInstanceWinningTeam
 local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
 	-- store and replicate new map state
 	local stateChangeTimestamp
@@ -207,12 +207,33 @@ local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
 		return
 	end
 
-	-- 'Loading' | 'GoalCutscene' | 'GameOver' - remove player characters
+	-- 'Loading' | 'GoalCutscene' | 'GameOver' - remove player characters / save wins & losses in `GameOver`
 	if
 		mapStateEnum == MAP_LOADING_STATE_ENUM
 		or mapStateEnum == GOAL_CUTSCENE_STATE_ENUM
 		or mapStateEnum == GAME_OVER_STATE_ENUM
 	then
+		-- 'GameOver' save wins and losses
+		if mapStateEnum == GAME_OVER_STATE_ENUM then
+			local winningTeamIndex = getMapInstanceWinningTeam(mapInstanceId)
+
+			for Player, teamIndex in MapInstancePlayers[mapInstanceId] do
+				if teamIndex == winningTeamIndex then
+					SoccerDuelsServer.incrementCachedPlayerSaveData(Player, {
+						Wins = 1,
+						WinStreak = 1,
+					})
+
+					continue
+				end
+
+				SoccerDuelsServer.incrementCachedPlayerSaveData(Player, {
+					Losses = 1,
+				})
+			end
+		end
+
+		-- remove characters
 		for Player, teamIndex in MapInstancePlayers[mapInstanceId] do
 			CharacterServer.removePlayerCharacter(Player)
 		end
@@ -589,7 +610,7 @@ local function playerIsInLobby(Player)
 	return PlayerConnectedMapInstance[Player] == nil
 end
 
-local function getMapInstanceWinningTeam(mapInstanceId)
+function getMapInstanceWinningTeam(mapInstanceId)
 	if not Utility.isInteger(mapInstanceId) then
 		error(`{mapInstanceId} is not a map instance id!`)
 	end

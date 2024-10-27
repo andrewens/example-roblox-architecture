@@ -890,6 +890,29 @@ return function()
 		assert(Client1:GetTeamMVP(1) == Player3) -- Player3 is now MVP because they have two goals
 		assert(Client1:GetTeamMVP(2) == Player4)
 
+		-- save the win/loss/streak
+		SoccerDuels.addExtraSecondsForTesting(matchOverDuration + maxError)
+		SoccerDuels.mapTimerTick()
+		SoccerDuels.addExtraSecondsForTesting(goalCutsceneDuration + maxError)
+		SoccerDuels.mapTimerTick()
+
+		assert(SoccerDuels.getMapInstanceWinningTeam(mapId1) == 1)
+
+		assert(SoccerDuels.getCachedPlayerSaveData(Player1).Wins == 1)
+		assert(SoccerDuels.getCachedPlayerSaveData(Player2).Wins == 0)
+		assert(SoccerDuels.getCachedPlayerSaveData(Player3).Wins == 1)
+		assert(SoccerDuels.getCachedPlayerSaveData(Player4).Wins == 0)
+
+		assert(SoccerDuels.getCachedPlayerSaveData(Player1).Losses == 0)
+		assert(SoccerDuels.getCachedPlayerSaveData(Player2).Losses == 1)
+		assert(SoccerDuels.getCachedPlayerSaveData(Player3).Losses == 0)
+		assert(SoccerDuels.getCachedPlayerSaveData(Player4).Losses == 1)
+
+		assert(SoccerDuels.getCachedPlayerSaveData(Player1).WinStreak == 1)
+		assert(SoccerDuels.getCachedPlayerSaveData(Player2).WinStreak == 0)
+		assert(SoccerDuels.getCachedPlayerSaveData(Player3).WinStreak == 1)
+		assert(SoccerDuels.getCachedPlayerSaveData(Player4).WinStreak == 0)
+
 		-- cleanup
 		SoccerDuels.destroyMapInstance(mapId1)
 		Client1:Destroy()

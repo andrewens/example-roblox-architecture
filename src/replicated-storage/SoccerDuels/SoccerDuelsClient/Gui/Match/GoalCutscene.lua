@@ -138,8 +138,6 @@ local function newGoalCutsceneGui(self)
 
 				Character:SetPrimaryPartCFrame(characterCFrame)
 				Character:SetHumanoidState(humanoidState)
-
-				print(Player.Name, humanoidState)
 			end
 
 			task.wait(GOAL_CUTSCENE_SECONDS_PER_FRAME) -- TODO this is technically a little longer b/c of how wait() works
