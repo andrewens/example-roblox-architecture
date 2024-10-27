@@ -148,7 +148,16 @@ local function disconnectClientFromAllMapInstances(self)
 end
 
 local function iterateEndOfMatchPlayerCFrames(self)
-	return ipairs(self._PlayerCFrames)
+	local i = 0
+	return function()
+		i += 1
+
+		if self._PlayerCFrames[i] == nil then
+			return
+		end
+
+		return i, self._PlayerCFrames[i], self._PlayerHumanoidStates[i]
+	end
 end
 local function mapTimerTick(self)
 	local mapStateEnum = self._ConnectedMapStateEnum
@@ -160,22 +169,26 @@ local function mapTimerTick(self)
 	local timestamp = getClientMapStateChangeTimestamp(self)
 	if
 		mapStateEnum == MATCH_OVER_STATE_ENUM
-		and now
-			> (timestamp + (-MATCH_OVER_DURATION + SECONDS_AFTER_GOAL_UNTIL_CUTSCENE_ENDS) * 1E3)
+		and now > (timestamp + (-MATCH_OVER_DURATION + SECONDS_AFTER_GOAL_UNTIL_CUTSCENE_ENDS) * 1E3)
 	then
 		return
 	end
 
 	local PlayerCFramesAtThisFrame = {}
+	local PlayerHumanoidStatesAtThisFrame = {}
+
 	for Player, _ in self._PlayerGoals do
 		PlayerCFramesAtThisFrame[Player] = Utility.getPlayerCharacterCFrame(Player) -- this accounts for players leaving or having no character
+		PlayerHumanoidStatesAtThisFrame[Player] = Utility.getPlayerCharacterHumanoidState(Player)
 	end
 
 	if #self._PlayerCFrames >= TOTAL_FRAMES_PER_GOAL_CUTSCENE then
 		table.remove(self._PlayerCFrames, 1) -- TODO could implement a circular array buffer to prevent down-shifting every item in the lsit
+		table.remove(self._PlayerHumanoidStates, 1)
 	end
 
 	table.insert(self._PlayerCFrames, PlayerCFramesAtThisFrame)
+	table.insert(self._PlayerHumanoidStates, PlayerHumanoidStatesAtThisFrame)
 end
 
 local function getClientConnectedMapPlayerLeaderstat(self, Player, leaderstat)
@@ -277,7 +290,7 @@ local function getClientConnectedMapTeamPlayers(self, teamIndex)
 
 	local PlayersOnThisTeam = {}
 
-	for Player,  _ in self._PlayerGoals do
+	for Player, _ in self._PlayerGoals do
 		local playerTeamIndex = self._PlayerTeamIndex[Player]
 		if playerTeamIndex == teamIndex then
 			table.insert(PlayersOnThisTeam, Player)

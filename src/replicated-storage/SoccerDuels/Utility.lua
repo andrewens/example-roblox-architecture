@@ -236,6 +236,23 @@ local function getPlayerCharacterPosition(Player)
 
 	return HumanoidRootPart.Position
 end
+local function getPlayerCharacterHumanoidState(Player)
+	if not isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+
+	local Character = Player.Character
+	if Character == nil or Character.Parent == nil then
+		return nil
+	end
+
+	local Humanoid = Character:FindFirstChild("Humanoid")
+	if Humanoid == nil then
+		return nil
+	end
+
+	return Humanoid:GetState()
+end
 local function playerCharacterIsInsideSpherePart(Player, SpherePart, padding)
 	padding = padding or 0
 
@@ -353,6 +370,7 @@ return {
 	isA = isA,
 
 	playerCharacterIsInsideSpherePart = playerCharacterIsInsideSpherePart,
+	getPlayerCharacterHumanoidState = getPlayerCharacterHumanoidState,
 	getPlayerCharacterPosition = getPlayerCharacterPosition,
 	setPlayerCharacterAnchored = setPlayerCharacterAnchored,
 	getPlayerCharacterCFrame = getPlayerCharacterCFrame,

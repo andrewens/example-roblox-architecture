@@ -5,6 +5,9 @@ local Event = require(MockInstanceModule.Event)
 
 -- public / MockHumanoid class methods
 local newMockHumanoid
+local function getState(self)
+	return Enum.HumanoidStateType.None
+end
 local function isA(self, className)
 	return className == "Humanoid"
 end
@@ -39,6 +42,7 @@ function newMockHumanoid(InputData)
 		TakeDamage = humanoidTakeDamage,
 		Destroy = destroyHumanoid,
         Clone = cloneHumanoid,
+		GetState = getState,
 		IsA = isA,
 	}
 end

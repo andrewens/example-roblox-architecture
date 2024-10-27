@@ -116,6 +116,7 @@ local function newClient(Player)
 	self._PlayerThatScoredLastGoal = nil -- Player (only in same map as self.Player)
 
 	self._PlayerCFrames = {} -- int frameIndex --> Player --> CFrame (only players in same map as self.Player)
+	self._PlayerHumanoidStates = {} -- int frameIndex --> Player --> Enum.HumanoidStateType (frames & players match with self._PlayerCFrames)
 
 	self._ConnectedMapStateEnum = nil -- int | nil mapStateEnum
 	self._ConnectedMapStateEndTimestamp = nil -- int | nil unixTimestampMilliseconds

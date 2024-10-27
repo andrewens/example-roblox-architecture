@@ -11,6 +11,7 @@ local Utility = require(SoccerDuelsModule.Utility)
 local SoccerDuelsServer -- required in initialize()
 
 local CharactersFolder
+local CharacterAnimationScript
 
 -- const
 local TESTING_MODE = Config.getConstant("TestingMode")
@@ -33,6 +34,12 @@ local function cachePlayerCharacter(Player, Character)
 	local ClonedCharacter = Utility.cloneCharacter(Character)
 	ClonedCharacter.Name = Player.UserId
 	ClonedCharacter.HumanoidRootPart.Anchored = true
+
+	local AnimateScript = ClonedCharacter:FindFirstChild(CharacterAnimationScript.Name)
+	if AnimateScript then
+		AnimateScript:Destroy()
+	end
+
 	ClonedCharacter.Parent = CharactersFolder
 end
 local function lobbyCharacterDespawned(Player)
@@ -143,14 +150,15 @@ end
 local function initializeLobbyCharacterServer()
 	SoccerDuelsServer = require(SoccerDuelsServerModule)
 
-	CharactersFolder = Assets.getExpectedAsset("PlayerCharacterCacheFolder")
-	Utility.onCharacterAppearanceLoadedConnect(cachePlayerCharacter)
-
 	PhysicsService:RegisterCollisionGroup(LOBBY_CHARACTER_COLLISION_GROUP)
 	PhysicsService:CollisionGroupSetCollidable(LOBBY_CHARACTER_COLLISION_GROUP, LOBBY_CHARACTER_COLLISION_GROUP, false)
 
 	Network.onServerEventConnect("CharacterSpawnedInLobby", onPlayerRequestCharactersInLobby)
 	Utility.onCharacterLoadedConnect(lobbyCharacterSpawned)
+
+	CharactersFolder = Assets.getExpectedAsset("PlayerCharacterCacheFolder")
+	CharacterAnimationScript = Assets.getExpectedAsset("PlayerCharacterAnimationScript")
+	Utility.onCharacterAppearanceLoadedConnect(cachePlayerCharacter)
 end
 
 return {

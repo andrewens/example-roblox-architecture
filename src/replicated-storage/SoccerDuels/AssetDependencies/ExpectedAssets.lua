@@ -734,13 +734,23 @@ do
 end
 
 -- character models for cutscenes
-ExpectedAssets.PlayerCharacterCacheFolder = {
-	Path = "ReplicatedStorage/CharacterCache",
-	ClassName = "Folder",
-}
-ExpectedAssets.PlayerCharacterPlaceholderRig = {
-	Path = "ReplicatedStorage/CharacterCache/Placeholder",
-	ClassName = "Model",
-}
+do
+	ExpectedAssets.PlayerCharacterCacheFolder = {
+		Path = "ReplicatedStorage/CharacterCache",
+		ClassName = "Folder",
+	}
+	ExpectedAssets.PlayerCharacterPlaceholderRig = {
+		Path = "ReplicatedStorage/CharacterCache/Placeholder",
+		ClassName = "Model",
+	}
+	ExpectedAssets.PlayerCharacterAnimationScript = {
+		Path = "ReplicatedStorage/CharacterCache/Animate",
+		ClassName = "ModuleScript",
+	}
+	ExpectedAssets.PlayerCharacterAnimationsFolder = {
+		Path = "ReplicatedStorage/CharacterCache/Animations",
+		ClassName = "Folder",
+	}
+end
 
 return ExpectedAssets

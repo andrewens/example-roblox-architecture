@@ -122,19 +122,24 @@ local function newGoalCutsceneGui(self)
 			end
 		end)
 
-		for i, PlayerCFrames in self:IterateEndOfMatchPlayerCFrames() do
+		for i, PlayerCFrames, PlayerHumanoidStates in self:IterateEndOfMatchPlayerCFrames() do
 			if not cutsceneStillPlaying then
 				break
 			end
 
 			for Player, characterCFrame in PlayerCFrames do
+				local humanoidState = PlayerHumanoidStates[Player]
 				local Character = PlayerCharacters[Player]
+
 				if Character == nil then
 					Character = self:ClonePlayerAvatar(Player)
 					PlayerCharacters[Player] = Character
 				end
 
 				Character:SetPrimaryPartCFrame(characterCFrame)
+				Character:SetHumanoidState(humanoidState)
+
+				print(Player.Name, humanoidState)
 			end
 
 			task.wait(GOAL_CUTSCENE_SECONDS_PER_FRAME) -- TODO this is technically a little longer b/c of how wait() works
