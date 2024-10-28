@@ -17,6 +17,7 @@ local ClientMatchPad = require(SoccerDuelsClientStateFolder.ClientMatchPad)
 local ClientModalState = require(SoccerDuelsClientStateFolder.ClientModalState)
 local ClientPing = require(SoccerDuelsClientStateFolder.ClientPing)
 local ClientSettings = require(SoccerDuelsClientStateFolder.ClientSettings)
+local ClientSoccerBall = require(SoccerDuelsClientStateFolder.ClientSoccerBall)
 local ClientToastNotificationState = require(SoccerDuelsClientStateFolder.ClientToastNotificationState)
 local ClientUserInterfaceMode = require(SoccerDuelsClientStateFolder.ClientUserInterfaceMode)
 local LoadClientSaveData = require(SoccerDuelsClientStateFolder.LoadClientSaveData)
@@ -236,6 +237,9 @@ local function initializeClients()
 		ChangeSetting = ClientSettings.clientChangeSetting,
 		GetSetting = ClientSettings.getClientSettingValue,
 		GetSettings = ClientSettings.getClientSettingsJson,
+
+		-- soccer ball
+		KickSoccerBall = ClientSoccerBall.clientKickSoccerBall,
 
 		-- client root
 		Destroy = destroyClient,

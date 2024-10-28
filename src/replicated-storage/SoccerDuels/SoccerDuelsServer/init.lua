@@ -18,6 +18,7 @@ local PlayerRegionServer = require(script.PlayerRegionServer)
 local PlayerPingServer = require(script.PlayerPingServer)
 local PracticeFieldServer = require(script.PracticeFieldServer)
 local TestingVariables = require(script.TestingVariables)
+local SoccerBallServer = require(script.SoccerBallServer)
 
 -- const
 local TESTING_MODE = Config.getConstant("TestingMode")
@@ -327,6 +328,19 @@ return {
 
 	-- toast notifications
 	notifyPlayer = NotifyPlayerServer.notifyPlayer,
+
+	-- soccer ball
+	teleportSoccerBallToPosition = SoccerBallServer.teleportSoccerBallToPosition,
+	getPlayerPossessedBallId = SoccerBallServer.getPlayerPossessedBallId,
+	getSoccerBallParentMapId = SoccerBallServer.getSoccerBallParentMapId,
+	getSoccerBallPosition = SoccerBallServer.getSoccerBallPosition,
+	playerKickSoccerBall = SoccerBallServer.playerKickSoccerBall,
+	getSoccerBallOwner = SoccerBallServer.getSoccerBallOwner,
+	getSoccerBallState = SoccerBallServer.getSoccerBallState,
+	soccerPhysicsStep = SoccerBallServer.soccerPhysicsStep,
+	destroySoccerBall = SoccerBallServer.destroySoccerBall,
+	getPlayerPosition = SoccerBallServer.getPlayerPosition,
+	newSoccerBall = SoccerBallServer.newSoccerBall,
 
 	-- SoccerDuels server
 	incrementCachedPlayerSaveData = incrementCachedPlayerSaveData,
