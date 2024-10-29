@@ -417,6 +417,20 @@ do
 				ClassName = "BasePart",
 			}
 		end
+
+		-- soccer ball
+		ExpectedAssets[`{mapName} BallSpawnPoint`] = {
+			Path = `ServerStorage/MapTemplates/{mapName}/SoccerBall/SoccerBallSpawnPoint`,
+			ClassName = "BasePart",
+		}
+
+		-- goal kick testing parts
+		for teamIndex = 1, 2 do
+			ExpectedAssets[`{mapName} Team{teamIndex} GoalKickTestingPart`] = {
+				Path = `ServerStorage/MapTemplates/{mapName}/GoalKickTestingParts/Team{teamIndex}`,
+				ClassName = "BasePart",
+			}
+		end
 	end
 end
 

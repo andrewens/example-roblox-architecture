@@ -62,10 +62,11 @@ end
 
 local function assertSoccerBallIsAtDefaultSpawnPoint(mapId, ballId)
 	local MapFolder = SoccerDuels.getMapInstanceFolder(mapId)
+	local mapName = SoccerDuels.getMapInstanceMapName(mapId)
 
 	local ballPosition = SoccerDuels.getSoccerBallPosition(ballId)
 	local spawnPosition =
-		SoccerDuels.getExpectedAsset("Stadium BallSpawnPoint", "Stadium MapFolder", MapFolder).Position
+		SoccerDuels.getExpectedAsset(`{mapName} BallSpawnPoint`, `{mapName} MapFolder`, MapFolder).Position
 
 	assert(ballPosition:FuzzyEq(spawnPosition))
 end
@@ -278,12 +279,13 @@ return function()
 		-- TODO does TestEZ support pre-test and post-test hooks?
 		-- TODO can you make the code functional so you don't have to worry about state? It's causing problems to have to think about previous state
 		-- TODO need to figure out a framework for physics testing + a framework for roblox characters
-        -- TODO could we organize imperative code in layers, like: side effects layer, network replication layer, core state layer?
-        -- and then every function is its own file, or we just have big files of functions where every function can invoke any other
-        -- function in its layer, plus any lower-level layer function, so that way we don't have to make new modules each time.
-        -- and similarly the testing code could have layers of state assertions, actions, and tests (and maybe each state could have an ID)
-        -- and then we could use a graph diagram generator to visualize the system layout and all of the spec states
+		-- TODO could we organize imperative code in layers, like: side effects layer, network replication layer, core state layer?
+		-- and then every function is its own file, or we just have big files of functions where every function can invoke any other
+		-- function in its layer, plus any lower-level layer function, so that way we don't have to make new modules each time.
+		-- and similarly the testing code could have layers of state assertions, actions, and tests (and maybe each state could have an ID)
+		-- and then we could use a graph diagram generator to visualize the system layout and all of the spec states
 
+        -- TODO test out of bounds zone
 
 		local mapId, Client1, Client2, Client3, Client4 = initializeMapForPlay()
 
