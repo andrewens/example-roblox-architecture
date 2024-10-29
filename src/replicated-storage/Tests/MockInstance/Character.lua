@@ -1,4 +1,5 @@
 -- dependency
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local MockInstanceModule = script:FindFirstAncestor("MockInstance")
 
 local MockHumanoid = require(MockInstanceModule.Humanoid)
@@ -8,6 +9,13 @@ local SpawnLocation = workspace:FindFirstChildWhichIsA("SpawnLocation", true)
 
 -- public / MockCharacter class methods
 local newCharacter
+local function setPrimaryPartCFrame(self, cf)
+	if not (typeof(cf) == "CFrame") then
+		error(`{cf} is not a CFrame!`)
+	end
+
+	self.HumanoidRootPart.CFrame = cf
+end
 local function moveTo(self, position)
 	if not (typeof(position) == "Vector3") then
 		error(`{position} is not a Vector3!`)
@@ -60,6 +68,7 @@ function newCharacter(InputData)
 		InputData.HumanoidRootPart.Name = "HumanoidRootPart"
 		InputData.HumanoidRootPart.Position = SpawnLocation.Position + Vector3.new(0, 3, 0)
 	end
+	InputData.HumanoidRootPart.Parent = workspace --> this is required for welds to update part positions when we move connected parts
 
 	if InputData.Humanoid == nil then
 		InputData.Humanoid = MockHumanoid()
@@ -75,6 +84,7 @@ function newCharacter(InputData)
 		Destroy = destroyCharacter,
 		FindFirstChild = findFirstChild,
 		GetDescendants = getDescendants,
+		SetPrimaryPartCFrame = setPrimaryPartCFrame,
 		MoveTo = moveTo,
 		PivotTo = pivotTo,
 		GetPivot = getPivot,

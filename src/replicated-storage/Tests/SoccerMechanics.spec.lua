@@ -22,7 +22,9 @@ local function assertPositionIsInsideOfPart(position, Part)
 end
 
 local function assertNoOnePossessesSoccerBall(mapId, ballId)
-	assert(SoccerDuels.getSoccerBallOwner(ballId) == nil)
+	if not (SoccerDuels.getSoccerBallOwner(ballId) == nil) then
+		error(`{SoccerDuels.getSoccerBallOwner(ballId)} != nil`)
+	end
 
 	for Player, teamIndex in SoccerDuels.getPlayersConnectedToMapInstance(mapId) do
 		assert(SoccerDuels.getPlayerPossessedBallId(Player) == nil)
@@ -37,7 +39,7 @@ local function assertPlayerPossessesSoccerBall(mapId, ballId, Player)
 			continue
 		end
 
-		assert(SoccerDuels.getPlayerPossessedBallId(Player) == nil)
+		assert(SoccerDuels.getPlayerPossessedBallId(OtherPlayer) ~= ballId)
 	end
 end
 local function assertPlayerScoredGoal(mapId, Player, prevGoals)
@@ -51,7 +53,7 @@ local function assertPlayerIsNotNearSoccerBallSpawnPoint(mapId, Player)
 	local MapFolder = SoccerDuels.getMapInstanceFolder(mapId)
 	local mapName = SoccerDuels.getMapInstanceMapName(mapId)
 
-	local playerPosition = SoccerDuels.getSoccerBallPosition(Player)
+	local playerPosition = SoccerDuels.getPlayerPosition(Player)
 	local spawnPosition =
 		SoccerDuels.getExpectedAsset(`{mapName} BallSpawnPoint`, `{mapName} MapFolder`, MapFolder).Position
 	local offset = playerPosition - spawnPosition
@@ -71,13 +73,17 @@ local function assertSoccerBallIsAtDefaultSpawnPoint(mapId, ballId)
 	assert(ballPosition:FuzzyEq(spawnPosition))
 end
 local function assertSoccerBallIsNearPlayer(mapId, ballId, Player)
-	local maxPossessionDistance = 3
+	local ballOffset = SoccerDuels.getConstant("SoccerBallWeldOffsetLocalCoordinates")
 
 	local ballPosition = SoccerDuels.getSoccerBallPosition(ballId)
-	local playerPosition = SoccerDuels.getPlayerPosition(Player)
-	local offset = ballPosition - playerPosition
+	local playerCFrame = SoccerDuels.getPlayerCFrame(Player)
 
-	assert(offset:Dot(offset) <= maxPossessionDistance ^ 2)
+	local correctBallPosition = playerCFrame.Position
+		+ playerCFrame.RightVector * ballOffset.X
+		+ playerCFrame.UpVector * ballOffset.Y
+		+ playerCFrame.LookVector * ballOffset.Z
+
+	assert(correctBallPosition:FuzzyEq(ballPosition))
 end
 local function assertSoccerBallIsIdle(mapId, ballId)
 	assert(SoccerDuels.getSoccerBallParentMapId(ballId) == mapId)
@@ -91,8 +97,10 @@ local function assertSoccerBallIsDestroyed(mapId, ballId)
 end
 local function assertSoccerBallIsPossessedByPlayer(mapId, ballId, Player)
 	assert(SoccerDuels.getSoccerBallState(ballId) == "Possessed")
+	assert(SoccerDuels.getSoccerBallParentMapId(ballId) == mapId)
+	assert(SoccerDuels.getSoccerBallOwner(ballId) == Player)
+	assert(SoccerDuels.getPlayerPossessedBallId(Player) == ballId)
 
-	assertSoccerBallIsIdle(mapId, ballId, Player)
 	assertSoccerBallIsNearPlayer(mapId, ballId, Player)
 end
 --[[ this state might be necessary to prevent instant repossessing by players that kick
@@ -104,7 +112,9 @@ local function soccerBallHasJustBeenKicked(mapId, ballId, PlayerThatKicked)
     -- TODO maybe test that the player who just kicked the ball can't repossess it instantly if necessary
 end--]]
 local function assertSoccerBallIsInPlayersOpposingGoal(mapId, ballId, Player)
-	assert(SoccerDuels.getSoccerBallState(ballId) == "Goal")
+	if not (SoccerDuels.getSoccerBallState(ballId) == "Goal") then
+		error(`{SoccerDuels.getSoccerBallState(ballId)} != "Goal"`)
+	end
 	assertNoOnePossessesSoccerBall(mapId, ballId)
 
 	local ballPosition = SoccerDuels.getSoccerBallPosition(ballId)
@@ -207,11 +217,11 @@ local function waitForSoccerBallInGoalToDestroy(mapId, ballId)
 	local secondsAfterGoalBallIsDestroyed = SoccerDuels.getConstant("SecondsAfterGoalBallIsDestroyed")
 
 	SoccerDuels.addExtraSecondsForTesting(secondsAfterGoalBallIsDestroyed)
-	SoccerDuels.mapTimerTick()
+	SoccerDuels.soccerBallStateTick()
 end
 local function moveSoccerBallToPlayersPosition(mapId, ballId, Player)
 	local playerPosition = SoccerDuels.getPlayerPosition(Player)
-	SoccerDuels.teleportSoccerBallToPosition(playerPosition)
+	SoccerDuels.teleportSoccerBallToPosition(ballId, playerPosition)
 end
 local function destroySoccerBall(mapId, ballId)
 	SoccerDuels.destroySoccerBall(ballId)
@@ -246,13 +256,11 @@ local function playerKickSoccerBallIntoOpposingGoal(mapId, Player)
 	local MapFolder = SoccerDuels.getMapInstanceFolder(mapId)
 	local GoalPart =
 		SoccerDuels.getExpectedAsset(`{mapName} Team{otherTeamIndex} GoalPart`, `{mapName} MapFolder`, MapFolder)
-	local NearGoalPart = SoccerDuels.getExpectedAsset(
-		`{mapName} Team{otherTeamIndex} GoalKickTestingPart`,
-		`{mapName} MapFolder`,
-		MapFolder
-	)
+	local NearGoalPart =
+		SoccerDuels.getExpectedAsset(`{mapName} Team{teamIndex} GoalKickTestingPart`, `{mapName} MapFolder`, MapFolder)
 
 	local direction = GoalPart.Position - NearGoalPart.Position -- should get turned into unit vector
+
 	local initialDistanceFromBallToGoal = 10 -- this accounts for the edge of the goal zone, and should be updated when GoalKickTestingPart is updated
 	local deltaTime = 0.1
 	local power = initialDistanceFromBallToGoal / deltaTime -- power is actually just the initial velocity of the ball
@@ -275,7 +283,7 @@ local function playerKickSoccerBallClient(mapId, Client)
 end
 
 return function()
-	itFOCUS("Soccerball state, kicking & possession mechanics", function()
+	it("Soccerball state, kicking & possession mechanics", function()
 		-- TODO does TestEZ support pre-test and post-test hooks?
 		-- TODO can you make the code functional so you don't have to worry about state? It's causing problems to have to think about previous state
 		-- TODO need to figure out a framework for physics testing + a framework for roblox characters
@@ -285,7 +293,9 @@ return function()
 		-- and similarly the testing code could have layers of state assertions, actions, and tests (and maybe each state could have an ID)
 		-- and then we could use a graph diagram generator to visualize the system layout and all of the spec states
 
-        -- TODO test out of bounds zone
+		-- TODO test out of bounds zone
+		-- TODO test if a player disconnects
+		-- TODO test if a player disconnects after shooting a goal
 
 		local mapId, Client1, Client2, Client3, Client4 = initializeMapForPlay()
 
@@ -293,6 +303,7 @@ return function()
 		assertMapIsReadyForPlay(mapId)
 
 		local ballId = spawnBallInCenterOfMap(mapId)
+		assertSoccerBallIsIdle(mapId, ballId)
 		assertSoccerBallIsAtDefaultSpawnPoint(mapId, ballId)
 
 		destroySoccerBall(mapId, ballId)

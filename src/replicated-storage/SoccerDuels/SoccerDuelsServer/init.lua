@@ -254,6 +254,7 @@ local function initializeServer()
 	MatchJoiningPadsServer.initialize()
 	PracticeFieldServer.initialize()
 	PlayerPingServer.initialize()
+	SoccerBallServer.initialize()
 	CharacterServer.initialize()
 	MapsServer.initialize()
 
@@ -261,6 +262,11 @@ local function initializeServer()
 end
 
 return {
+	-- characters
+	teleportPlayerToPosition = CharacterServer.teleportPlayerToPosition,
+	getPlayerPosition = CharacterServer.getPlayerPosition,
+	getPlayerCFrame = CharacterServer.getPlayerCFrame,
+
 	-- database
 	getAvailableDataStoreRequests = Database.getAvailableDataStoreRequests,
 	getPlayerSaveDataAsync = Database.getPlayerSaveDataAsync,
@@ -335,11 +341,11 @@ return {
 	getSoccerBallParentMapId = SoccerBallServer.getSoccerBallParentMapId,
 	getSoccerBallPosition = SoccerBallServer.getSoccerBallPosition,
 	playerKickSoccerBall = SoccerBallServer.playerKickSoccerBall,
+	soccerBallStateTick = SoccerBallServer.soccerBallStateTick,
 	getSoccerBallOwner = SoccerBallServer.getSoccerBallOwner,
 	getSoccerBallState = SoccerBallServer.getSoccerBallState,
 	soccerPhysicsStep = SoccerBallServer.soccerPhysicsStep,
 	destroySoccerBall = SoccerBallServer.destroySoccerBall,
-	getPlayerPosition = SoccerBallServer.getPlayerPosition,
 	newSoccerBall = SoccerBallServer.newSoccerBall,
 
 	-- SoccerDuels server

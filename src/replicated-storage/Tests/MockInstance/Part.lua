@@ -1,4 +1,4 @@
--- public / metamethods
+--[[ public / metamethods
 local function indexMockPart(self, key)
 	if key == "Position" then
 		return self.CFrame.Position
@@ -46,3 +46,8 @@ end
 
 -- MockPart constructor
 return newMockPart
+--]]
+
+return function()
+	return Instance.new("Part")
+end

@@ -8,7 +8,10 @@ local Assets = require(SoccerDuelsModule.AssetDependencies)
 local Config = require(SoccerDuelsModule.Config)
 local Network = require(SoccerDuelsModule.Network)
 local Utility = require(SoccerDuelsModule.Utility)
+
+local MatchJoiningPadsServer -- required in initialize()
 local SoccerDuelsServer -- required in initialize()
+local SoccerBallServer -- required in initialize()
 
 local CharactersFolder
 local CharacterAnimationScript
@@ -72,6 +75,8 @@ local function lobbyCharacterSpawned(Player, Character)
 		BasePart.CollisionGroup = LOBBY_CHARACTER_COLLISION_GROUP
 	end
 
+	MatchJoiningPadsServer.playerCharacterLoaded(Player, Character)
+
 	Network.fireAllClients("CharacterSpawnedInLobby", Player, Character)
 end
 local function loadPlayerCharacter(Player)
@@ -100,6 +105,25 @@ local function onPlayerRequestCharactersInLobby(RequestingPlayer)
 end
 
 -- public
+local function teleportPlayerToPosition(Player, position)
+	if not Utility.isA(Player, "Player") then
+		error(`{Player} is not a Player!`)
+	end
+	if not (typeof(position) == "Vector3") then
+		error(`{position} is not a Vector3!`)
+	end
+
+	local Character = Player.Character
+	if Character == nil then
+		return false
+	end
+
+	Character:SetPrimaryPartCFrame(CFrame.new(position))
+
+	SoccerBallServer.checkIfPlayerDribbledBallIntoGoal(Player)
+	SoccerBallServer.checkIfPlayerIsTouchingABall(Player)
+end
+
 local function removeCharacter(Player)
 	if not Utility.isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
@@ -148,6 +172,8 @@ local function initializePlayer(Player)
 	spawnCharacterInLobby(Player)
 end
 local function initializeLobbyCharacterServer()
+	MatchJoiningPadsServer = require(SoccerDuelsServerModule.MatchJoiningPadsServer)
+	SoccerBallServer = require(SoccerDuelsServerModule.SoccerBallServer)
 	SoccerDuelsServer = require(SoccerDuelsServerModule)
 
 	PhysicsService:RegisterCollisionGroup(LOBBY_CHARACTER_COLLISION_GROUP)
@@ -162,6 +188,10 @@ local function initializeLobbyCharacterServer()
 end
 
 return {
+	getPlayerPosition = Utility.getPlayerCharacterPosition,
+	teleportPlayerToPosition = teleportPlayerToPosition,
+	getPlayerCFrame = Utility.getPlayerCharacterCFrame,
+
 	spawnPlayerCharacterAtPosition = spawnPlayerCharacterAtPosition,
 	spawnPlayerCharacterInLobby = spawnCharacterInLobby,
 	removePlayerCharacter = removeCharacter,

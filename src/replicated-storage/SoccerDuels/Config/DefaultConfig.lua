@@ -242,4 +242,11 @@ DefaultConfig.PlaceholderPingQuality = "Bad" -- if a player has left or hasn't l
 -- player country code
 DefaultConfig.GetPlayerCountryRegionCodeNumTries = 3
 
+-- soccer balls
+DefaultConfig.SoccerBallWeldOffsetLocalCoordinates = Vector3.new(0, -3, 3)
+DefaultConfig.SecondsAfterGoalBallIsDestroyed = 2
+DefaultConfig.MaxSoccerBallKickSpeed = 100
+DefaultConfig.MinSoccerBallKickSpeed = 1
+DefaultConfig.MaxDistanceStudsBetweenBallAndPlayerToPossess = 5
+
 return DefaultConfig

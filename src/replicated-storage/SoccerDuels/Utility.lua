@@ -7,6 +7,17 @@ local SoccerDuelsModule = script:FindFirstAncestor("SoccerDuels")
 local Maid = require(SoccerDuelsModule.Maid)
 
 -- public
+local function positionIsInPart(position, Part)
+	local partPosition = Part.Position
+	local partCFrame = Part.CFrame
+	local offset = position - partPosition
+
+	local x = offset:Dot(partCFrame.RightVector)
+	local y = offset:Dot(partCFrame.UpVector)
+	local z = offset:Dot(partCFrame.LookVector)
+
+	return (math.abs(x) <= Part.Size.X) and (math.abs(y) <= Part.Size.Y) and (math.abs(z) <= Part.Size.Z)
+end
 local function setDefaultRobloxLeaderboardEnabled(isEnabled)
 	if not (typeof(isEnabled) == "boolean") then
 		error(`{isEnabled} is not a boolean!`)
@@ -376,6 +387,8 @@ return {
 	getPlayerCharacterCFrame = getPlayerCharacterCFrame,
 	cloneCharacter = cloneCharacter,
 	playerIsInGame = playerIsInGame,
+
+	positionIsInPart = positionIsInPart,
 	weldPartToPart = weldPartToPart,
 
 	onCharacterAppearanceLoadedConnect = onCharacterAppearanceLoadedConnect,

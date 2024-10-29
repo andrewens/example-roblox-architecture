@@ -149,7 +149,9 @@ return function()
 				local Humanoid = MockPlayer.Character.Humanoid
 				Humanoid:TakeDamage(Humanoid.MaxHealth)
 
-				assert(charAddedCount == 2) -- test for respawning
+				if not (charAddedCount == 2) then-- test for respawning
+					error(`{charAddedCount} != 2`)
+				end
 				assert(LastCharacter == MockPlayer.Character)
 				assert(PrevCharacter ~= LastCharacter)
 

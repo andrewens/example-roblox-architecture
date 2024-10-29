@@ -45,7 +45,6 @@ local function initializeSoccerDuels()
 end
 
 return {
-
 	-- assets
 	getExpectedAssets = AssetDependencies.getExpectedAssets,
 	getExpectedAsset = AssetDependencies.getExpectedAsset,
@@ -123,13 +122,16 @@ return {
 	teleportSoccerBallToPosition = SoccerDuelsServer.teleportSoccerBallToPosition,
 	getPlayerPossessedBallId = SoccerDuelsServer.getPlayerPossessedBallId,
 	getSoccerBallParentMapId = SoccerDuelsServer.getSoccerBallParentMapId,
+	teleportPlayerToPosition = SoccerDuelsServer.teleportPlayerToPosition,
 	getSoccerBallPosition = SoccerDuelsServer.getSoccerBallPosition,
 	playerKickSoccerBall = SoccerDuelsServer.playerKickSoccerBall,
+	soccerBallStateTick = SoccerDuelsServer.soccerBallStateTick,
 	getSoccerBallOwner = SoccerDuelsServer.getSoccerBallOwner,
 	getSoccerBallState = SoccerDuelsServer.getSoccerBallState,
 	soccerPhysicsStep = SoccerDuelsServer.soccerPhysicsStep,
 	destroySoccerBall = SoccerDuelsServer.destroySoccerBall,
 	getPlayerPosition = SoccerDuelsServer.getPlayerPosition,
+	getPlayerCFrame = SoccerDuelsServer.getPlayerCFrame,
 	newSoccerBall = SoccerDuelsServer.newSoccerBall,
 
 	-- SoccerDuels client

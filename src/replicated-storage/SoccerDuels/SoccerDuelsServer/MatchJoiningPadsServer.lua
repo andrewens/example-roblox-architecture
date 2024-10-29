@@ -454,6 +454,10 @@ local function getPlayerConnectedMatchPadTeamIndex(Player)
 	return PlayerConnectedMatchPad[Player][2]
 end
 local function playerCharacterLoaded(Player, Character)
+	if typeof(Player) == "table" then
+		return
+	end
+
 	local TouchSensorPart = Instance.new("Part")
 	TouchSensorPart.CollisionGroup = LOBBY_DEVICE_COLLISION_GROUP
 	TouchSensorPart.Transparency = LOBBY_DEVICE_TRANSPARENCY
@@ -574,7 +578,7 @@ local function initializeMatchJoiningPads()
 	PhysicsService:RegisterCollisionGroup(LOBBY_DEVICE_COLLISION_GROUP)
 	PhysicsService:CollisionGroupSetCollidable(LOBBY_DEVICE_COLLISION_GROUP, "Default", false)
 
-	Utility.onCharacterLoadedConnect(playerCharacterLoaded)
+	--Utility.onCharacterLoadedConnect(playerCharacterLoaded)
 	Utility.runServiceSteppedConnect(MATCH_JOINING_PAD_STATE_CHANGE_POLL_RATE_SECONDS, matchPadTimerTick)
 
 	Network.onServerEventConnect("PlayerVoteForMap", clientVoteOnMap)
