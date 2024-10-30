@@ -18,6 +18,7 @@ local SECONDS_AFTER_GOAL_BALL_IS_DESTROYED = Config.getConstant("SecondsAfterGoa
 local MAX_SOCCER_BALL_KICK_SPEED = Config.getConstant("MaxSoccerBallKickSpeed")
 local MIN_SOCCER_BALL_KICK_SPEED = Config.getConstant("MinSoccerBallKickSpeed")
 local MAX_DISTANCE_TO_POSSESS = Config.getConstant("MaxDistanceStudsBetweenBallAndPlayerToPossess")
+local BALL_STATE_POLL_RATE = Config.getConstant("SoccerBallStatePollRateSeconds")
 
 -- var
 local numSoccerBallsCreated = 0
@@ -31,7 +32,7 @@ local SoccerBallIdToGoalDestroyTimestamp = {} -- int soccerBallId --> int unixTi
 local SoccerBallsFolder
 
 -- private
-local destroySoccerBall
+local destroySoccerBall, checkIfPlayerDribbledBallIntoGoal
 local function removePlayerSoccerBallOwnership(PossessingPlayer, soccerBallId)
 	PossessingPlayerToBallId[PossessingPlayer] = nil
 	SoccerBallIdToPossessingPlayer[soccerBallId] = nil
@@ -194,6 +195,29 @@ local function checkIfBallScoredGoal(soccerBallId)
 	end
 end
 
+local function partTouchedSoccerBall(soccerBallId, TouchingPart)
+	-- if soccer ball is possessed, check if we made it into a goal zone (RETURNS)
+	local PossessingPlayer = SoccerBallIdToPossessingPlayer[soccerBallId]
+	if PossessingPlayer then
+		checkIfPlayerDribbledBallIntoGoal(PossessingPlayer)
+		return
+	end
+
+	-- if soccer ball has been kicked, check if it made it into the goal
+	checkIfBallScoredGoal(soccerBallId)
+
+	-- otherwise check if a player has touched the ball
+	local Player = Utility.getPlayerFromTouchingPart(TouchingPart)
+	if Player == nil then
+		return
+	end
+
+	if PossessingPlayerToBallId[Player] then
+		return
+	end
+
+	givePlayerSoccerBallOwnership(Player, soccerBallId)
+end
 local function getNewSoccerBallId()
 	numSoccerBallsCreated += 1
 	return numSoccerBallsCreated
@@ -287,7 +311,7 @@ local function playerKickSoccerBall(PossessingPlayer, direction, speed)
 
 	SoccerBallPart.AssemblyLinearVelocity = speed * direction
 end
-local function checkIfPlayerDribbledBallIntoGoal(PossessingPlayer)
+function checkIfPlayerDribbledBallIntoGoal(PossessingPlayer)
 	local soccerBallId = PossessingPlayerToBallId[PossessingPlayer]
 	if soccerBallId == nil then
 		return
@@ -415,6 +439,9 @@ local function newSoccerBall(mapId, PossessingPlayer)
 	end
 
 	Part.Parent = workspace
+	Part.Touched:Connect(function(...)
+		partTouchedSoccerBall(soccerBallId, ...)
+	end)
 
 	SoccerBallIdToPart[soccerBallId] = Part
 	SoccerBallIdToMapId[soccerBallId] = mapId
@@ -431,6 +458,8 @@ local function initializeSoccerBallServer()
 	SoccerBallsFolder.Parent = workspace
 
 	Network.onServerEventConnect("PlayerKickSoccerBall", playerKickSoccerBall)
+
+	Utility.runServiceSteppedConnect(BALL_STATE_POLL_RATE, soccerBallStateTick)
 end
 
 return {

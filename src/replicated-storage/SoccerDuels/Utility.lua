@@ -213,6 +213,18 @@ local function setPlayerCharacterAnchored(Player, isAnchored)
 
 	HumanoidRootPart.Anchored = isAnchored
 end
+local function getPlayerFromTouchingPart(TouchingPart)
+	if not (typeof(TouchingPart) == "Instance" and TouchingPart:IsA("BasePart")) then
+		error(`{TouchingPart} is not a BasePart!`)
+	end
+
+	local Character = TouchingPart.Parent
+	if Character == nil then
+		return
+	end
+
+	return Players:GetPlayerFromCharacter(Character)
+end
 local function getPlayerCharacterCFrame(Player)
 	if not isA(Player, "Player") then
 		error(`{Player} is not a Player!`)
@@ -377,23 +389,27 @@ return {
 	dictionaryToArray = dictionaryToArray,
 	tableDeepCopy = tableDeepCopy,
 	tableCount = tableCount,
+
 	isInteger = isInteger,
 	isA = isA,
 
-	playerCharacterIsInsideSpherePart = playerCharacterIsInsideSpherePart,
 	getPlayerCharacterHumanoidState = getPlayerCharacterHumanoidState,
 	getPlayerCharacterPosition = getPlayerCharacterPosition,
-	setPlayerCharacterAnchored = setPlayerCharacterAnchored,
+	getPlayerFromTouchingPart = getPlayerFromTouchingPart,
 	getPlayerCharacterCFrame = getPlayerCharacterCFrame,
+
+	playerCharacterIsInsideSpherePart = playerCharacterIsInsideSpherePart,
+	setPlayerCharacterAnchored = setPlayerCharacterAnchored,
 	cloneCharacter = cloneCharacter,
 	playerIsInGame = playerIsInGame,
 
 	positionIsInPart = positionIsInPart,
 	weldPartToPart = weldPartToPart,
 
-	onCharacterAppearanceLoadedConnect = onCharacterAppearanceLoadedConnect,
 	runServiceRenderSteppedConnect = runServiceRenderSteppedConnect,
 	runServiceSteppedConnect = runServiceSteppedConnect,
+
+	onCharacterAppearanceLoadedConnect = onCharacterAppearanceLoadedConnect,
 	onCharacterLoadedConnect = onCharacterLoadedConnect,
 	onPartTouchedConnect = onPartTouchedConnect,
 	onPlayerDiedConnect = onPlayerDiedConnect,

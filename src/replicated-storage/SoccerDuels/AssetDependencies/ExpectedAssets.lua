@@ -374,28 +374,33 @@ do
 			Path = `ServerStorage/MapTemplates/{mapName}`,
 			ConvertToClass = "Model",
 		}
+
+		ExpectedAssets[`{mapName} MechanicsFolder`] = {
+			Path = `ServerStorage/MapTemplates/{mapName}/Mechanics`,
+			ClassName = "Folder",
+		}
 		ExpectedAssets[`{mapName} MapOriginPart`] = {
-			Path = `ServerStorage/MapTemplates/{mapName}/Origin`,
+			Path = `ServerStorage/MapTemplates/{mapName}/Mechanics/Origin`,
 			ClassName = "BasePart",
 		}
 		ExpectedAssets[`{mapName} TeamStartingPositions`] = {
-			Path = `ServerStorage/MapTemplates/{mapName}/TeamStartingPositions`,
+			Path = `ServerStorage/MapTemplates/{mapName}/Mechanics/TeamStartingPositions`,
 		}
 
 		-- cameras
 		ExpectedAssets[`{mapName} SidelinesCameraPart`] = {
-			Path = `ServerStorage/MapTemplates/{mapName}/Cameras/Sideline`,
+			Path = `ServerStorage/MapTemplates/{mapName}/Mechanics/Cameras/Sideline`,
 			ClassName = "BasePart",
 		}
 		ExpectedAssets[`{mapName} EndCutsceneCameraPart`] = {
-			Path = `ServerStorage/MapTemplates/{mapName}/Cameras/GameOver`,
+			Path = `ServerStorage/MapTemplates/{mapName}/Mechanics/Cameras/GameOver`,
 			ClassName = "BasePart",
 		}
 
 		-- goal parts
 		for teamIndex = 1, 2 do
 			ExpectedAssets[`{mapName} Team{teamIndex} GoalPart`] = {
-				Path = `ServerStorage/MapTemplates/{mapName}/Goals/Team{teamIndex}`,
+				Path = `ServerStorage/MapTemplates/{mapName}/Mechanics/Goals/Team{teamIndex}`,
 				ClassName = "BasePart",
 			}
 		end
@@ -404,7 +409,7 @@ do
 		for teamIndex = 1, 2 do
 			for i = 1, MAX_PLAYERS_PER_TEAM do
 				ExpectedAssets[`{mapName} Team{teamIndex} StartPosition{i}`] = {
-					Path = `ServerStorage/MapTemplates/{mapName}/TeamStartingPositions/Team{teamIndex}/{i}`,
+					Path = `ServerStorage/MapTemplates/{mapName}/Mechanics/TeamStartingPositions/Team{teamIndex}/{i}`,
 					ClassName = "BasePart",
 				}
 			end
@@ -413,21 +418,21 @@ do
 		-- team end cutscene positions
 		for i = 1, MAX_PLAYERS_PER_TEAM do
 			ExpectedAssets[`{mapName} EndCutsceneCharacterPosition{i}`] = {
-				Path = `ServerStorage/MapTemplates/{mapName}/GameOverCharacterPositions/{i}`,
+				Path = `ServerStorage/MapTemplates/{mapName}/Mechanics/GameOverCharacterPositions/{i}`,
 				ClassName = "BasePart",
 			}
 		end
 
 		-- soccer ball
 		ExpectedAssets[`{mapName} BallSpawnPoint`] = {
-			Path = `ServerStorage/MapTemplates/{mapName}/SoccerBall/SoccerBallSpawnPoint`,
+			Path = `ServerStorage/MapTemplates/{mapName}/Mechanics/SoccerBall/SoccerBallSpawnPoint`,
 			ClassName = "BasePart",
 		}
 
 		-- goal kick testing parts
 		for teamIndex = 1, 2 do
 			ExpectedAssets[`{mapName} Team{teamIndex} GoalKickTestingPart`] = {
-				Path = `ServerStorage/MapTemplates/{mapName}/GoalKickTestingParts/Team{teamIndex}`,
+				Path = `ServerStorage/MapTemplates/{mapName}/Mechanics/GoalKickTestingParts/Team{teamIndex}`,
 				ClassName = "BasePart",
 			}
 		end

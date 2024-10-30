@@ -8,11 +8,14 @@ local Enums = require(SoccerDuelsModule.Enums)
 local Network = require(SoccerDuelsModule.Network)
 local Time = require(SoccerDuelsModule.Time)
 local Utility = require(SoccerDuelsModule.Utility)
-local SoccerDuelsServer -- required in initialize()
 
+local SoccerDuelsServer -- required in initialize()
+local SoccerBallServer -- required in initialize
 local CharacterServer = require(SoccerDuelsServerModule.CharacterServer)
 
 -- const
+local TESTING_MODE = Config.getConstant("TestingMode")
+
 local MAX_NUM_MAP_INSTANCES_PER_GRID_ROW = Config.getConstant("MaxMapInstancesPerGridRow")
 local STUDS_BETWEEN_MAP_INSTANCES = Config.getConstant("DistanceBetweenMapInstancesStuds")
 
@@ -198,8 +201,10 @@ local function setMapState(mapInstanceId, mapStateEnum, durationSeconds)
 		return
 	end
 
-	-- 'MatchGameplay' - unfreeze player characters
+	-- 'MatchGameplay' - unfreeze player characters | spawn soccer ball
 	if mapStateEnum == MATCH_GAMEPLAY_STATE_ENUM then
+		SoccerBallServer.newSoccerBall(mapInstanceId)
+
 		for Player, teamIndex in MapInstancePlayers[mapInstanceId] do
 			Utility.setPlayerCharacterAnchored(Player, false)
 		end
@@ -773,14 +778,30 @@ local function destroyAllMapInstances()
 	end
 end
 
+local function initializeMapTemplate(mapEnum, mapName)
+	local MapModel = Utility.convertInstanceIntoModel(Assets.getExpectedAsset(`{mapName} MapFolder`))
+	local MechanicsFolder = Assets.getExpectedAsset(`{mapName} MechanicsFolder`, `{mapName} MapFolder`, MapModel)
+
+	local transparency = if TESTING_MODE then 0.8 else 1
+	for _, BasePart in MechanicsFolder:GetDescendants() do
+		if not (BasePart:IsA("BasePart")) then
+			continue
+		end
+
+		BasePart.CanCollide = false
+		BasePart.Anchored = true
+		BasePart.Transparency = transparency
+	end
+end
 local function initializeMapsServer()
 	SoccerDuelsServer = require(SoccerDuelsServerModule)
+	SoccerBallServer = require(SoccerDuelsServerModule.SoccerBallServer)
 
 	local MapGridOriginPart = Assets.getExpectedAsset("MapGridOriginPart")
 	mapGridOrigin = MapGridOriginPart.Position
 
 	for mapEnum, mapName in Enums.iterateEnumsOfType("Map") do
-		Utility.convertInstanceIntoModel(Assets.getExpectedAsset(`{mapName} MapFolder`))
+		initializeMapTemplate(mapEnum, mapName)
 	end
 
 	Utility.runServiceSteppedConnect(MAP_STATE_TICK_RATE_SECONDS, mapTimerTick)

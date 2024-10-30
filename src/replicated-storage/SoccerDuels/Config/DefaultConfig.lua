@@ -178,9 +178,11 @@ DefaultConfig.UserInputTypeToControllerType = {
 DefaultConfig.DefaultKeybinds = {
 	Keyboard = {
 		Leaderboard = Enum.KeyCode.Tab,
+		KickSoccerBall = Enum.KeyCode.X,
 	},
 	XBox = {
 		Leaderboard = Enum.KeyCode.ButtonL1,
+		KickSoccerBall = Enum.KeyCode.ButtonR2,
 	},
 }
 
@@ -248,5 +250,6 @@ DefaultConfig.SecondsAfterGoalBallIsDestroyed = 2
 DefaultConfig.MaxSoccerBallKickSpeed = 100
 DefaultConfig.MinSoccerBallKickSpeed = 1
 DefaultConfig.MaxDistanceStudsBetweenBallAndPlayerToPossess = 5
+DefaultConfig.SoccerBallStatePollRateSeconds = 0.33
 
 return DefaultConfig

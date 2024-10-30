@@ -31,7 +31,9 @@ local function assertNoOnePossessesSoccerBall(mapId, ballId)
 	end
 end
 local function assertPlayerPossessesSoccerBall(mapId, ballId, Player)
-	assert(SoccerDuels.getPlayerPossessedBallId(Player) == ballId)
+	if not (SoccerDuels.getPlayerPossessedBallId(Player) == ballId) then
+		error(`{SoccerDuels.getPlayerPossessedBallId(Player)} != {ballId}`)
+	end
 	assert(SoccerDuels.getSoccerBallOwner(ballId) == Player)
 
 	for OtherPlayer, teamIndex in SoccerDuels.getPlayersConnectedToMapInstance(mapId) do

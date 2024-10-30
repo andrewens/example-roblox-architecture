@@ -11,12 +11,17 @@ local Utility = require(SoccerDuelsModule.Utility)
 
 local ClientMapState = require(SoccerDuelsClientStateFolder.ClientMapState)
 local ClientModalState = require(SoccerDuelsClientStateFolder.ClientModalState)
+local ClientSoccerBall = require(SoccerDuelsClientStateFolder.ClientSoccerBall)
 
 -- const
 local DEFAULT_CONTROLLER_TYPE = Config.getConstant("DefaultControllerType")
 local USER_INPUT_TYPE_TO_CONTROLLER_TYPE = Config.getConstant("UserInputTypeToControllerType")
+
 local DEFAULT_LEADERBOARD_KEY = Config.getConstant("DefaultKeybinds", "Keyboard", "Leaderboard")
 local DEFAULT_XBOX_LEADERBOARD_BUTTON = Config.getConstant("DefaultKeybinds", "XBox", "Leaderboard")
+
+local DEFAULT_KICK_BALL_KEY = Config.getConstant("DefaultKeybinds", "Keyboard", "KickSoccerBall")
+local DEFAULT_XBOX_KICK_BALL_KEY = Config.getConstant("DefaultKeybinds", "XBox", "KickSoccerBall")
 
 local DEFAULT_CONTROLLER_TYPE_ENUM = Enums.getEnum("ControllerType", DEFAULT_CONTROLLER_TYPE)
 
@@ -47,6 +52,15 @@ local function clientBeginInput(self, InputObject)
 		if ClientMapState.getClientConnectedMapName(self) then
 			ClientModalState.setClientVisibleModal(self, "Leaderboard")
 		end
+	end
+
+	if InputObject.KeyCode == DEFAULT_KICK_BALL_KEY or InputObject.KeyCode == DEFAULT_XBOX_KICK_BALL_KEY then
+		local cameraCFrame = workspace.Camera.CFrame
+
+		local x = cameraCFrame.LookVector.X
+		local z = cameraCFrame.LookVector.Z
+
+		ClientSoccerBall.clientKickSoccerBall(self, Vector3.new(x, 0, z), 100)
 	end
 end
 local function clientEndInput(self, InputObject)
