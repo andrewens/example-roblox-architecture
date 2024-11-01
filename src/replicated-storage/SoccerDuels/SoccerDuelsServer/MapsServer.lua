@@ -10,7 +10,7 @@ local Time = require(SoccerDuelsModule.Time)
 local Utility = require(SoccerDuelsModule.Utility)
 
 local SoccerDuelsServer -- required in initialize()
-local SoccerBallServer -- required in initialize
+local SoccerBallServer -- required in initialize()
 local CharacterServer = require(SoccerDuelsServerModule.CharacterServer)
 
 -- const

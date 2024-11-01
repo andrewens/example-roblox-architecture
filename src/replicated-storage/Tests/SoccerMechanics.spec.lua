@@ -1,292 +1,35 @@
 -- dependency
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TestsFolder = script:FindFirstAncestor("Tests")
 
-local SoccerDuels = require(ReplicatedStorage.SoccerDuels)
-local MockInstance = require(TestsFolder.MockInstance)
-local Utility = require(TestsFolder.Utility)
+local Actions = require(TestsFolder.Actions)
+local Assert = require(TestsFolder.Assert)
 
--- private / states
-local function assertPositionIsInsideOfPart(position, Part)
-	local partPosition = Part.Position
-	local partCFrame = Part.CFrame
-	local offset = position - partPosition
+-- const
+local TOTAL_NUM_TESTS = 5
 
-	local x = offset:Dot(partCFrame.RightVector)
-	local y = offset:Dot(partCFrame.UpVector)
-	local z = offset:Dot(partCFrame.LookVector)
+-- var
+local numTestsRun = 0
+local testMapId
+local Client1, Client2, Client3, Client4
 
-	assert(math.abs(x) <= Part.Size.X)
-	assert(math.abs(y) <= Part.Size.Y)
-	assert(math.abs(z) <= Part.Size.Z)
-end
+-- private
+local function beginTest()
+	numTestsRun += 1
 
-local function assertNoOnePossessesSoccerBall(mapId, ballId)
-	if not (SoccerDuels.getSoccerBallOwner(ballId) == nil) then
-		error(`{SoccerDuels.getSoccerBallOwner(ballId)} != nil`)
-	end
-
-	for Player, teamIndex in SoccerDuels.getPlayersConnectedToMapInstance(mapId) do
-		assert(SoccerDuels.getPlayerPossessedBallId(Player) == nil)
+	if testMapId == nil then
+		testMapId, Client1, Client2, Client3, Client4 = Actions.initializeMapForPlay()
 	end
 end
-local function assertPlayerPossessesSoccerBall(mapId, ballId, Player)
-	if not (SoccerDuels.getPlayerPossessedBallId(Player) == ballId) then
-		error(`{SoccerDuels.getPlayerPossessedBallId(Player)} != {ballId}`)
-	end
-	assert(SoccerDuels.getSoccerBallOwner(ballId) == Player)
-
-	for OtherPlayer, teamIndex in SoccerDuels.getPlayersConnectedToMapInstance(mapId) do
-		if OtherPlayer == Player then
-			continue
-		end
-
-		assert(SoccerDuels.getPlayerPossessedBallId(OtherPlayer) ~= ballId)
-	end
-end
-local function assertPlayerScoredGoal(mapId, Player, prevGoals)
-	prevGoals = prevGoals or 0
-
-	assert(SoccerDuels.getMapInstanceState(mapId) == "MatchOver")
-	assert(SoccerDuels.getPlayerThatScoredLastGoal(mapId) == Player)
-	assert(SoccerDuels.getCachedPlayerSaveData(Player).Goals == prevGoals + 1)
-end
-local function assertPlayerIsNotNearSoccerBallSpawnPoint(mapId, Player)
-	local MapFolder = SoccerDuels.getMapInstanceFolder(mapId)
-	local mapName = SoccerDuels.getMapInstanceMapName(mapId)
-
-	local playerPosition = SoccerDuels.getPlayerPosition(Player)
-	local spawnPosition =
-		SoccerDuels.getExpectedAsset(`{mapName} BallSpawnPoint`, `{mapName} MapFolder`, MapFolder).Position
-	local offset = playerPosition - spawnPosition
-	local minDistance = 5 -- ?
-
-	assert(offset:Dot(offset) >= minDistance ^ 2)
-end
-
-local function assertSoccerBallIsAtDefaultSpawnPoint(mapId, ballId)
-	local MapFolder = SoccerDuels.getMapInstanceFolder(mapId)
-	local mapName = SoccerDuels.getMapInstanceMapName(mapId)
-
-	local ballPosition = SoccerDuels.getSoccerBallPosition(ballId)
-	local spawnPosition =
-		SoccerDuels.getExpectedAsset(`{mapName} BallSpawnPoint`, `{mapName} MapFolder`, MapFolder).Position
-
-	assert(ballPosition:FuzzyEq(spawnPosition))
-end
-local function assertSoccerBallIsNearPlayer(mapId, ballId, Player)
-	local ballOffset = SoccerDuels.getConstant("SoccerBallWeldOffsetLocalCoordinates")
-
-	local ballPosition = SoccerDuels.getSoccerBallPosition(ballId)
-	local playerCFrame = SoccerDuels.getPlayerCFrame(Player)
-
-	local correctBallPosition = playerCFrame.Position
-		+ playerCFrame.RightVector * ballOffset.X
-		+ playerCFrame.UpVector * ballOffset.Y
-		+ playerCFrame.LookVector * ballOffset.Z
-
-	assert(correctBallPosition:FuzzyEq(ballPosition))
-end
-local function assertSoccerBallIsIdle(mapId, ballId)
-	assert(SoccerDuels.getSoccerBallParentMapId(ballId) == mapId)
-	assert(SoccerDuels.getSoccerBallState(ballId) == "Idle")
-
-	assertNoOnePossessesSoccerBall(mapId, ballId)
-end
-local function assertSoccerBallIsDestroyed(mapId, ballId)
-	assert(SoccerDuels.getSoccerBallState(ballId) == "Destroyed")
-	assertNoOnePossessesSoccerBall(mapId, ballId)
-end
-local function assertSoccerBallIsPossessedByPlayer(mapId, ballId, Player)
-	assert(SoccerDuels.getSoccerBallState(ballId) == "Possessed")
-	assert(SoccerDuels.getSoccerBallParentMapId(ballId) == mapId)
-	assert(SoccerDuels.getSoccerBallOwner(ballId) == Player)
-	assert(SoccerDuels.getPlayerPossessedBallId(Player) == ballId)
-
-	assertSoccerBallIsNearPlayer(mapId, ballId, Player)
-end
---[[ this state might be necessary to prevent instant repossessing by players that kick
-local function soccerBallHasJustBeenKicked(mapId, ballId, PlayerThatKicked)
-	assert(SoccerDuels.getSoccerBallState(ballId) == "Kicked")
-
-	noOnePossessesSoccerBall(mapId, ballId)
-
-    -- TODO maybe test that the player who just kicked the ball can't repossess it instantly if necessary
-end--]]
-local function assertSoccerBallIsInPlayersOpposingGoal(mapId, ballId, Player)
-	if not (SoccerDuels.getSoccerBallState(ballId) == "Goal") then
-		error(`{SoccerDuels.getSoccerBallState(ballId)} != "Goal"`)
-	end
-	assertNoOnePossessesSoccerBall(mapId, ballId)
-
-	local ballPosition = SoccerDuels.getSoccerBallPosition(ballId)
-	local teamIndex = SoccerDuels.getPlayerTeamIndex(Player)
-	local otherTeamIndex = if teamIndex == 1 then 2 else 1
-
-	local mapName = SoccerDuels.getMapInstanceMapName(mapId)
-	local MapFolder = SoccerDuels.getMapInstanceFolder(mapId)
-	local GoalPart =
-		SoccerDuels.getExpectedAsset(`{mapName} Team{otherTeamIndex} GoalPart`, `{mapName} MapFolder`, MapFolder)
-
-	assertPositionIsInsideOfPart(ballPosition, GoalPart)
-end
-
-local function assertMapIsReadyForPlay(mapId)
-	local Players = SoccerDuels.getPlayersConnectedToMapInstance(mapId)
-
-	assert(SoccerDuels.getMapInstanceState(mapId) == "MatchGameplay")
-	assert(Utility.tableCount(Players) == 4)
-
-	for Player, _ in Players do
-		assertPlayerIsNotNearSoccerBallSpawnPoint(mapId, Player)
-	end
-end
-
--- private / actions (mutate one state to another state)
-local function initializeMapForPlay()
-	SoccerDuels.resetTestingVariables()
-	SoccerDuels.disconnectAllPlayers()
-
-	local mapLoadingDuration = SoccerDuels.getConstant("MapLoadingDurationSeconds")
-	local matchCountdownDuration = SoccerDuels.getConstant("MatchCountdownDurationSeconds")
-
-	local Player1 = MockInstance.new("Player")
-	local Player2 = MockInstance.new("Player")
-	local Player3 = MockInstance.new("Player")
-	local Player4 = MockInstance.new("Player")
-
-	local Client1 = SoccerDuels.newClient(Player1)
-	local Client2 = SoccerDuels.newClient(Player2)
-	local Client3 = SoccerDuels.newClient(Player3)
-	local Client4 = SoccerDuels.newClient(Player4)
-
-	Client1:LoadPlayerDataAsync()
-	Client2:LoadPlayerDataAsync()
-	Client3:LoadPlayerDataAsync()
-	Client4:LoadPlayerDataAsync()
-
-	local mapId = SoccerDuels.newMapInstance("Stadium")
-
-	SoccerDuels.connectPlayerToMapInstance(Player1, mapId, 1)
-	SoccerDuels.connectPlayerToMapInstance(Player2, mapId, 1)
-	SoccerDuels.connectPlayerToMapInstance(Player3, mapId, 2)
-	SoccerDuels.connectPlayerToMapInstance(Player4, mapId, 2)
-
-	SoccerDuels.addExtraSecondsForTesting(mapLoadingDuration)
-	SoccerDuels.mapTimerTick()
-	SoccerDuels.addExtraSecondsForTesting(matchCountdownDuration)
-	SoccerDuels.mapTimerTick()
-
-	return mapId, Client1, Client2, Client3, Client4
-end
-local function destroyMap(mapId, Client1, Client2, Client3, Client4)
-	SoccerDuels.destroyMapInstance(mapId)
-	Client1:Destroy()
-	Client2:Destroy()
-	Client3:Destroy()
-	Client4:Destroy()
-end
-local function mapWaitForNextRound(mapId)
-	if SoccerDuels.getMapInstanceState(mapId) == "MatchOver" then
-		local duration = SoccerDuels.getConstant("MatchOverDurationSeconds")
-
-		SoccerDuels.addExtraSecondsForTesting(duration)
-		SoccerDuels.mapTimerTick()
+local function endTest()
+	if numTestsRun < TOTAL_NUM_TESTS then
+		return
 	end
 
-	if SoccerDuels.getMapInstanceState(mapId) == "GoalCutscene" then
-		local duration = SoccerDuels.getConstant("GoalCutsceneDurationSeconds")
-
-		SoccerDuels.addExtraSecondsForTesting(duration)
-		SoccerDuels.mapTimerTick()
-	end
-
-	if SoccerDuels.getMapInstanceState(mapId) == "MatchCountdown" then
-		local duration = SoccerDuels.getConstant("MatchCountdownDurationSeconds")
-
-		SoccerDuels.addExtraSecondsForTesting(duration)
-		SoccerDuels.mapTimerTick()
-	end
-end
-
-local function spawnBallInCenterOfMap(mapId)
-	return SoccerDuels.newSoccerBall(mapId)
-end
-local function spawnBallAtPlayer(mapId, Player)
-	return SoccerDuels.newSoccerBall(mapId, Player)
-end
-local function waitForSoccerBallInGoalToDestroy(mapId, ballId)
-	local secondsAfterGoalBallIsDestroyed = SoccerDuels.getConstant("SecondsAfterGoalBallIsDestroyed")
-
-	SoccerDuels.addExtraSecondsForTesting(secondsAfterGoalBallIsDestroyed)
-	SoccerDuels.soccerBallStateTick()
-end
-local function moveSoccerBallToPlayersPosition(mapId, ballId, Player)
-	local playerPosition = SoccerDuels.getPlayerPosition(Player)
-	SoccerDuels.teleportSoccerBallToPosition(ballId, playerPosition)
-end
-local function destroySoccerBall(mapId, ballId)
-	SoccerDuels.destroySoccerBall(ballId)
-end
-
-local function movePlayerToSoccerBallPosition(mapId, ballId, Player)
-	local ballPosition = SoccerDuels.getSoccerBallPosition(ballId)
-	SoccerDuels.teleportPlayerToPosition(Player, ballPosition)
-end
-local function movePlayerToOpposingGoalPosition(mapId, Player)
-	local teamIndex = SoccerDuels.getPlayerTeamIndex(Player)
-	local otherTeamIndex = if teamIndex == 1 then 2 else 1
-
-	local mapName = SoccerDuels.getMapInstanceMapName(mapId)
-	local MapFolder = SoccerDuels.getMapInstanceFolder(mapId)
-	local GoalPart =
-		SoccerDuels.getExpectedAsset(`{mapName} Team{otherTeamIndex} GoalPart`, `{mapName} MapFolder`, MapFolder)
-
-	SoccerDuels.teleportPlayerToPosition(Player, GoalPart.Position)
-end
-local function movePlayerInSomeDirection(mapId, Player)
-	local playerPosition = SoccerDuels.getPlayerPosition(Player)
-	local offset = Vector3.new(5, 0, 5)
-
-	SoccerDuels.teleportPlayerToPosition(Player, playerPosition + offset)
-end
-local function playerKickSoccerBallIntoOpposingGoal(mapId, Player)
-	local teamIndex = SoccerDuels.getPlayerTeamIndex(Player)
-	local otherTeamIndex = if teamIndex == 1 then 2 else 1
-
-	local mapName = SoccerDuels.getMapInstanceMapName(mapId)
-	local MapFolder = SoccerDuels.getMapInstanceFolder(mapId)
-	local GoalPart =
-		SoccerDuels.getExpectedAsset(`{mapName} Team{otherTeamIndex} GoalPart`, `{mapName} MapFolder`, MapFolder)
-	local NearGoalPart =
-		SoccerDuels.getExpectedAsset(`{mapName} Team{teamIndex} GoalKickTestingPart`, `{mapName} MapFolder`, MapFolder)
-
-	local direction = GoalPart.Position - NearGoalPart.Position -- should get turned into unit vector
-
-	local initialDistanceFromBallToGoal = 10 -- this accounts for the edge of the goal zone, and should be updated when GoalKickTestingPart is updated
-	local deltaTime = 0.1
-	local power = initialDistanceFromBallToGoal / deltaTime -- power is actually just the initial velocity of the ball
-
-	SoccerDuels.teleportPlayerToPosition(Player, NearGoalPart.Position)
-	SoccerDuels.playerKickSoccerBall(Player, direction, power)
-	SoccerDuels.soccerPhysicsStep(deltaTime)
-end
-local function playerKickSoccerBallServer(mapId, Player)
-	local direction = Vector3.new(1, 0, 0)
-	local power = 10
-
-	SoccerDuels.playerKickSoccerBall(Player, direction, power)
-end
-local function playerKickSoccerBallClient(mapId, Client)
-	local direction = Vector3.new(1, 0, 0)
-	local power = 10
-
-	Client:KickSoccerBall(direction, power)
+	Actions.destroyMap(testMapId, Client1, Client2, Client3, Client4)
 end
 
 return function()
-	it("Soccerball state, kicking & possession mechanics", function()
-		-- TODO does TestEZ support pre-test and post-test hooks?
+	describe("Soccerball state, kicking & possession mechanics", function()
 		-- TODO can you make the code functional so you don't have to worry about state? It's causing problems to have to think about previous state
 		-- TODO need to figure out a framework for physics testing + a framework for roblox characters
 		-- TODO could we organize imperative code in layers, like: side effects layer, network replication layer, core state layer?
@@ -299,80 +42,96 @@ return function()
 		-- TODO test if a player disconnects
 		-- TODO test if a player disconnects after shooting a goal
 
-		local mapId, Client1, Client2, Client3, Client4 = initializeMapForPlay()
+		it("SoccerDuels API can create and destroy soccer ball instances", function()
+			beginTest()
 
-		-- test #1 | create & destroy a soccer ball
-		assertMapIsReadyForPlay(mapId)
+			Assert.mapIsReadyForPlay(testMapId)
 
-		local ballId = spawnBallInCenterOfMap(mapId)
-		assertSoccerBallIsIdle(mapId, ballId)
-		assertSoccerBallIsAtDefaultSpawnPoint(mapId, ballId)
+			local ballId = Actions.spawnBallInCenterOfMap(testMapId)
+			Assert.soccerBallIsIdle(testMapId, ballId)
+			Assert.soccerBallIsAtDefaultSpawnPoint(testMapId, ballId)
 
-		destroySoccerBall(mapId, ballId)
-		assertSoccerBallIsDestroyed(mapId, ballId)
+			Actions.destroySoccerBall(testMapId, ballId)
+			Assert.soccerBallIsDestroyed(testMapId, ballId)
 
-		-- test #2 | destroy a soccer ball while player possesses it
-		assertMapIsReadyForPlay(mapId)
+			endTest()
+		end)
+		it("Destroying a soccerball while player possesses it just removes it from the world", function()
+			beginTest()
 
-		ballId = spawnBallAtPlayer(mapId, Client1.Player)
-		assertSoccerBallIsPossessedByPlayer(mapId, ballId, Client1.Player)
+			Assert.mapIsReadyForPlay(testMapId)
 
-		destroySoccerBall(mapId, ballId)
-		assertSoccerBallIsDestroyed(mapId, ballId)
+			ballId = Actions.spawnBallAtPlayer(testMapId, Client1.Player)
+			Assert.soccerBallIsPossessedByPlayer(testMapId, ballId, Client1.Player)
 
-		-- test #3 | player dribbles soccer ball into goal
-		assertMapIsReadyForPlay(mapId)
+			Actions.destroySoccerBall(testMapId, ballId)
+			Assert.soccerBallIsDestroyed(testMapId, ballId)
 
-		ballId = spawnBallAtPlayer(mapId, Client2.Player)
-		assertSoccerBallIsPossessedByPlayer(mapId, ballId, Client2.Player)
+			endTest()
+		end)
+		it("Players can walk a possessed ball into the goal to score", function()
+			beginTest()
 
-		movePlayerToOpposingGoalPosition(mapId, Client2.Player)
-		assertSoccerBallIsInPlayersOpposingGoal(mapId, ballId, Client2.Player)
-		assertPlayerScoredGoal(mapId, Client2.Player)
+			Assert.mapIsReadyForPlay(testMapId)
 
-		waitForSoccerBallInGoalToDestroy(mapId, ballId)
-		assertSoccerBallIsDestroyed(mapId, ballId)
+			ballId = Actions.spawnBallAtPlayer(testMapId, Client2.Player)
+			Assert.soccerBallIsPossessedByPlayer(testMapId, ballId, Client2.Player)
 
-		-- test #4 | player kicks soccer ball into goal
-		mapWaitForNextRound(mapId)
-		assertMapIsReadyForPlay(mapId)
+			Actions.movePlayerToOpposingGoalPosition(testMapId, Client2.Player)
+			Assert.soccerBallIsInPlayersOpposingGoal(testMapId, ballId, Client2.Player)
+			Assert.playerScoredGoal(testMapId, Client2.Player)
 
-		ballId = spawnBallAtPlayer(mapId, Client3.Player)
-		assertSoccerBallIsPossessedByPlayer(mapId, ballId, Client3.Player)
+			Actions.waitForSoccerBallInGoalToDestroy(testMapId, ballId)
+			Assert.soccerBallIsDestroyed(testMapId, ballId)
 
-		playerKickSoccerBallIntoOpposingGoal(mapId, Client3.Player)
-		assertSoccerBallIsInPlayersOpposingGoal(mapId, ballId, Client3.Player)
-		assertPlayerScoredGoal(mapId, Client3.Player)
+			endTest()
+		end)
+		it("Players can kick a possessed ball into the goal to score", function()
+			beginTest()
 
-		waitForSoccerBallInGoalToDestroy(mapId, ballId)
-		assertSoccerBallIsDestroyed(mapId, ballId)
+			Actions.mapWaitForNextRound(testMapId)
+			Assert.mapIsReadyForPlay(testMapId)
 
-		-- test #5 | player possesses and dispossesses ball as they kick it and run back to it
-		mapWaitForNextRound(mapId)
-		assertMapIsReadyForPlay(mapId)
+			ballId = Actions.spawnBallAtPlayer(testMapId, Client3.Player)
+			Assert.soccerBallIsPossessedByPlayer(testMapId, ballId, Client3.Player)
 
-		ballId = spawnBallInCenterOfMap(mapId)
-		assertSoccerBallIsAtDefaultSpawnPoint(mapId, ballId)
+			Actions.playerKickSoccerBallIntoOpposingGoal(testMapId, Client3.Player)
+			Assert.soccerBallIsInPlayersOpposingGoal(testMapId, ballId, Client3.Player)
+			Assert.playerScoredGoal(testMapId, Client3.Player)
 
-		movePlayerToSoccerBallPosition(mapId, ballId, Client4.Player) -- (possess ball by walking to it)
-		assertPlayerPossessesSoccerBall(mapId, ballId, Client4.Player)
+			Actions.waitForSoccerBallInGoalToDestroy(testMapId, ballId)
+			Assert.soccerBallIsDestroyed(testMapId, ballId)
 
-		movePlayerInSomeDirection(mapId, Client4.Player) -- dribble
-		assertPlayerPossessesSoccerBall(mapId, ballId, Client4.Player)
+			endTest()
+		end)
+		it("Players lose possession of a ball after they kick it", function()
+			beginTest()
 
-		playerKickSoccerBallServer(mapId, Client4.Player) -- server kick
-		assertNoOnePossessesSoccerBall(mapId, ballId)
+			Actions.mapWaitForNextRound(testMapId)
+			Assert.mapIsReadyForPlay(testMapId)
 
-		moveSoccerBallToPlayersPosition(mapId, ballId, Client4.Player) -- (repossess ball by teleporting it to player)
-		assertPlayerPossessesSoccerBall(mapId, ballId, Client4.Player)
+			ballId = Actions.spawnBallInCenterOfMap(testMapId)
+			Assert.soccerBallIsAtDefaultSpawnPoint(testMapId, ballId)
 
-		playerKickSoccerBallClient(mapId, Client4) -- client kick
-		assertNoOnePossessesSoccerBall(mapId, ballId)
+			Actions.movePlayerToSoccerBallPosition(testMapId, ballId, Client4.Player) -- (possess ball by walking to it)
+			Assert.playerPossessesSoccerBall(testMapId, ballId, Client4.Player)
 
-		destroySoccerBall(mapId, ballId)
-		assertSoccerBallIsDestroyed(mapId, ballId)
+			Actions.movePlayerInSomeDirection(testMapId, Client4.Player) -- dribble
+			Assert.playerPossessesSoccerBall(testMapId, ballId, Client4.Player)
 
-		-- cleanup
-		destroyMap(mapId, Client1, Client2, Client3, Client4)
+			Actions.playerKickSoccerBallServer(testMapId, Client4.Player) -- server kick
+			Assert.noOnePossessesSoccerBall(testMapId, ballId)
+
+			Actions.moveSoccerBallToPlayersPosition(testMapId, ballId, Client4.Player) -- (repossess ball by teleporting it to player)
+			Assert.playerPossessesSoccerBall(testMapId, ballId, Client4.Player)
+
+			Actions.playerKickSoccerBallClient(testMapId, Client4) -- client kick
+			Assert.noOnePossessesSoccerBall(testMapId, ballId)
+
+			Actions.destroySoccerBall(testMapId, ballId)
+			Assert.soccerBallIsDestroyed(testMapId, ballId)
+
+			endTest()
+		end)
 	end)
 end
