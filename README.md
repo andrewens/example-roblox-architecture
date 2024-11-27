@@ -10,6 +10,6 @@ How the project is organized:
 
 Why this is a good way of doing this:
 * Test-driven development is the best way to ensure code quality: it forces the developer to design a convenient interface, while also specifying exactly what problem they are solving; it also tells you if your system works automatically, which means you can refactor without fear of accidentally breaking something. Furthermore, every test is a concrete example of how to use the game code, which serves as the most practical kind of documentation.
-* If you are looking for a config value, they will always be in one place
+* If you are looking to change a constant in the game code, they will always be in one place, which means you don't have to dig
 * The AssetDependencies module makes it easy to understand exactly what templates are depended on (again, in one place), and allows for asset creators to arbitrarily change the path that templates are stored without editing implementation code. Plus, the system instantly tells you if an asset is missing, which saves time from digging through code and parsing an error message.
 * Multiplayer networking creates the most complex problems in ROBLOX development. Automatically testing Client-Server replication is incredibly helpful when it comes to implementing these features, because it will catch nuanced bugs (e.g. data being replicated in the wrong order) without the developer having to manually test it themself.
